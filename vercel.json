@@ -6,7 +6,7 @@
   ],
   "redirects": [
     {
-      "source": "/:path((?!project).*)",
+      "source": "/:path((?!project).+)",
       "destination": "https://google.com",
       "permanent": false
     }
