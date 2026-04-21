@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/api/index" },
+    { "source": "/project/MyBrowser", "destination": "/project/MyBrowser/index.html" },
+    { "source": "/project/MyBrowser/download", "destination": "/project/MyBrowser/download.html" }
+  ],
+  "redirects": [
+    {
+      "source": "/:path((?!project).*)",
+      "destination": "https://google.com",
+      "permanent": false
+    }
+  ]
+}
