@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MyBrowser 2026 · Встроенный просмотр</title>
+  <style>
+    /* ===== CSS VARIABLES FOR THEMES ===== */
+    :root {
+      --bg-primary: #0e141c;
+      --bg-secondary: rgba(18, 28, 38, 0.9);
+      --bg-tertiary: rgba(8, 16, 24, 0.7);
+      --text-primary: #e1ecf5;
+      --text-secondary: #90a7bf;
+      --accent: #6a9ec0;
+      --accent-hover: #7da7c5;
+      --border: rgba(110, 150, 190, 0.2);
+      --border-focus: #6a9ec0;
+      --shadow: rgba(0, 0, 0, 0.2);
+      --fallback-bg: rgba(18, 28, 38, 0.95);
+      --warning: #e0b86c;
+      --success: #6bc48d;
+      --danger: #e07a7a;
+    }
+    
+    /* 🔧 FIX: Кнопка меню видна всегда */
+.sidebar-toggle {
+  display: inline-flex !important; /* убираем display: none */
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(106, 158, 192, 0.15);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 🔧 FIX: Панель не исчезает, а сворачивается */
+.sidebar {
+  width: 280px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease, width 0.3s ease;
+  z-index: 50;
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed {
+  width: 0;
+  transform: translateX(-100%);
+  border: none;
+  padding: 0;
+}
+
+/* На мобильных — панель поверх контента */
+@media (max-width: 900px) {
+  .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    box-shadow: 4px 0 20px var(--shadow);
+  }
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 280px; /* ширина не меняется при скрытии на мобильных */
+  }
+  
+  /* Показываем кнопку меню на мобильных */
+  .sidebar-toggle {
+    display: inline-flex !important;
+  }
+}
+
+/* 🔧 FIX: Контент не сжимается, когда панель скрыта */
+.main-wrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.iframe-container {
+  flex: 1;
+  position: relative;
+  background: var(--bg-primary);
+  min-width: 0; /* важно для flex */
+}
+
+    [data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: rgba(255, 255, 255, 0.9);
+      --bg-tertiary: rgba(240, 245, 250, 0.9);
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+      --border: rgba(100, 120, 150, 0.2);
+      --border-focus: #3b82f6;
+      --shadow: rgba(0, 0, 0, 0.08);
+      --fallback-bg: rgba(255, 255, 255, 0.95);
+      --warning: #d97706;
+      --success: #16a34a;
+      --danger: #dc2626;
+    }
+
+    /* ===== BASE RESET ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      background-image: radial-gradient(circle at 10% 20%, rgba(30, 45, 60, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(20, 50, 40, 0.1) 0%, transparent 50%);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      padding: 12px 24px;
+      background: var(--bg-secondary);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 12px var(--shadow);
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 550;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .logo svg { stroke: var(--accent); }
+
+    .url-bar {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 48px;
+      padding: 4px 4px 4px 18px;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(5px);
+      transition: border-color 0.2s;
+    }
+
+    .url-bar:focus-within { border-color: var(--border-focus); }
+
+    .url-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      outline: none;
+      min-width: 0;
+      padding: 10px 0;
+    }
+
+    .url-bar input::placeholder { color: var(--text-secondary); }
+
+    .btn {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(4px);
+    }
+
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    .btn:hover {
+      background: var(--accent);
+      border-color: var(--accent-hover);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-icon {
+      padding: 8px;
+      border-radius: 50%;
+    }
+
+    .btn-icon:hover { background: rgba(106, 158, 192, 0.15); }
+
+    .btn-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-wrapper {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+      z-index: 50;
+    }
+
+    .sidebar.collapsed { transform: translateX(-100%); }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-title {
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .sidebar-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 500;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .search-box input::placeholder { color: var(--text-secondary); }
+
+    .history-list, .bookmarks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-item, .bookmark-item {
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-item:hover, .bookmark-item:hover {
+      border-color: var(--accent);
+      transform: translateX(2px);
+    }
+
+    .history-item .meta, .bookmark-item .meta {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .history-item .actions, .bookmark-item .actions {
+      margin-left: auto;
+      display: flex;
+      gap: 4px;
+    }
+
+    .history-item .actions button, .bookmark-item .actions button {
+      padding: 4px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .history-item .actions button:hover, .bookmark-item .actions button:hover {
+      color: var(--accent);
+      background: rgba(106, 158, 192, 0.1);
+    }
+
+    .bookmark-item.bookmarked .bookmark-toggle {
+      color: var(--accent);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    /* Iframe container */
+    .iframe-container {
+      flex: 1;
+      position: relative;
+      background: var(--bg-primary);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #fff;
+    }
+
+    /* Loader */
+    .loader {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
+
+    .loader.show { display: block; }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Fallback message */
+    .fallback {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      padding: 30px;
+      max-width: 450px;
+      background: var(--fallback-bg);
+      backdrop-filter: blur(12px);
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      display: none;
+      box-shadow: 0 20px 30px -10px var(--shadow);
+    }
+
+    .fallback.show { display: block; }
+
+    .fallback h3 {
+      margin-bottom: 12px;
+      color: var(--text-primary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .fallback p {
+      color: var(--text-secondary);
+      margin-bottom: 22px;
+    }
+
+    /* Footer */
+    .footer-note {
+      padding: 8px 24px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .footer-note svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* Toggle sidebar button (mobile) */
+    .sidebar-toggle {
+      display: none;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        box-shadow: 4px 0 20px var(--shadow);
+      }
+      .sidebar-toggle { display: flex; }
+      .url-bar { min-width: 100%; order: 3; margin-top: 6px; }
+    }
+
+    @media (max-width: 650px) {
+      .header { padding: 10px 16px; }
+      .btn span { display: none; }
+      .btn-icon span { display: inline; }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <!-- Sidebar toggle (mobile) -->
+    <button class="btn btn-icon sidebar-toggle" onclick="toggleSidebar()" title="Меню">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+
+    <!-- Logo -->
+    <div class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z" />
+      </svg>
+      <span>MyBrowser <span style="font-weight: 300; opacity:0.8; font-size:0.9rem;">2026</span></span>
+    </div>
+    
+    <!-- URL bar -->
+    <div class="url-bar">
+      <input type="text" id="urlInput" placeholder="example.com" value="">
+      
+      <!-- Go button -->
+      <button class="btn" onclick="loadUrl()" title="Перейти">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </button>
+      
+      <!-- Refresh button -->
+      <button class="btn btn-outline btn-icon" onclick="refreshPage()" title="Обновить">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+      </button>
+      
+      <!-- Open in new tab -->
+      <button class="btn btn-outline btn-icon" onclick="openNewTab()" title="Новая вкладка">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+          <polyline points="15 3 21 3 21 9" />
+          <line x1="10" y1="14" x2="21" y2="3" />
+        </svg>
+      </button>
+      
+      <!-- Bookmark toggle -->
+      <button class="btn btn-outline btn-icon" id="bookmarkBtn" onclick="toggleBookmark()" title="В закладки">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Theme toggle -->
+    <button class="btn btn-outline btn-icon" onclick="toggleTheme()" title="Сменить тему">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <!-- Sun (default for dark theme) -->
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      </svg>
+    </button>
+    
+    <!-- Home button -->
+    <button class="btn btn-outline" onclick="goHome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M19 12H5" />
+        <polyline points="12 19 5 12 12 5" />
+      </svg>
+      <span>Главная</span>
+    </button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <span class="sidebar-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      Панель
+    </span>
+    <button class="btn btn-icon" onclick="toggleSidebar()" title="Закрыть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </button>
+  </div>
+  
+  <div class="sidebar-tabs">
+    <div class="sidebar-tab active" data-tab="history" onclick="switchTab('history')">📚 История</div>
+    <div class="sidebar-tab" data-tab="bookmarks" onclick="switchTab('bookmarks')">🔖 Закладки</div>
+  </div>
+  
+  <div class="sidebar-content">
+    <div id="historyTab">
+      <div class="search-box">
+        <input type="text" id="historySearch" placeholder="Поиск в истории..." oninput="searchHistory()">
+      </div>
+      <div class="history-list" id="historyList"></div>
+      <div class="empty-state" id="historyEmpty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+        </svg>
+        <p>История пуста</p>
+      </div>
+    </div>
+    
+    <div id="bookmarksTab" style="display:none;">
+      <div class="bookmarks-list" id="bookmarksList"></div>
+      <div class="empty-state" id="bookmarksEmpty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+        </svg>
+        <p>Закладок пока нет</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+    <!-- IFRAME AREA -->
+    <div class="iframe-container">
+      <iframe id="viewer" title="Embedded site" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+      
+      <!-- Loading spinner -->
+      <div class="loader" id="loader">
+        <div class="spinner"></div>
+      </div>
+      
+      <!-- Fallback message -->
+      <div class="fallback" id="fallback">
+        <h3>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <circle cx="12" cy="16" r="0.5" fill="var(--warning)" stroke="none" />
+          </svg>
+          <span>Сайт не может быть показан</span>
+        </h3>
+        <p>Вероятно, он запрещает встраивание (X-Frame-Options).</p>
+        <button class="btn" onclick="openNewTab()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          <span>Открыть в новой вкладке</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+    </svg>
+    <span>Данные хранятся локально и очищаются через 7 дней. Не все сайты разрешают встраивание.</span>
+  </div>
+
+  <!-- JAVASCRIPT -->
+    <script>
+    // ===== CONFIG =====
+    const CONFIG = {
+      HISTORY_TTL_DAYS: 7,
+      MAX_HISTORY_ITEMS: 100,
+      STORAGE_KEYS: {
+        history: 'mybrowser_history_v2',
+        bookmarks: 'mybrowser_bookmarks_v2',
+        theme: 'mybrowser_theme'
+      }
+    };
+
+    // ===== STATE =====
+    const state = {
+      currentUrl: '',
+      currentTab: 'history',
+      theme: localStorage.getItem(CONFIG.STORAGE_KEYS.theme) || 'dark'
+    };
+
+    // ===== DOM ELEMENTS =====
+    let els = {};
+
+    function initDOM() {
+      els = {
+        urlInput: document.getElementById('urlInput'),
+        iframe: document.getElementById('viewer'),
+        loader: document.getElementById('loader'),
+        fallback: document.getElementById('fallback'),
+        bookmarkBtn: document.getElementById('bookmarkBtn'),
+        themeIcon: document.getElementById('themeIcon'),
+        sidebar: document.getElementById('sidebar'),
+        historyList: document.getElementById('historyList'),
+        historyEmpty: document.getElementById('historyEmpty'),
+        bookmarksList: document.getElementById('bookmarksList'),
+        bookmarksEmpty: document.getElementById('bookmarksEmpty'),
+        historySearch: document.getElementById('historySearch'),
+        historyTab: document.getElementById('historyTab'),
+        bookmarksTab: document.getElementById('bookmarksTab')
+      };
+    }
+
+    // ===== THEME =====
+    window.toggleTheme = function() {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem(CONFIG.STORAGE_KEYS.theme, state.theme); } catch(e) {}
+      applyTheme(state.theme);
+    };
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (els.themeIcon) {
+        if (theme === 'dark') {
+          els.themeIcon.innerHTML = `<circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />`;
+        } else {
+          els.themeIcon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />`;
+        }
+      }
+    }
+
+    // ===== URL HANDLING =====
+    function getParam(name) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+      } catch { return null; }
+    }
+
+    function normalizeUrl(input) {
+      let url = input.trim();
+      if (!url) return '';
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      return url;
+    }
+
+    function cleanUrl(url) {
+      return url.replace('https://', '').replace('http://', '');
+    }
+
+    window.loadUrl = function(customUrl) {
+      const input = customUrl || (els.urlInput ? els.urlInput.value : '');
+      const url = normalizeUrl(input);
+      
+      if (!url) return;
+      
+      state.currentUrl = url;
+      
+      if (els.urlInput) els.urlInput.value = cleanUrl(url);
+      updateBookmarkButton();
+      
+      try {
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('url', url);
+        window.history.replaceState({}, '', newUrl);
+      } catch(e) {}
+      
+      if (els.loader) els.loader.classList.add('show');
+      if (els.fallback) els.fallback.classList.remove('show');
+      if (els.iframe) {
+        els.iframe.style.display = 'block';
+        els.iframe.src = url;
+      }
+      
+      saveToHistory(url);
+      
+      setTimeout(() => {
+        if (els.loader && els.loader.classList.contains('show')) {
+          checkIframeAccess();
+        }
+      }, 5000);
+    };
+
+    window.refreshPage = function() {
+      if (els.iframe && els.iframe.src) {
+        if (els.loader) els.loader.classList.add('show');
+        els.iframe.src = els.iframe.src;
+      }
+    };
+
+    window.openNewTab = function() {
+      const url = normalizeUrl(els.urlInput ? els.urlInput.value : '');
+      if (url) window.open(url, '_blank', 'noopener');
+    };
+
+    window.goHome = function() {
+      window.location.href = '/';
+    };
+
+    // ===== IFRAME HANDLING =====
+    function checkIframeAccess() {
+      try {
+        if (els.iframe && els.iframe.contentDocument) {
+          if (els.loader) els.loader.classList.remove('show');
+        }
+      } catch (e) {
+        if (els.loader) els.loader.classList.remove('show');
+        if (els.fallback) els.fallback.classList.add('show');
+      }
+    }
+
+    // ===== HISTORY =====
+    window.loadHistory = function() {
+      // Просто рендерим историю при загрузке
+      renderHistory('');
+    };
+
+    function saveToHistory(url) {
+      let history = getHistory();
+      const title = cleanUrl(url);
+      
+      const filtered = history.filter(h => h.url !== url);
+      
+      const entry = {
+        url,
+        title,
+        timestamp: Date.now(),
+        visits: 1
+      };
+      
+      const existing = history.find(h => h.url === url);
+      if (existing) {
+        entry.visits = existing.visits + 1;
+      }
+      
+      filtered.unshift(entry);
+      const limited = filtered.slice(0, CONFIG.MAX_HISTORY_ITEMS);
+      
+      try {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.history, JSON.stringify(limited));
+      } catch(e) {}
+      
+      if (state.currentTab === 'history') renderHistory();
+    }
+
+    function updateHistoryTitle(url, title) {
+      let history = getHistory();
+      const entry = history.find(h => h.url === url);
+      if (entry && entry.title === cleanUrl(url)) {
+        entry.title = title;
+        try {
+          localStorage.setItem(CONFIG.STORAGE_KEYS.history, JSON.stringify(history));
+        } catch(e) {}
+        if (state.currentTab === 'history') renderHistory();
+      }
+    }
+
+    function getHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.history) || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function renderHistory(filter = '') {
+      if (!els.historyList) return;
+      
+      let history = getHistory();
+      const filtered = filter 
+        ? history.filter(h => h.title.toLowerCase().includes(filter.toLowerCase()) || h.url.toLowerCase().includes(filter.toLowerCase()))
+        : history;
+      
+      if (filtered.length === 0) {
+        els.historyList.innerHTML = '';
+        if (els.historyEmpty) els.historyEmpty.style.display = 'block';
+        return;
+      }
+      
+      if (els.historyEmpty) els.historyEmpty.style.display = 'none';
+      
+      els.historyList.innerHTML = filtered.map(item => `
+        <div class="history-item" onclick="loadUrl('${escapeHtml(item.url)}')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" style="flex-shrink:0">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <div style="min-width:0;flex:1">
+            <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(item.title)}</div>
+            <div class="meta">${formatTime(item.timestamp)} · ${item.visits} посещ.</div>
+          </div>
+          <div class="actions">
+            <button onclick="event.stopPropagation(); removeHistoryItem('${escapeHtml(item.url)}')" title="Удалить">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.searchHistory = function() {
+      const query = els.historySearch ? els.historySearch.value.toLowerCase() : '';
+      renderHistory(query);
+    }
+
+    window.removeHistoryItem = function(url) {
+      let history = getHistory().filter(h => h.url !== url);
+      try {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.history, JSON.stringify(history));
+      } catch(e) {}
+      renderHistory(els.historySearch ? els.historySearch.value : '');
+    }
+
+    function cleanupOldHistory() {
+      let history = getHistory();
+      const cutoff = Date.now() - (CONFIG.HISTORY_TTL_DAYS * 24 * 60 * 60 * 1000);
+      const filtered = history.filter(h => h.timestamp > cutoff);
+      
+      if (filtered.length !== history.length) {
+        try {
+          localStorage.setItem(CONFIG.STORAGE_KEYS.history, JSON.stringify(filtered));
+        } catch(e) {}
+        if (state.currentTab === 'history') renderHistory();
+      }
+    }
+
+    // ===== BOOKMARKS =====
+    window.toggleBookmark = function() {
+      if (!state.currentUrl) return;
+      
+      let bookmarks = getBookmarks();
+      const index = bookmarks.findIndex(b => b.url === state.currentUrl);
+      
+      if (index === -1) {
+        bookmarks.unshift({
+          url: state.currentUrl,
+          title: cleanUrl(state.currentUrl),
+          added: Date.now()
+        });
+      } else {
+        bookmarks.splice(index, 1);
+      }
+      
+      try {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.bookmarks, JSON.stringify(bookmarks));
+      } catch(e) {}
+      
+      updateBookmarkButton();
+      if (state.currentTab === 'bookmarks') renderBookmarks();
+    };
+
+    function updateBookmarkButton() {
+      if (!els.bookmarkBtn) return;
+      if (!state.currentUrl) {
+        els.bookmarkBtn.classList.remove('btn-active');
+        return;
+      }
+      
+      const bookmarks = getBookmarks();
+      const isBookmarked = bookmarks.some(b => b.url === state.currentUrl);
+      
+      if (isBookmarked) {
+        els.bookmarkBtn.classList.add('btn-active');
+        els.bookmarkBtn.title = 'Убрать из закладок';
+      } else {
+        els.bookmarkBtn.classList.remove('btn-active');
+        els.bookmarkBtn.title = 'В закладки';
+      }
+    }
+
+    function getBookmarks() {
+      try {
+        return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.bookmarks) || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function loadBookmarks() {
+      if (state.currentTab === 'bookmarks') renderBookmarks();
+    }
+
+    function renderBookmarks() {
+      if (!els.bookmarksList) return;
+      
+      const bookmarks = getBookmarks();
+      
+      if (bookmarks.length === 0) {
+        els.bookmarksList.innerHTML = '';
+        if (els.bookmarksEmpty) els.bookmarksEmpty.style.display = 'block';
+        return;
+      }
+      
+      if (els.bookmarksEmpty) els.bookmarksEmpty.style.display = 'none';
+      
+      els.bookmarksList.innerHTML = bookmarks.map(item => `
+        <div class="bookmark-item bookmarked" onclick="loadUrl('${escapeHtml(item.url)}')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" style="flex-shrink:0">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+          <div style="min-width:0;flex:1">
+            <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(item.title)}</div>
+            <div class="meta">${formatTime(item.added)}</div>
+          </div>
+          <div class="actions">
+            <button onclick="event.stopPropagation(); removeBookmark('${escapeHtml(item.url)}')" title="Удалить">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.removeBookmark = function(url) {
+      let bookmarks = getBookmarks().filter(b => b.url !== url);
+      try {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.bookmarks, JSON.stringify(bookmarks));
+      } catch(e) {}
+      renderBookmarks();
+      if (url === state.currentUrl) updateBookmarkButton();
+    }
+
+    // ===== SIDEBAR & TABS =====
+    window.toggleSidebar = function() {
+      if (els.sidebar) els.sidebar.classList.toggle('collapsed');
+    };
+
+    window.switchTab = function(tab) {
+      state.currentTab = tab;
+      
+      document.querySelectorAll('.sidebar-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+      });
+      
+      if (els.historyTab) els.historyTab.style.display = tab === 'history' ? 'block' : 'none';
+      if (els.bookmarksTab) els.bookmarksTab.style.display = tab === 'bookmarks' ? 'block' : 'none';
+      
+      if (tab === 'history') renderHistory(els.historySearch ? els.historySearch.value : '');
+      if (tab === 'bookmarks') renderBookmarks();
+    };
+
+    // ===== UTILS =====
+    function formatTime(timestamp) {
+      const diff = Date.now() - timestamp;
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+      
+      if (minutes < 1) return 'только что';
+      if (minutes < 60) return `${minutes} мин. назад`;
+      if (hours < 24) return `${hours} ч. назад`;
+      if (days < 7) return `${days} дн. назад`;
+      
+      try {
+        return new Date(timestamp).toLocaleDateString('ru-RU', { 
+          day: 'numeric', month: 'short' 
+        });
+      } catch {
+        return '';
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ===== INIT =====
+    function init() {
+      initDOM();
+      
+      if (!els.urlInput) {
+        console.error('MyBrowser: DOM elements not found. Make sure HTML is loaded.');
+        return;
+      }
+      
+      applyTheme(state.theme);
+      loadHistory();
+      loadBookmarks();
+      updateBookmarkButton();
+      
+      const savedUrl = getParam('url');
+      if (savedUrl) {
+        if (els.urlInput) els.urlInput.value = cleanUrl(savedUrl);
+        loadUrl(savedUrl);
+      }
+      
+      cleanupOldHistory();
+      
+      // Event listeners
+      if (els.urlInput) {
+        els.urlInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') window.loadUrl();
+        });
+      }
+      
+      if (els.iframe) {
+        els.iframe.addEventListener('load', function() {
+          if (els.loader) els.loader.classList.remove('show');
+          
+          try {
+            const title = els.iframe.contentDocument?.title || cleanUrl(state.currentUrl);
+            updateHistoryTitle(state.currentUrl, title);
+          } catch (e) {}
+          
+          checkIframeAccess();
+        });
+      }
+      
+      // Close sidebar when clicking outside (mobile)
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 900 && 
+            els.sidebar && 
+            !els.sidebar.contains(e.target) && 
+            !e.target.closest('.sidebar-toggle')) {
+          els.sidebar.classList.add('collapsed');
+        }
+      });
+    }
+
+    // ===== START =====
+    // Ждём загрузки DOM перед инициализацией
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
