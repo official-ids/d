@@ -4,11 +4,13 @@
     { "source": "/project/MyBrowser", "destination": "/project/MyBrowser/index.html" },
     { "source": "/project/MyBrowser/download", "destination": "/project/MyBrowser/download.html" },
     { "source": "/MyBrowser", "destination": "/MyBrowser/index.html" },
-    { "source": "/product", "destination": "/product/music-visualizer.html" }
+    { "source": "/product", "destination": "/product/music-visualizer.html" },
+    { "source": "/register", "destination": "/register.html" },
+    { "source": "/login", "destination": "/login.html" }
   ],
   "redirects": [
     {
-      "source": "/:path((?!project|MyBrowser|product).+)",
+      "source": "/:path((?!project|MyBrowser|product|register|login).+)",
       "destination": "https://google.com",
       "permanent": false
     }

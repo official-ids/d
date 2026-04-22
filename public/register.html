@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация · MyBrowser</title>
+  <style>
+    :root {
+      --bg-primary: #0e141c; --bg-secondary: rgba(18, 28, 38, 0.95);
+      --text-primary: #e1ecf5; --text-secondary: #90a7bf;
+      --accent: #6a9ec0; --accent-hover: #7da7c5;
+      --border: rgba(110, 150, 190, 0.2); --success: #6bc48d; --danger: #f87171;
+    }
+    [data-theme="light"] {
+      --bg-primary: #f8fafc; --bg-secondary: rgba(255, 255, 255, 0.95);
+      --text-primary: #1e293b; --text-secondary: #64748b;
+      --accent: #3b82f6; --accent-hover: #60a5fa;
+      --border: rgba(100, 120, 150, 0.2); --success: #16a34a; --danger: #dc2626;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 420px;
+      width: 100%;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .logo svg { stroke: var(--accent); }
+    h1 { text-align: center; margin-bottom: 8px; font-size: 1.4rem; }
+    .subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem; }
+    
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: var(--text-secondary); }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(8, 16, 24, 0.6);
+      color: var(--text-primary);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--text-secondary); }
+    
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 8px;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(106, 158, 192, 0.3); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    
+    .error {
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      display: none;
+      text-align: center;
+    }
+    .error.show { display: block; }
+    
+    .success {
+      background: rgba(107, 196, 141, 0.1);
+      color: var(--success);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      display: none;
+      text-align: center;
+    }
+    .success.show { display: block; }
+    
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    .footer a { color: var(--accent); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Сменить тему">
+    <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+  </button>
+
+  <div class="card">
+    <div class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/>
+      </svg>
+      <span>MyBrowser</span>
+    </div>
+    
+    <h1>🔐 Регистрация</h1>
+    <p class="subtitle">Создай аккаунт для доступа ко всем продуктам</p>
+    
+    <div class="error" id="errorEl"></div>
+    <div class="success" id="successEl"></div>
+    
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" placeholder="Минимум 6 символов" required minlength="6" autocomplete="new-password">
+      </div>
+      
+      <div class="form-group">
+        <label for="confirm">Повторите пароль</label>
+        <input type="password" id="confirm" name="confirm" placeholder="Повторите пароль" required minlength="6" autocomplete="new-password">
+      </div>
+      
+      <button type="submit" class="btn" id="submitBtn">Зарегистрироваться</button>
+    </form>
+    
+    <div class="footer">
+      Уже есть аккаунт? <a href="/login">Войти</a> · <a href="/">← На главную</a>
+    </div>
+  </div>
+
+  <!-- Подключаем auth.js -->
+  <script src="/auth.js"></script>
+  
+  <script>
+    // ===== ТЕМЫ =====
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('mybrowser_theme', next);
+      
+      // Обновляем иконку
+      const icon = document.getElementById('themeIcon');
+      if (next === 'dark') {
+        icon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
+      } else {
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+    
+    // Загружаем тему при старте
+    (function() {
+      const saved = localStorage.getItem('mybrowser_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+      if (saved === 'light') {
+        document.getElementById('themeIcon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    })();
+
+    // ===== РЕГИСТРАЦИЯ =====
+    const form = document.getElementById('registerForm');
+    const emailInput = document.getElementById('email');
+    const passInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirm');
+    const errorEl = document.getElementById('errorEl');
+    const successEl = document.getElementById('successEl');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = emailInput.value.trim();
+      const password = passInput.value;
+      const confirm = confirmInput.value;
+      
+      // Валидация
+      if (password !== confirm) {
+        showError('❌ Пароли не совпадают');
+        return;
+      }
+      if (password.length < 6) {
+        showError('❌ Пароль должен быть минимум 6 символов');
+        return;
+      }
+      
+      // UI
+      showError('');
+      showSuccess('');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Регистрация...';
+      
+      try {
+        const result = await window.supabaseAuth.signUp(email, password);
+        
+        if (result.error || result.message?.includes('error')) {
+          showError('❌ ' + (result.error?.message || result.message || 'Ошибка регистрации'));
+        } else if (result.access_token) {
+          // Успех: сохраняем сессию и редиректим
+          window.supabaseAuth.saveSession(result);
+          showSuccess('✅ Регистрация успешна! Перенаправление...');
+          setTimeout(() => {
+            window.location.href = '/project/MyBrowser';
+          }, 1500);
+        } else if (result.weak_password) {
+          showError('⚠️ Пароль слишком слабый. Используйте больше символов.');
+        } else {
+          // Email confirmation включено
+          showSuccess('✅ Проверьте почту для подтверждения аккаунта');
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 3000);
+        }
+      } catch (err) {
+        showError('🌐 Ошибка сети: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Зарегистрироваться';
+      }
+    });
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.classList.toggle('show', !!msg);
+    }
+    
+    function showSuccess(msg) {
+      successEl.textContent = msg;
+      successEl.classList.toggle('show', !!msg);
+    }
+  </script>
+</body>
+</html>
