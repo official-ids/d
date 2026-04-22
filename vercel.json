@@ -3,11 +3,12 @@
     { "source": "/", "destination": "/api/index" },
     { "source": "/project/MyBrowser", "destination": "/project/MyBrowser/index.html" },
     { "source": "/project/MyBrowser/download", "destination": "/project/MyBrowser/download.html" },
-    { "source": "/MyBrowser", "destination": "/MyBrowser/index.html" }
+    { "source": "/MyBrowser", "destination": "/MyBrowser/index.html" },
+    { "source": "/product", "destination": "/product/music-visualizer.html" }
   ],
   "redirects": [
     {
-      "source": "/:path((?!project|MyBrowser).+)",
+      "source": "/:path((?!project|MyBrowser|product).+)",
       "destination": "https://google.com",
       "permanent": false
     }

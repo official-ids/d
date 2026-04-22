@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Visualizer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      height: 600px;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .ui-top {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 10;
+    }
+    .btn {
+      background: rgba(255,255,255,0.1);
+      padding: 10px 20px;
+      border-radius: 30px;
+      color: #fff;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 14px;
+      transition: all 0.3s;
+      user-select: none;
+      display: inline-block;
+    }
+    .btn:hover { background: rgba(255,255,255,0.2); }
+    .ui-bottom {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: #fff;
+      pointer-events: none;
+      opacity: 0.7;
+      z-index: 10;
+    }
+    .title { font-size: 16px; font-weight: bold; letter-spacing: 1px; margin: 0; }
+    .subtitle { margin-top: 4px; font-size: 12px; margin: 0; }
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <canvas id="glCanvas"></canvas>
+    
+    <div class="ui-top">
+      <label class="btn" id="uploadLabel">
+        📁 Загрузить свой трек (.mp3, .wav)
+        <input type="file" id="audioInput" accept="audio/*" />
+      </label>
+    </div>
+
+    <div class="ui-bottom">
+      <p class="title">CINEMATIC RADIAL EQ</p>
+      <p class="subtitle">Move mouse to shift perspective & hue</p>
+    </div>
+  </div>
+
+  <script>
+    // ===== ШЕЙДЕРЫ (без изменений) =====
+    const vertexShaderSource = `
+      attribute vec2 position;
+      varying vec2 vUv;
+      void main() {
+        vUv = position * 0.5 + 0.5;
+        gl_Position = vec4(position, 0.0, 1.0);
+      }
+    `;
+
+    const fragmentShaderSource = `
+      precision mediump float;
+      uniform vec2 uResolution;
+      uniform float uTime;
+      uniform sampler2D uData;
+      uniform vec2 uMouse;
+      varying vec2 vUv;
+
+      #define PI 3.14159265359
+      #define TWO_PI 6.28318530718
+
+      float hue2rgb(float p, float q, float t) {
+          if (t < 0.0) t += 1.0;
+          if (t > 1.0) t -= 1.0;
+          if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;
+          if (t < 1.0/2.0) return q;
+          if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+          return p;
+      }
+
+      vec3 hsl2rgb(vec3 hsl) {
+          float h = hsl.x;
+          float s = hsl.y;
+          float l = hsl.z;
+          vec3 rgb;
+          if (s == 0.0) {
+              rgb = vec3(l);
+          } else {
+              float q = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
+              float p = 2.0 * l - q;
+              rgb.r = hue2rgb(p, q, h + 1.0/3.0);
+              rgb.g = hue2rgb(p, q, h);
+              rgb.b = hue2rgb(p, q, h - 1.0/3.0);
+          }
+          return rgb;
+      }
+
+      void main(){
+        vec2 uv = vUv * 2.0 - 1.0;
+        uv.x *= uResolution.x / uResolution.y;
+        
+        vec2 mouse = uMouse * 2.0 - 1.0;
+        mouse.x *= uResolution.x / uResolution.y;
+        
+        float mouseDistance = length(uv - mouse);
+        float angle = atan(uv.y, uv.x);
+        float radius = length(uv);
+        
+        float mouseRotationInfluence = mouse.x * 0.05;
+        float freqCoord = mod((angle + PI) / TWO_PI + uTime * 0.02 + mouseRotationInfluence, 1.0);
+        
+        float audioAmp = texture2D(uData, vec2(freqCoord, 0.0)).r;
+        
+        vec3 bgColor = vec3(0.08, 0.08, 0.08);
+        vec3 finalColor = bgColor;
+        
+        float hueLerp = freqCoord;
+        float hueShift = mouse.y * 0.2;
+        float currentHue = mix(0.6 + hueShift, 0.08 + hueShift, hueLerp);
+        vec3 currentBandColor = hsl2rgb(vec3(currentHue, 0.9, 0.6));
+        
+        float baseRadius = 0.2;
+        float maxReach = 0.6;
+        
+        float pulseOffset = sin(uTime * 8.0 + freqCoord * 15.0) * 0.02 * audioAmp;
+        float currentReach = baseRadius + audioAmp * maxReach + pulseOffset;
+        
+        vec2 toMouse = mouse - uv;
+        float mouseAngle = atan(toMouse.y, toMouse.x);
+        float angleDiff = mod(mouseAngle - angle + PI + TWO_PI, TWO_PI) - PI;
+        float mouseAttraction = exp(-mouseDistance * 2.0) * 0.15;
+        currentReach += mouseAttraction * audioAmp * (1.0 - abs(angleDiff) / PI);
+        
+        float radialEffect = 0.0;
+        
+        if (radius > baseRadius && radius < currentReach) {
+          radialEffect = (radius - baseRadius) / (currentReach - baseRadius + 0.001);
+          radialEffect = pow(radialEffect, 0.7); 
+          radialEffect += exp(-pow((radius - currentReach) * 35.0, 2.0)) * 2.0;
+        } 
+        radialEffect += exp(-pow((radius - currentReach) * 10.0, 2.0)) * 0.5;
+        
+        radialEffect *= smoothstep(baseRadius - 0.02, baseRadius + 0.02, radius);
+        radialEffect *= (1.0 - smoothstep(maxReach + 0.1, maxReach + 0.3, radius));
+        
+        float rippleIntensity = 1.0 + exp(-mouseDistance * 3.0) * 2.0;
+        float waveDistortion = sin(radius * 30.0 - uTime * 6.0) * 0.005 * rippleIntensity;
+        radialEffect += waveDistortion;
+
+        radialEffect *= (0.5 + audioAmp * 0.5);
+        finalColor = mix(bgColor, currentBandColor, clamp(radialEffect, 0.0, 1.0));
+        
+        float bassAmp = texture2D(uData, vec2(0.1, 0.0)).r; 
+        float mouseInfluenceOnCenter = exp(-mouseDistance * 4.0) * 0.03;
+        float centerGlowRadius = 0.1 + bassAmp * 0.05 + mouseInfluenceOnCenter;
+        float centerGlowIntensity = exp(-pow(radius / centerGlowRadius, 2.0) * 15.0);
+        vec3 centerGlowColor = hsl2rgb(vec3(0.7, 0.8, 0.7));
+        finalColor = mix(finalColor, centerGlowColor, centerGlowIntensity * (0.5 + bassAmp * 0.5));
+        
+        float mouseGlow = exp(-mouseDistance * mouseDistance * 32.0);
+        vec3 mouseGlowColor = hsl2rgb(vec3(mod(uTime * 0.1, 1.0), 0.9, 0.7));
+        finalColor = mix(finalColor, mouseGlowColor, mouseGlow * 0.4);
+        
+        float midAmp = texture2D(uData, vec2(0.5, 0.0)).r;
+        float highAmp = texture2D(uData, vec2(0.9, 0.0)).r;
+        float overallAudioActivity = (bassAmp + midAmp + highAmp) / 3.0;
+        
+        float bloomRadius = 0.7;
+        float bloomIntensity = exp(-pow(radius / bloomRadius, 2.0) * 2.0) * overallAudioActivity * 0.3;
+        finalColor += mix(hsl2rgb(vec3(0.6, 0.9, 0.6)), hsl2rgb(vec3(0.08, 0.9, 0.6)), overallAudioActivity) * bloomIntensity;
+        
+        float vignetteEffect = smoothstep(0.6, 0.9, radius);
+        finalColor = mix(finalColor, bgColor, vignetteEffect * 0.6);
+
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    `;
+
+    // ===== ИНИЦИАЛИЗАЦИЯ =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('glCanvas');
+      const gl = canvas.getContext('webgl');
+      if (!gl) { alert('WebGL не поддерживается'); return; }
+
+      // Компиляция шейдеров
+      const compileShader = (src, type) => {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, src);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          console.error(gl.getShaderInfoLog(shader));
+          return null;
+        }
+        return shader;
+      };
+
+      const vs = compileShader(vertexShaderSource, gl.VERTEX_SHADER);
+      const fs = compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER);
+      const program = gl.createProgram();
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+      gl.useProgram(program);
+
+      // Геометрия (полноэкранный квад)
+      const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+      const posLoc = gl.getAttribLocation(program, 'position');
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+      // Uniforms
+      const uResolution = gl.getUniformLocation(program, 'uResolution');
+      const uTime = gl.getUniformLocation(program, 'uTime');
+      const uMouse = gl.getUniformLocation(program, 'uMouse');
+      const uData = gl.getUniformLocation(program, 'uData');
+
+      // Текстура для аудио-данных
+      const texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+      // Состояние
+      let mouseX = 0.5, mouseY = 0.5;
+      let audioCtx = null, analyser = null, sourceNode = null;
+      let isPlaying = false;
+      const dummyData = new Uint8Array(256);
+      const label = document.getElementById('uploadLabel');
+      const input = document.getElementById('audioInput');
+
+      // Мышь
+      window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) / rect.width;
+        mouseY = 1.0 - (e.clientY - rect.top) / rect.height;
+      });
+
+      // Аудио загрузка
+      input.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        if (sourceNode) { try { sourceNode.stop(); } catch(e){} }
+
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 512;
+        sourceNode = audioCtx.createBufferSource();
+        sourceNode.buffer = audioBuffer;
+        sourceNode.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        sourceNode.start(0);
+
+        isPlaying = true;
+        label.childNodes[0].textContent = '🎵 Трек загружен ';
+      });
+
+      // Рендер-луп
+      let animId;
+      const render = (time) => {
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w; canvas.height = h;
+          gl.viewport(0, 0, w, h);
+        }
+
+        gl.uniform2f(uResolution, w, h);
+        gl.uniform1f(uTime, time * 0.001);
+        gl.uniform2f(uMouse, mouseX, mouseY);
+
+        if (analyser) {
+          analyser.getByteFrequencyData(dummyData);
+        } else {
+          for (let i = 0; i < dummyData.length; i++) {
+            dummyData[i] = (Math.sin(time * 0.005 + i * 0.1) * 0.3 + 0.3) * 255;
+          }
+        }
+
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 256, 1, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, dummyData);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        animId = requestAnimationFrame(render);
+      };
+
+      animId = requestAnimationFrame(render);
+
+      // Очистка при уходе
+      window.addEventListener('beforeunload', () => cancelAnimationFrame(animId));
+    });
+  </script>
+</body>
+</html>
