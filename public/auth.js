@@ -1,5 +1,5 @@
 // public/auth.js
-const SUPABASE_URL = 'https://qhmecfhqmdeouohrtplb.supabase.co';
+const SUPABASE_URL = 'https://supabase.com/dashboard/project/qhmecfhqmdeouohrtplb';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFobWVjZmhxbWRlb3VvaHJ0cGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NTcxMTAsImV4cCI6MjA5MjQzMzExMH0.nP3ZMLP31p_GuVsuAwHf2tZkLzww8gLQnwguKsAa53k';
 
 const supabaseAuth = {
