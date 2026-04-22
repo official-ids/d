@@ -5,6 +5,7 @@
     { "source": "/project/MyBrowser/download", "destination": "/project/MyBrowser/download.html" },
     { "source": "/MyBrowser", "destination": "/MyBrowser/index.html" },
     { "source": "/product", "destination": "/product/music-visualizer.html" },
+    { "source": "/product/focus", "destination": "/product/focus.html" },
     { "source": "/register", "destination": "/register.html" },
     { "source": "/login", "destination": "/login.html" }
   ],
