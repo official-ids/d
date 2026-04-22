@@ -1,10 +1,11 @@
-<!-- public/components/auth-modal.html · 2026 · без эмодзи, только SVG -->
+<!-- public/components/auth-modal.html -->
+<!-- Подключение: <script src="/auth.js"></script> должен быть в основной странице -->
+
 <div id="authModal" style="display:none; position:fixed; inset:0; background:rgba(6,12,18,0.75); backdrop-filter:blur(8px); z-index:2000; align-items:center; justify-content:center; transition:opacity 0.2s;">
   <div class="auth-card" style="background:#1a2530; padding:2rem 1.8rem; border-radius:2rem; max-width:440px; width:95%; color:#e3ecf5; position:relative; border:1px solid rgba(110,160,200,0.25); box-shadow:0 20px 40px -8px #00000080, inset 0 1px 0 rgba(255,255,255,0.05); animation:authFadeIn 0.25s ease;">
     
     <button id="closeAuth" style="position:absolute; top:16px; right:16px; background:none; border:none; color:#9bb5cf; font-size:28px; cursor:pointer; line-height:1; transition:color 0.2s; padding:0 4px;" aria-label="Закрыть">&times;</button>
     
-    <!-- заголовок с SVG замка -->
     <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px;">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8db5e0" stroke-width="1.8">
         <rect x="5" y="11" width="14" height="10" rx="2" />
@@ -21,8 +22,8 @@
       <input type="password" id="authPassword" placeholder="Пароль (мин. 6 символов)" required minlength="6" autocomplete="current-password"
         style="padding:14px 18px; border-radius:16px; border:1.5px solid #2e445b; background:#101e28; color:#fff; font-size:1rem; outline:none; transition:border-color 0.2s;">
       
-      <button type="submit" id="authSubmitBtn" style="background:#2b5777; background:linear-gradient(105deg, #25536e, #1d4359); color:#fff; padding:14px; border:none; border-radius:40px; cursor:pointer; font-weight:500; font-size:1.05rem; transition:all 0.2s; border:1px solid #3f779b; box-shadow:0 6px 12px rgba(0,0,0,0.2); letter-spacing:-0.01em; margin-top:6px;">
-        Войти
+      <button type="submit" id="authSubmitBtn" style="background:#2b5777; background:linear-gradient(105deg, #25536e, #1d4359); color:#fff; padding:14px; border:none; border-radius:40px; cursor:pointer; font-weight:500; font-size:1.05rem; transition:all 0.2s; border:1px solid #3f779b; box-shadow:0 6px 12px rgba(0,0,0,0.2); letter-spacing:-0.01em; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:8px;">
+        <span id="authBtnText">Войти</span>
       </button>
     </form>
     
@@ -31,9 +32,7 @@
       <a href="#" id="toggleAuthMode" style="color:#aac9f0; text-decoration:none; font-weight:500; border-bottom:1px dotted #6082a2;">Зарегистрироваться</a>
     </p>
     
-    <!-- блок ошибок — без эмодзи, только SVG -->
     <div id="authError" style="margin-top:16px; color:#f9a8a8; font-size:0.9rem; text-align:center; background:rgba(200,70,70,0.08); padding:12px 10px; border-radius:14px; display:none; align-items:center; justify-content:center; gap:8px; border:1px solid rgba(220,100,100,0.2);">
-      <!-- иконка будет вставляться динамически через JS -->
       <span id="authErrorIcon" style="display:inline-flex;"></span>
       <span id="authErrorText"></span>
     </div>
@@ -41,170 +40,164 @@
 </div>
 
 <style>
-  /* анимация появления */
-  @keyframes authFadeIn {
-    0% { opacity: 0; transform: scale(0.98) translateY(8px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
-  }
-  /* плавные фокусы */
+  @keyframes authFadeIn { 0% { opacity: 0; transform: scale(0.98) translateY(8px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
   #authEmail:focus, #authPassword:focus { border-color: #6da5d0; box-shadow: 0 0 0 3px rgba(90,160,220,0.15); }
   #closeAuth:hover { color: #d6e6ff; }
   #authSubmitBtn:hover { background: #2d6b8f; border-color: #6aa0c4; transform: translateY(-1px); box-shadow: 0 10px 18px -8px #000000b0; }
+  #authSubmitBtn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 </style>
 
 <script>
 (function() {
-  const modal = document.getElementById('authModal');
-  const form = document.getElementById('authForm');
-  const emailInput = document.getElementById('authEmail');
-  const passInput = document.getElementById('authPassword');
-  const errorEl = document.getElementById('authError');
-  const errorIcon = document.getElementById('authErrorIcon');
-  const errorText = document.getElementById('authErrorText');
-  const closeBtn = document.getElementById('closeAuth');
-  const toggleLink = document.getElementById('toggleAuthMode');
-  const titleEl = document.getElementById('authTitle');
-  const submitBtn = document.getElementById('authSubmitBtn');
-  const toggleText = document.getElementById('authToggleText');
-  
-  let isSignup = false;
-
-  // вспомогательная функция: вставить SVG иконку и текст ошибки
-  function setError(type, message) {
-    errorEl.style.display = 'flex';
-    errorText.textContent = message;
-    // очищаем предыдущую иконку
-    errorIcon.innerHTML = '';
-    
-    // создаём SVG в зависимости от типа (info, error, success, warning)
-    const svgNS = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(svgNS, "svg");
-    svg.setAttribute("width", "20");
-    svg.setAttribute("height", "20");
-    svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("fill", "none");
-    svg.setAttribute("stroke", "currentColor");
-    svg.setAttribute("stroke-width", "2");
-    svg.setAttribute("stroke-linecap", "round");
-    svg.setAttribute("stroke-linejoin", "round");
-    
-    let strokeColor = "#f9a8a8"; // default reddish
-    if (type === 'loading') strokeColor = "#aac9f0";
-    else if (type === 'success') strokeColor = "#86c8a0";
-    else if (type === 'warning') strokeColor = "#e6b87c";
-    else if (type === 'error') strokeColor = "#f28b8b";
-    svg.style.color = strokeColor;
-    
-    if (type === 'loading') {
-      svg.innerHTML = '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>';
-    } else if (type === 'success') {
-      svg.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
-    } else if (type === 'warning') {
-      svg.innerHTML = '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>';
-    } else { // error / default
-      svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/>';
+  // 🔥 Ждём загрузки auth.js перед инициализацией
+  function waitForAuth(callback, retries = 20) {
+    if (window.supabaseAuth && typeof window.supabaseAuth.signUp === 'function') {
+      callback();
+    } else if (retries > 0) {
+      setTimeout(() => waitForAuth(callback, retries - 1), 100);
+    } else {
+      console.error('❌ auth.js не загружен');
     }
-    
-    errorIcon.appendChild(svg);
   }
 
-  function clearError() {
-    errorEl.style.display = 'none';
-    errorText.textContent = '';
-    errorIcon.innerHTML = '';
-  }
-
-  closeBtn.onclick = () => { modal.style.display = 'none'; clearError(); };
-  modal.onclick = (e) => { if (e.target === modal) { modal.style.display = 'none'; clearError(); } };
-  
-  toggleLink.onclick = (e) => {
-    e.preventDefault();
-    isSignup = !isSignup;
-    titleEl.textContent = isSignup ? 'Регистрация' : 'Вход';
-    submitBtn.textContent = isSignup ? 'Зарегистрироваться' : 'Войти';
-    toggleText.textContent = isSignup ? 'Уже есть аккаунт?' : 'Нет аккаунта?';
-    toggleLink.textContent = isSignup ? 'Войти' : 'Зарегистрироваться';
-    clearError();
-  };
-
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-    const email = emailInput.value.trim();
-    const password = passInput.value;
+  waitForAuth(() => {
+    const modal = document.getElementById('authModal');
+    const form = document.getElementById('authForm');
+    const emailInput = document.getElementById('authEmail');
+    const passInput = document.getElementById('authPassword');
+    const errorEl = document.getElementById('authError');
+    const errorIcon = document.getElementById('authErrorIcon');
+    const errorText = document.getElementById('authErrorText');
+    const closeBtn = document.getElementById('closeAuth');
+    const toggleLink = document.getElementById('toggleAuthMode');
+    const titleEl = document.getElementById('authTitle');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const btnText = document.getElementById('authBtnText');
+    const toggleText = document.getElementById('authToggleText');
     
-    setError('loading', 'Выполняется запрос...');
-    submitBtn.disabled = true;
-    
-    try {
-      const result = isSignup 
-        ? await window.supabaseAuth.signUp(email, password)
-        : await window.supabaseAuth.signIn(email, password);
+    let isSignup = false;
+    let originalBtnContent = '<span id="authBtnText">Войти</span>';
+
+    function setError(type, message) {
+      errorEl.style.display = 'flex';
+      errorText.textContent = message;
+      errorIcon.innerHTML = '';
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("width", "20"); svg.setAttribute("height", "20");
+      svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("fill", "none");
+      svg.setAttribute("stroke", "currentColor"); svg.setAttribute("stroke-width", "2");
+      svg.setAttribute("stroke-linecap", "round"); svg.setAttribute("stroke-linejoin", "round");
       
-      if (result.error || result.message?.includes('error')) {
-        setError('error', result.error?.message || result.message || 'Ошибка аутентификации');
-      } else if (result.access_token) {
-        window.supabaseAuth.saveSession(result);
-        modal.style.display = 'none';
-        clearError();
-        if (window.onAuthSuccess) window.onAuthSuccess();
-        window.location.reload();
-      } else if (isSignup && result.weak_password) {
-        setError('warning', 'Пароль слишком слабый. Используйте минимум 6 символов.');
+      let strokeColor = "#f9a8a8";
+      if (type === 'loading') strokeColor = "#aac9f0";
+      else if (type === 'success') strokeColor = "#86c8a0";
+      else if (type === 'warning') strokeColor = "#e6b87c";
+      else if (type === 'error') strokeColor = "#f28b8b";
+      svg.style.color = strokeColor;
+      
+      if (type === 'loading') {
+        svg.innerHTML = '<circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/>';
+        svg.style.animation = 'spin 1s linear infinite';
+      } else if (type === 'success') {
+        svg.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+      } else if (type === 'warning') {
+        svg.innerHTML = '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>';
       } else {
-        setError('success', 'Проверьте почту для подтверждения (если требуется)');
-        setTimeout(() => { modal.style.display = 'none'; clearError(); }, 2500);
+        svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/>';
       }
-    } catch (err) {
-      setError('error', 'Ошибка сети: ' + err.message);
-    } finally {
-      submitBtn.disabled = false;
+      errorIcon.appendChild(svg);
     }
-  };
 
-  // Глобальные функции
-  window.openAuthModal = () => { 
-    modal.style.display = 'flex'; 
-    clearError();
-    // сброс режима если нужно
-  };
-  window.closeAuthModal = () => { modal.style.display = 'none'; clearError(); };
-  
-  window.updateAuthUI = async function() {
-    const user = await window.supabaseAuth.getUser();
-    const authBtn = document.getElementById('authBtn');
-    if (authBtn) {
-      if (user?.email) {
-        const name = user.email.split('@')[0];
-        // замена эмодзи 👤 на SVG профиля + имя
-        authBtn.innerHTML = `
-          <span style="display:inline-flex; align-items:center; gap:8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            <span>${name}</span>
-          </span>
-        `;
-        authBtn.title = 'Выйти из аккаунта';
-        authBtn.onclick = async () => {
-          await window.supabaseAuth.signOut();
-          window.location.reload();
-        };
+    function clearError() {
+      errorEl.style.display = 'none';
+      errorText.textContent = '';
+      errorIcon.innerHTML = '';
+    }
+
+    function setBtnLoading(loading) {
+      if (loading) {
+        originalBtnContent = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>`;
       } else {
-        authBtn.innerHTML = `
-          <span style="display:inline-flex; align-items:center; gap:8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="5" y="11" width="14" height="10" rx="2" />
-              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-              <circle cx="12" cy="16" r="1.5" fill="currentColor" />
-            </svg>
-            <span>Войти</span>
-          </span>
-        `;
-        authBtn.title = 'Войти или зарегистрироваться';
-        authBtn.onclick = window.openAuthModal;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnContent;
       }
     }
-  };
+
+    closeBtn.onclick = () => { modal.style.display = 'none'; clearError(); };
+    modal.onclick = (e) => { if (e.target === modal) { modal.style.display = 'none'; clearError(); } };
+    
+    toggleLink.onclick = (e) => {
+      e.preventDefault();
+      isSignup = !isSignup;
+      titleEl.textContent = isSignup ? 'Регистрация' : 'Вход';
+      toggleText.textContent = isSignup ? 'Уже есть аккаунт?' : 'Нет аккаунта?';
+      toggleLink.textContent = isSignup ? 'Войти' : 'Зарегистрироваться';
+      btnText.textContent = isSignup ? 'Зарегистрироваться' : 'Войти';
+      originalBtnContent = `<span id="authBtnText">${btnText.textContent}</span>`;
+      clearError();
+    };
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      const password = passInput.value;
+      
+      setError('loading', 'Выполняется запрос...');
+      setBtnLoading(true);
+      
+      try {
+        const result = isSignup 
+          ? await window.supabaseAuth.signUp(email, password)
+          : await window.supabaseAuth.signIn(email, password);
+        
+        if (result.error || result.message?.includes('error')) {
+          setError('error', result.error?.message || result.message || 'Ошибка аутентификации');
+        } else if (result.access_token) {
+          window.supabaseAuth.saveSession(result);
+          modal.style.display = 'none';
+          clearError();
+          if (window.onAuthSuccess) window.onAuthSuccess();
+          window.location.reload();
+        } else if (isSignup && result.weak_password) {
+          setError('warning', 'Пароль слишком слабый. Используйте минимум 6 символов.');
+        } else {
+          setError('success', 'Проверьте почту для подтверждения (если требуется)');
+          setTimeout(() => { modal.style.display = 'none'; clearError(); }, 2500);
+        }
+      } catch (err) {
+        setError('error', 'Ошибка сети: ' + err.message);
+      } finally {
+        setBtnLoading(false);
+      }
+    };
+
+    window.openAuthModal = () => { 
+      modal.style.display = 'flex'; 
+      clearError();
+      setTimeout(() => emailInput.focus(), 100);
+    };
+    window.closeAuthModal = () => { modal.style.display = 'none'; clearError(); };
+    
+    window.updateAuthUI = async function() {
+      const user = await window.supabaseAuth.getUser();
+      const authBtn = document.getElementById('authBtn');
+      if (authBtn) {
+        if (user?.email) {
+          const name = user.email.split('@')[0];
+          authBtn.innerHTML = `<span style="display:inline-flex; align-items:center; gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg><span>${name}</span></span>`;
+          authBtn.title = 'Выйти из аккаунта';
+          authBtn.onclick = async () => { await window.supabaseAuth.signOut(); window.location.reload(); };
+        } else {
+          authBtn.innerHTML = `<span style="display:inline-flex; align-items:center; gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /><circle cx="12" cy="16" r="1.5" fill="currentColor" /></svg><span>Войти</span></span>`;
+          authBtn.title = 'Войти или зарегистрироваться';
+          authBtn.onclick = window.openAuthModal;
+        }
+      }
+    };
+  });
 })();
 </script>
