@@ -102,27 +102,58 @@
     </div>
   </div>
 
-  <!-- 🔧 ВАЖНО: Сначала auth.js, потом наш скрипт -->
-  <script src="/auth.js"></script>
-  
+  <!-- 🔧 ВСТРОЕННЫЙ AUTH + ЛОГИКА СТРАНИЦЫ -->
   <script>
-    // ===== ПРОВЕРКА ЗАГРУЗКИ AUTH =====
-    console.log('🔍 Загрузка register.html...');
-    
-    function waitForAuth(callback, retries = 10) {
-      if (window.supabaseAuth && typeof window.supabaseAuth.signUp === 'function') {
-        console.log('✅ supabaseAuth загружен');
-        callback();
-      } else if (retries > 0) {
-        console.log(`⏳ Ожидание supabaseAuth... (${retries} попыток осталось)`);
-        setTimeout(() => waitForAuth(callback, retries - 1), 200);
-      } else {
-        console.error('❌ Не удалось загрузить supabaseAuth');
-        document.getElementById('errorEl').textContent = '⚠️ Ошибка загрузки авторизации. Обновите страницу.';
-        document.getElementById('errorEl').classList.add('show');
-        document.getElementById('submitBtn').disabled = true;
+    // ===== AUTH (Supabase) =====
+    const SUPABASE_URL = 'https://supabase.com/dashboard/project/qhmecfhqmdeouohrtplb';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFobWVjZmhxbWRlb3VvaHJ0cGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NTcxMTAsImV4cCI6MjA5MjQzMzExMH0.nP3ZMLP31p_GuVsuAwHf2tZkLzww8gLQnwguKsAa53k';
+
+    const supabaseAuth = {
+      async signUp(email, password) {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, options: { data: { role: 'user' } } })
+        });
+        return res.json();
+      },
+      async signIn(email, password) {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        return res.json();
+      },
+      async signOut() {
+        const session = this.getSession();
+        if (!session) return;
+        await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${session.access_token}` }
+        });
+        localStorage.removeItem('sb-session');
+      },
+      getSession() {
+        try { return JSON.parse(localStorage.getItem('sb-session')); } catch { return null; }
+      },
+      saveSession(session) {
+        localStorage.setItem('sb-session', JSON.stringify(session));
+      },
+      async getUser() {
+        const session = this.getSession();
+        if (!session) return null;
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${session.access_token}` }
+        });
+        return res.ok ? await res.json() : null;
+      },
+      async isAuthenticated() {
+        const user = await this.getUser();
+        return !!user;
       }
-    }
+    };
+    window.supabaseAuth = supabaseAuth;
 
     // ===== ТЕМЫ =====
     function toggleTheme() {
@@ -146,6 +177,23 @@
       }
     })();
 
+    // ===== ОЖИДАНИЕ AUTH =====
+    console.log('🔍 Загрузка register.html...');
+    function waitForAuth(callback, retries = 10) {
+      if (window.supabaseAuth && typeof window.supabaseAuth.signUp === 'function') {
+        console.log('✅ supabaseAuth загружен');
+        callback();
+      } else if (retries > 0) {
+        console.log(`⏳ Ожидание supabaseAuth... (${retries} попыток осталось)`);
+        setTimeout(() => waitForAuth(callback, retries - 1), 200);
+      } else {
+        console.error('❌ Не удалось загрузить supabaseAuth');
+        document.getElementById('errorEl').textContent = '⚠️ Ошибка загрузки авторизации. Обновите страницу.';
+        document.getElementById('errorEl').classList.add('show');
+        document.getElementById('submitBtn').disabled = true;
+      }
+    }
+
     // ===== РЕГИСТРАЦИЯ =====
     const form = document.getElementById('registerForm');
     const emailInput = document.getElementById('email');
@@ -158,10 +206,8 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      // 🔧 ПРОВЕРКА: загружен ли auth
       if (!window.supabaseAuth || typeof window.supabaseAuth.signUp !== 'function') {
         showError('⚠️ Авторизация ещё не загрузилась. Попробуйте ещё раз.');
-        console.error('supabaseAuth не найден:', window.supabaseAuth);
         return;
       }
       
