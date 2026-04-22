@@ -11,7 +11,7 @@
   ],
   "redirects": [
     {
-      "source": "/:path((?!project|MyBrowser|product|register|login|auth\\.js|components).+)",
+      "source": "/:path((?!project|MyBrowser|product|register|login|auth\\.js|components|api).+)",
       "destination": "https://google.com",
       "permanent": false
     }
