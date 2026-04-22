@@ -38,101 +38,25 @@
       backdrop-filter: blur(12px);
       box-shadow: 0 20px 40px rgba(0,0,0,0.3);
     }
-    .logo {
-      text-align: center;
-      margin-bottom: 24px;
-      font-size: 1.5rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
+    .logo { text-align: center; margin-bottom: 24px; font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .logo svg { stroke: var(--accent); }
     h1 { text-align: center; margin-bottom: 8px; font-size: 1.4rem; }
     .subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem; }
-    
     .form-group { margin-bottom: 16px; }
     label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: var(--text-secondary); }
-    input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(8, 16, 24, 0.6);
-      color: var(--text-primary);
-      font-size: 1rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+    input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: rgba(8, 16, 24, 0.6); color: var(--text-primary); font-size: 1rem; outline: none; transition: border-color 0.2s; }
     input:focus { border-color: var(--accent); }
     input::placeholder { color: var(--text-secondary); }
-    
-    .btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      border: none;
-      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-      color: #fff;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      margin-top: 8px;
-    }
+    .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: #fff; font-weight: 600; font-size: 1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; margin-top: 8px; }
     .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(106, 158, 192, 0.3); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    
-    .error {
-      background: rgba(248, 113, 113, 0.1);
-      color: var(--danger);
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      margin-bottom: 16px;
-      display: none;
-      text-align: center;
-    }
+    .error { background: rgba(248, 113, 113, 0.1); color: var(--danger); padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 16px; display: none; text-align: center; }
     .error.show { display: block; }
-    
-    .success {
-      background: rgba(107, 196, 141, 0.1);
-      color: var(--success);
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      margin-bottom: 16px;
-      display: none;
-      text-align: center;
-    }
+    .success { background: rgba(107, 196, 141, 0.1); color: var(--success); padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 16px; display: none; text-align: center; }
     .success.show { display: block; }
-    
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
+    .footer { text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 0.9rem; }
     .footer a { color: var(--accent); text-decoration: none; }
-    .footer a:hover { text-decoration: underline; }
-    
-    .theme-toggle {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--text-secondary);
-      transition: all 0.2s;
-    }
+    .theme-toggle { position: absolute; top: 20px; right: 20px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
     .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
   </style>
 </head>
@@ -162,17 +86,14 @@
         <label for="email">Email</label>
         <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
       </div>
-      
       <div class="form-group">
         <label for="password">Пароль</label>
         <input type="password" id="password" name="password" placeholder="Минимум 6 символов" required minlength="6" autocomplete="new-password">
       </div>
-      
       <div class="form-group">
         <label for="confirm">Повторите пароль</label>
         <input type="password" id="confirm" name="confirm" placeholder="Повторите пароль" required minlength="6" autocomplete="new-password">
       </div>
-      
       <button type="submit" class="btn" id="submitBtn">Зарегистрироваться</button>
     </form>
     
@@ -181,10 +102,28 @@
     </div>
   </div>
 
-  <!-- Подключаем auth.js -->
+  <!-- 🔧 ВАЖНО: Сначала auth.js, потом наш скрипт -->
   <script src="/auth.js"></script>
   
   <script>
+    // ===== ПРОВЕРКА ЗАГРУЗКИ AUTH =====
+    console.log('🔍 Загрузка register.html...');
+    
+    function waitForAuth(callback, retries = 10) {
+      if (window.supabaseAuth && typeof window.supabaseAuth.signUp === 'function') {
+        console.log('✅ supabaseAuth загружен');
+        callback();
+      } else if (retries > 0) {
+        console.log(`⏳ Ожидание supabaseAuth... (${retries} попыток осталось)`);
+        setTimeout(() => waitForAuth(callback, retries - 1), 200);
+      } else {
+        console.error('❌ Не удалось загрузить supabaseAuth');
+        document.getElementById('errorEl').textContent = '⚠️ Ошибка загрузки авторизации. Обновите страницу.';
+        document.getElementById('errorEl').classList.add('show');
+        document.getElementById('submitBtn').disabled = true;
+      }
+    }
+
     // ===== ТЕМЫ =====
     function toggleTheme() {
       const html = document.documentElement;
@@ -192,8 +131,6 @@
       const next = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('mybrowser_theme', next);
-      
-      // Обновляем иконку
       const icon = document.getElementById('themeIcon');
       if (next === 'dark') {
         icon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
@@ -201,8 +138,6 @@
         icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
       }
     }
-    
-    // Загружаем тему при старте
     (function() {
       const saved = localStorage.getItem('mybrowser_theme') || 'dark';
       document.documentElement.setAttribute('data-theme', saved);
@@ -223,64 +158,57 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      // 🔧 ПРОВЕРКА: загружен ли auth
+      if (!window.supabaseAuth || typeof window.supabaseAuth.signUp !== 'function') {
+        showError('⚠️ Авторизация ещё не загрузилась. Попробуйте ещё раз.');
+        console.error('supabaseAuth не найден:', window.supabaseAuth);
+        return;
+      }
+      
       const email = emailInput.value.trim();
       const password = passInput.value;
       const confirm = confirmInput.value;
       
-      // Валидация
-      if (password !== confirm) {
-        showError('❌ Пароли не совпадают');
-        return;
-      }
-      if (password.length < 6) {
-        showError('❌ Пароль должен быть минимум 6 символов');
-        return;
-      }
+      if (password !== confirm) { showError('❌ Пароли не совпадают'); return; }
+      if (password.length < 6) { showError('❌ Пароль должен быть минимум 6 символов'); return; }
       
-      // UI
-      showError('');
-      showSuccess('');
+      showError(''); showSuccess('');
       submitBtn.disabled = true;
       submitBtn.textContent = '⏳ Регистрация...';
       
       try {
+        console.log('📤 Отправка регистрации:', email);
         const result = await window.supabaseAuth.signUp(email, password);
+        console.log('📥 Ответ Supabase:', result);
         
         if (result.error || result.message?.includes('error')) {
           showError('❌ ' + (result.error?.message || result.message || 'Ошибка регистрации'));
         } else if (result.access_token) {
-          // Успех: сохраняем сессию и редиректим
           window.supabaseAuth.saveSession(result);
           showSuccess('✅ Регистрация успешна! Перенаправление...');
-          setTimeout(() => {
-            window.location.href = '/project/MyBrowser';
-          }, 1500);
+          setTimeout(() => { window.location.href = '/project/MyBrowser'; }, 1500);
         } else if (result.weak_password) {
-          showError('⚠️ Пароль слишком слабый. Используйте больше символов.');
+          showError('⚠️ Пароль слишком слабый.');
         } else {
-          // Email confirmation включено
-          showSuccess('✅ Проверьте почту для подтверждения аккаунта');
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 3000);
+          showSuccess('✅ Проверьте почту для подтверждения');
+          setTimeout(() => { window.location.href = '/login'; }, 3000);
         }
       } catch (err) {
-        showError('🌐 Ошибка сети: ' + err.message);
+        console.error('🔥 Ошибка регистрации:', err);
+        showError('🌐 Ошибка: ' + err.message);
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Зарегистрироваться';
       }
     });
 
-    function showError(msg) {
-      errorEl.textContent = msg;
-      errorEl.classList.toggle('show', !!msg);
-    }
-    
-    function showSuccess(msg) {
-      successEl.textContent = msg;
-      successEl.classList.toggle('show', !!msg);
-    }
+    function showError(msg) { errorEl.textContent = msg; errorEl.classList.toggle('show', !!msg); }
+    function showSuccess(msg) { successEl.textContent = msg; successEl.classList.toggle('show', !!msg); }
+
+    // 🔧 Ждём загрузки auth перед активацией формы
+    waitForAuth(() => {
+      console.log('✅ Форма активна');
+    });
   </script>
 </body>
 </html>
