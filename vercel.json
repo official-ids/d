@@ -6,7 +6,7 @@
     { "source": "/MyBrowser", "destination": "/MyBrowser/index.html" },
     { "source": "/product", "destination": "/product/music-visualizer.html" },
     { "source": "/product/focus", "destination": "/product/focus.html" },
-    { "source": "/product/send", "destination": "/product/send.html" },
+    { "source": "/product/ClientBot", "destination": "/product/ClientBot.html" },
     { "source": "/register", "destination": "/register.html" },
     { "source": "/login", "destination": "/login.html" }
   ],
