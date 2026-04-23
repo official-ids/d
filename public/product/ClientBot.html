@@ -317,206 +317,197 @@
   <div class="toast-container" id="toastContainer"></div>
 
 <script>
-  // ===== STATE =====
-  const STORAGE_KEYS = { BOTS: 'bc_bots', MSGS: 'bc_messages', THEME: 'theme', CUR_BOT: 'bc_cur_bot' };
-  let state = {
-    bots: [],
-    messages: [],
-    currentBot: null, // Индекс выбранного бота
-    currentChatId: '' // Текущий Chat ID для ввода
-  };
+    // ===== STATE & CONFIG =====
+    const STORAGE_KEYS = {
+      BOTS: 'bc_bots',
+      MSGS: 'bc_messages',
+      THEME: 'bc_theme'
+    };
 
-  // ===== УТИЛИТЫ =====
-  function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-  function load(key) { return JSON.parse(localStorage.getItem(key)) || null; }
+    // Безопасная загрузка (не крашится на строках)
+    const loadSafe = (key) => {
+      try {
+        const val = localStorage.getItem(key);
+        if (!val) return null;
+        return JSON.parse(val);
+      } catch {
+        return null;
+      }
+    };
 
-  // ===== РИСОВАНИЕ БОТОВ (ИСПРАВЛЕНО) =====
-  function renderBots() {
-    // ВАЖНО: В HTML контейнер называется botListContainer
-    const container = document.getElementById('botListContainer');
+    // Безопасное сохранение
+    const saveSafe = (key, data) => {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (e) {
+        console.error('Save error:', e);
+      }
+    };
 
-    // ЗАЩИТА: Если элемента нет — выходим, чтобы не было ошибки
-    if (!container) {
-      console.error("Ошибка: В HTML не найден элемент id='botListContainer'");
-      return;
+    // Инициализация состояния
+    let state = {
+      bots: loadSafe(STORAGE_KEYS.BOTS) || [],
+      messages: loadSafe(STORAGE_KEYS.MSGS) || [],
+      selectedBotIndex: 0
+    };
+
+    // DOM Elements
+    const els = {
+      tokenInput: document.getElementById('tokenInput'),
+      connectBtn: document.getElementById('connectBtn'),
+      botList: document.getElementById('botList'),
+      botSelect: document.getElementById('botSelect'),
+      chatIdInput: document.getElementById('chatIdInput'),
+      messageText: document.getElementById('messageText'),
+      sendBtn: document.getElementById('sendBtn'),
+      feed: document.getElementById('feed'),
+      themeToggle: document.getElementById('themeToggle')
+    };
+
+    // ===== RENDER FUNCTIONS =====
+
+    function renderBots() {
+      if (!els.botList) return;
+      if (state.bots.length === 0) {
+        els.botList.innerHTML = `<div style="padding:10px;color:var(--text-muted)">Нет подключенных ботов</div>`;
+        return;
+      }
+      els.botList.innerHTML = state.bots.map((b, i) => `
+        <div class="bot-card ${state.selectedBotIndex === i ? 'active' : ''}" onclick="selectBot(${i})">
+          <div class="bot-info"><b>@${b.username}</b></div>
+        </div>
+      `).join('');
     }
 
-    // Если ботов нет
-    if (state.bots.length === 0) {
-      container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">Нет подключенных ботов. Введите токен выше.</div>`;
-      return;
-    }
-
-    // Рисуем список
-    container.innerHTML = state.bots.map((bot, idx) => `
-      <div class="bot-card ${state.currentBot === idx ? 'active' : ''}" onclick="window.selectBot(${idx})">
-         <div class="bot-header">
-           <div class="bot-avatar">${bot.username[0].toUpperCase()}</div>
-           <div class="bot-info">
-             <h3>@${bot.username}</h3>
-             <p>${bot.first_name}</p>
-           </div>
-         </div>
-         <div class="bot-actions">
-           <button class="btn btn-outline" style="padding:4px 8px; color:var(--error);" onclick="event.stopPropagation(); window.deleteBot(${idx})">✕</button>
-         </div>
-      </div>
-    `).join('');
-  }
-
-  // ===== ЛОГИКА ВЫБОРА И УДАЛЕНИЯ =====
-  window.selectBot = (idx) => {
-    state.currentBot = idx;
-    save(STORAGE_KEYS.CUR_BOT, idx);
-    renderBots();
-    renderFeed(); // Обновить историю под выбранного бота
-  };
-
-  window.deleteBot = (idx) => {
-    if(confirm('Удалить этого бота?')) {
-      state.bots.splice(idx, 1);
-      if (state.currentBot === idx) state.currentBot = null;
-      save(STORAGE_KEYS.BOTS, state.bots);
+    window.selectBot = (idx) => {
+      state.selectedBotIndex = idx;
       renderBots();
-    }
-  };
+      updateBotSelect();
+    };
 
-  // ===== ПОДКЛЮЧЕНИЕ НОВОГО БОТА =====
-  async function connectBot() {
-    const token = document.getElementById('tokenInput').value.trim();
-    if (!token) return alert('Введите токен!');
-
-    const btn = document.getElementById('connectBtn');
-    btn.disabled = true;
-    btn.textContent = 'Проверка...';
-
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
-      const data = await res.json();
-
-      if (data.ok) {
-        const newBot = {
-          id: data.result.id,
-          username: data.result.username,
-          first_name: data.result.first_name,
-          token: token
-        };
-
-        // Проверка на дубликаты
-        if (!state.bots.some(b => b.id === newBot.id)) {
-          state.bots.push(newBot);
-          save(STORAGE_KEYS.BOTS, state.bots);
-          document.getElementById('tokenInput').value = '';
-          renderBots();
-        } else {
-          alert('Этот бот уже добавлен!');
-        }
-      } else {
-        alert('Ошибка: Неверный токен');
-      }
-    } catch (e) {
-      alert('Ошибка сети');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Подключить';
-    }
-  }
-
-  // ===== ОТПРАВКА СООБЩЕНИЯ =====
-  async function sendMessage() {
-    const botIdx = state.currentBot;
-    const chatId = document.getElementById('chatIdInput').value.trim();
-    const text = document.getElementById('messageText').value.trim();
-
-    if (botIdx === null || botIdx === undefined) return alert('Сначала выберите бота из списка!');
-    if (!chatId) return alert('Введите Chat ID');
-    if (!text) return alert('Введите текст');
-
-    const btn = document.getElementById('sendBtn');
-    btn.disabled = true;
-    btn.textContent = 'Отправка...';
-
-    try {
-      const bot = state.bots[botIdx];
-      const res = await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text: text })
+    function updateBotSelect() {
+      if (!els.botSelect) return;
+      els.botSelect.innerHTML = '<option value="">-- Выбрать бота --</option>';
+      state.bots.forEach((b, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.text = `@${b.username}`;
+        if (i === state.selectedBotIndex) opt.selected = true;
+        els.botSelect.appendChild(opt);
       });
-      const data = await res.json();
+    }
 
-      if (data.ok) {
-        const msg = { id: Date.now(), text, chatId, botId: bot.id, timestamp: Date.now() };
-        state.messages.unshift(msg);
-        save(STORAGE_KEYS.MSGS, state.messages);
-        
-        document.getElementById('messageText').value = ''; // Очистить поле
-        renderFeed();
-      } else {
-        alert('Ошибка API: ' + (data.description || 'Неизвестно'));
+    els.botSelect?.addEventListener('change', (e) => {
+      state.selectedBotIndex = parseInt(e.target.value);
+      renderBots();
+    });
+
+    function renderFeed() {
+      if (!els.feed) return;
+      if (state.messages.length === 0) {
+        els.feed.innerHTML = '<div style="padding:10px;color:var(--text-muted)">История пуста</div>';
+        return;
       }
-    } catch (e) {
-      alert('Ошибка сети');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Отправить';
-    }
-  }
-
-  // ===== ИСТОРИЯ СООБЩЕНИЙ =====
-  function renderFeed() {
-    const feedContainer = document.getElementById('feed');
-    if (!feedContainer) return;
-
-    // Фильтруем сообщения только для текущего бота (если выбран)
-    const bot = state.bots[state.currentBot];
-    const msgs = bot 
-      ? state.messages.filter(m => m.botId === bot.id) 
-      : state.messages;
-
-    if (msgs.length === 0) {
-      feedContainer.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">История пуста</div>`;
-      return;
+      els.feed.innerHTML = state.messages.slice().reverse().map(m => `
+        <div class="feed-item">
+          <div class="feed-meta">@${m.bot} → ${m.chatId} <span style="color:var(--text-muted)">${new Date(m.date).toLocaleTimeString()}</span></div>
+          <div class="feed-content">${m.text}</div>
+        </div>
+      `).join('');
     }
 
-    feedContainer.innerHTML = msgs.map(m => `
-      <div class="feed-item">
-        <div class="feed-content">${m.text}</div>
-        <div class="feed-meta">Chat ID: ${m.chatId} • ${new Date(m.timestamp).toLocaleString()}</div>
-      </div>
-    `).join('');
-  }
+    // ===== ACTIONS =====
 
-  // ===== ТЕМЫ =====
-  function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    save(STORAGE_KEYS.THEME, next);
-  }
+    // Connect Bot
+    els.connectBtn?.addEventListener('click', async () => {
+      const token = els.tokenInput.value.trim();
+      if (!token) return alert('Введи токен');
+      
+      els.connectBtn.disabled = true;
+      els.connectBtn.textContent = '...';
 
-  // ===== ИНИЦИАЛИЗАЦИЯ =====
-  function init() {
-    state.bots = load(STORAGE_KEYS.BOTS) || [];
-    state.messages = load(STORAGE_KEYS.MSGS) || [];
-    state.currentBot = load(STORAGE_KEYS.CUR_BOT);
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+        const data = await res.json();
+        
+        if (data.ok) {
+          const newBot = { token, username: data.result.username, id: data.result.id };
+          if (!state.bots.some(b => b.id === newBot.id)) {
+            state.bots.push(newBot);
+            saveSafe(STORAGE_KEYS.BOTS, state.bots);
+            renderBots();
+            updateBotSelect();
+            els.tokenInput.value = '';
+            alert('Бот добавлен!');
+          } else {
+            alert('Бот уже добавлен');
+          }
+        } else {
+          alert('Ошибка API: ' + data.description);
+        }
+      } catch (e) {
+        alert('Ошибка сети');
+      } finally {
+        els.connectBtn.disabled = false;
+        els.connectBtn.textContent = 'Подключить';
+      }
+    });
 
-    // Если тема сохранена
-    const savedTheme = load(STORAGE_KEYS.THEME);
-    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+    // Send Message
+    els.sendBtn?.addEventListener('click', async () => {
+      const botIdx = state.selectedBotIndex;
+      if (!state.bots[botIdx]) return alert('Выбери бота');
+      
+      const chatId = els.chatIdInput.value.trim();
+      const text = els.messageText.value.trim();
+      if (!chatId || !text) return alert('Заполни Chat ID и Текст');
 
-    // Вешаем события
-    document.getElementById('connectBtn').addEventListener('click', connectBot);
-    document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+      els.sendBtn.disabled = true;
+      els.sendBtn.textContent = 'Отправка...';
 
-    // Рисуем начальное состояние
-    renderBots();
-    renderFeed();
-  }
+      try {
+        const bot = state.bots[botIdx];
+        const res = await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ chat_id: chatId, text })
+        });
+        const data = await res.json();
+        
+        if (data.ok) {
+          state.messages.push({ date: new Date().toISOString(), text, chatId, bot: bot.username });
+          saveSafe(STORAGE_KEYS.MSGS, state.messages);
+          renderFeed();
+          els.messageText.value = '';
+          alert('Отправлено');
+        } else {
+          alert('Ошибка: ' + data.description);
+        }
+      } catch (e) {
+        alert('Ошибка сети');
+      } finally {
+        els.sendBtn.disabled = false;
+        els.sendBtn.textContent = 'Отправить';
+      }
+    });
 
-  // Запуск после загрузки DOM
-  document.addEventListener('DOMContentLoaded', init);
-</script>
+    // Theme Toggle
+    els.themeToggle?.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem(STORAGE_KEYS.THEME, next);
+    });
+
+    // Init
+    (function init() {
+      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+      if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      renderBots();
+      updateBotSelect();
+      renderFeed();
+    })();
+  </script>
 </body>
 </html>
