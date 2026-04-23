@@ -151,23 +151,23 @@
     </div>
   </div>
 
-  <!-- Модальное окно (заглушка, реальное загружается динамически) -->
-  <div class="modal-overlay" id="authModal">
+    <!-- Модальное окно (заглушка) -->
+  <div class="modal-overlay" id="authModal" style="display:none;">
     <div class="modal-card">
-      <h3>🔐 Загрузка...</h3>
-      <p>Пожалуйста, подождите</p>
+      <h3>🔐 Вход</h3>
+      <p>Загрузка формы...</p>
     </div>
   </div>
 
-  <!-- 🔧 КОНТЕЙНЕР ДЛЯ ДИНАМИЧЕСКОЙ ЗАГРУЗКИ -->
+  <!-- Контейнер для динамического контента -->
   <div id="auth-placeholder"></div>
 
-  <!-- Подключение auth.js -->
-  <script src="/auth.js"></script>
+  <!-- Подключение auth.js (не блокирует загрузку страницы) -->
+  <script src="/auth.js" onerror="console.warn('auth.js не загружен, работаем в демо-режиме')"></script>
   
-  <!-- 🔧 СКРИПТ ЗАГРУЗКИ МОДАЛЬНОГО ОКНА -->
+  <!-- 🔧 СКРИПТ ЗАГРУЗКИ МОДАЛКИ С ЗАЩИТОЙ ОТ ЗАВИСАНИЙ -->
   <script>
-    // Глобальные функции для управления модальным окном
+    // Глобальные функции (определяем сразу, чтобы кнопка работала)
     window.openAuthModal = function() {
       localStorage.setItem('auth_return_url', window.location.pathname);
       const modal = document.getElementById('authModal');
@@ -175,6 +175,9 @@
         modal.style.display = 'flex';
         const emailInput = document.getElementById('authEmail');
         if (emailInput) setTimeout(() => emailInput.focus(), 100);
+      } else {
+        // Если модалка ещё не загрузилась — редирект на /login
+        window.location.href = '/login?return=' + encodeURIComponent(window.location.pathname);
       }
     };
     window.closeAuthModal = function() {
@@ -182,14 +185,30 @@
       if (modal) modal.style.display = 'none';
     };
     
-    // Динамическая загрузка auth-modal.html
-    fetch('/components/auth-modal.html')
-      .then(r => r.text())
-      .then(html => { 
-        document.getElementById('auth-placeholder').innerHTML = html;
-        if (window.updateAuthUI) window.updateAuthUI();
-      })
-      .catch(err => console.warn('Не удалось загрузить auth-modal:', err));
+    // Динамическая загрузка auth-modal.html с таймаутом
+    (function loadAuthModal() {
+      const placeholder = document.getElementById('auth-placeholder');
+      if (!placeholder) return;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 сек таймаут
+      
+      fetch('/components/auth-modal.html', { signal: controller.signal })
+        .then(r => {
+          clearTimeout(timeoutId);
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
+        .then(html => { 
+          placeholder.innerHTML = html;
+          // Обновляем UI кнопки после загрузки модалки
+          if (window.updateAuthUI) window.updateAuthUI();
+        })
+        .catch(err => {
+          console.warn('auth-modal не загружен (это ок, демо-режим работает):', err.message);
+          // Не ломаем страницу — просто работаем без модалки
+        });
+    })();
   </script>
   
   <!-- Оригинальный скрипт focus.html (без изменений) -->
