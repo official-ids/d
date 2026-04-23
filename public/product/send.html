@@ -346,106 +346,71 @@
 
     // ===== ACTIONS =====
     // ===== ЗАМЕНИ ФУНКЦИЮ dispatch() НА ЭТУ =====
-function dispatch() {
-  // 1. Проверка рейт-лимита
-  if (state.cooldown) {
-    toast('Подождите 3 секунды перед следующей отправкой', 'warn');
-    return;
-  }
-
-  // 2. Валидация данных
+// ===== РЕАЛЬНАЯ ОТПРАВКА В TELEGRAM (вставь вместо старой dispatch) =====
+async function dispatch() {
+  if (state.cooldown) { toast('Подождите 3 секунды', 'warn'); return; }
+  
   const token = els.token.value.trim();
   const text = els.msg.value.trim();
   
-  if (!text) {
-    log('warn', 'Attempted to send empty message');
-    toast('Сообщение не может быть пустым', 'error');
-    return;
+  if (!token) { log('error', 'Token required'); toast('Введите токен бота', 'error'); return; }
+  if (!text) { log('warn', 'Empty message'); toast('Сообщение не может быть пустым', 'error'); return; }
+  
+  // Парсим или используем как есть
+  let payload;
+  try {
+    payload = JSON.parse(text); // Если пользователь ввёл {"chat_id": ..., "text": ...}
+  } catch {
+    payload = { chat_id: 8165620138, text }; // Дефолтный chat_id (замени на свой)
   }
-  if (text.length > 4000) {
-    log('warn', 'Message too long', { length: text.length });
-    toast('Сообщение слишком длинное (макс. 4000 символов)', 'error');
-    return;
-  }
-
-  // 3. Блокировка UI и логирование
+  
   state.cooldown = true;
   els.sendBtn.disabled = true;
-  els.statusText.textContent = 'Sending...';
+  els.statusText.textContent = 'Sending to Telegram...';
   els.statusDot.className = 'dot';
   
-  log('info', `Dispatching message [token: ${token ? token.substring(0, 8) + '...' : 'none'}]`);
-
-  // 4. Формирование пейлоада
-  const payload = {
-    id: genId(),
-    ts: Date.now(),
-    token: token || null,
-    text: text,
-    status: 'sent',
-    source: navigator.userAgent // для отладки
-  };
-
-  // 5. Сохранение локально + синхронизация
+  log('info', `Calling Telegram API with token ${token.substring(0, 8)}...`);
+  
   try {
-    const msgs = load(DB_KEYS.MSGS);
-    msgs.unshift(payload);
-    // Ограничиваем хранилище 100 последними сообщениями
-    if (msgs.length > 100) msgs.length = 100;
-    save(DB_KEYS.MSGS, msgs);
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
     
-    // Триггерим синхронизацию для других вкладок
-    state.lastSync = payload.ts;
-    state.lastId = payload.id;
+    const data = await res.json();
     
-    // Добавляем в фид текущей вкладки
-    addFeedItem(payload, false);
-    log('info', `Message dispatched [ID: ${payload.id}]`);
-    toast('Message sent', 'success');
-    
-  } catch (e) {
-    log('error', 'Failed to save message', e.message);
-    toast('Ошибка сохранения', 'error');
-  }
-
-  // 6. Симуляция "ответа от бота" (через 600-1000ms)
-  setTimeout(() => {
-    try {
-      const echo = {
-        id: genId(),
-        ts: Date.now(),
-        token: token || null,
-        text: `[BOT] ${text}`, // Префикс для отличия
-        status: 'delivered',
-        isEcho: true
+    if (res.ok && data.ok) {
+      // ✅ Успех — логируем и показываем
+      const msg = {
+        id: genId(), ts: Date.now(), token, text,
+        status: 'delivered', telegram: data.result
       };
-      
-      // Сохраняем эхо
       const msgs = load(DB_KEYS.MSGS);
-      msgs.unshift(echo);
-      if (msgs.length > 100) msgs.length = 100;
+      msgs.unshift(msg); if (msgs.length > 100) msgs.length = 100;
       save(DB_KEYS.MSGS, msgs);
-      
-      addFeedItem(echo, true);
-      log('info', 'Echo received from "bot"');
-      
-    } catch (e) {
-      log('warn', 'Echo simulation failed', e.message);
+      addFeedItem(msg, false);
+      log('info', `Telegram: message sent [update_id: ${data.result?.message_id}]`);
+      toast('Sent to Telegram!', 'success');
+    } else {
+      // ❌ Ошибка API
+      const err = data.description || 'Unknown error';
+      log('error', `Telegram API error: ${err}`, data);
+      toast(`Ошибка: ${err}`, 'error');
     }
-  }, 600 + Math.random() * 400);
-
-  // 7. Сброс состояния через 3 секунды
-  setTimeout(() => {
-    state.cooldown = false;
-    els.sendBtn.disabled = false;
-    els.statusText.textContent = 'Online';
-    els.statusDot.className = 'dot online';
-    
-    // Очищаем поле сообщения, но сохраняем токен
-    els.msg.value = '';
-    save(DB_KEYS.DRAFT, '');
-    
-  }, 3000);
+  } catch (e) {
+    log('error', 'Network error', e.message);
+    toast('Не удалось соединиться с Telegram', 'error');
+  } finally {
+    // Сброс через 3 сек
+    setTimeout(() => {
+      state.cooldown = false;
+      els.sendBtn.disabled = false;
+      els.statusText.textContent = 'Online';
+      els.statusDot.className = 'dot online';
+      els.msg.value = ''; save(DB_KEYS.DRAFT, '');
+    }, 3000);
+  }
 }
 
     // ===== INIT & EVENTS =====
