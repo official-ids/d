@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Client · Local Node</title>
+  <style>
+    :root {
+      --bg: #0b1118; --surface: #111b27; --surface-hover: #16202d;
+      --border: #1e2d3d; --text: #e2e8f0; --text-muted: #64748b;
+      --primary: #3b82f6; --primary-hover: #2563eb;
+      --success: #10b981; --warning: #f59e0b; --error: #ef4444;
+      --radius: 10px; --shadow: 0 4px 12px rgba(0,0,0,0.3);
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc; --surface: #ffffff; --surface-hover: #f1f5f9;
+      --border: #e2e8f0; --text: #0f172a; --text-muted: #64748b;
+      --primary: #2563eb; --primary-hover: #1d4ed8;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; line-height: 1.5; }
+    
+    .app { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    
+    /* Header & Nav */
+    .header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.2rem; }
+    .brand svg { stroke: var(--primary); }
+    .nav { display: flex; gap: 4px; background: var(--surface); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
+    .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .nav-btn:hover { color: var(--text); background: var(--surface-hover); }
+    .nav-btn.active { background: var(--primary); color: #fff; }
+    .actions { display: flex; gap: 8px; }
+    .icon-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .icon-btn:hover { color: var(--text); border-color: var(--primary); }
+
+    /* Tabs */
+    .tab { display: none; animation: fadeUp 0.25s ease; }
+    .tab.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Cards & Inputs */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+    .input, .textarea { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: var(--radius); font-size: 0.95rem; outline: none; transition: border-color 0.2s; font-family: var(--font); }
+    .input:focus, .textarea:focus { border-color: var(--primary); }
+    .textarea { min-height: 100px; resize: vertical; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .row > * { flex: 1; min-width: 200px; }
+
+    .btn { padding: 12px 18px; border-radius: var(--radius); border: none; background: var(--primary); color: #fff; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--surface-hover); }
+
+    /* Status Badge */
+    .status { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; padding: 6px 12px; border-radius: 20px; background: var(--bg); border: 1px solid var(--border); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+    .dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .dot.error { background: var(--error); }
+
+    /* Feed & Logs */
+    .feed, .log-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .item { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; transition: background 0.2s; }
+    .item:hover { background: var(--surface-hover); }
+    .item-meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; display: flex; gap: 8px; align-items: center; }
+    .item-content { font-size: 0.95rem; white-space: pre-wrap; word-break: break-word; }
+    .level { padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+    .level.info { background: rgba(59,130,246,0.15); color: var(--primary); }
+    .level.warn { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .level.error { background: rgba(239,68,68,0.15); color: var(--error); }
+    .copy-btn { opacity: 0; transition: opacity 0.2s; cursor: pointer; color: var(--text-muted); }
+    .item:hover .copy-btn { opacity: 1; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: var(--shadow); animation: modalIn 0.2s ease; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 20px; overflow-y: auto; flex: 1; font-family: monospace; font-size: 0.9rem; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* Toast */
+    .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+    .toast { background: var(--surface); border: 1px solid var(--border); padding: 12px 16px; border-radius: 10px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; min-width: 250px; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    
+    /* Utils */
+    .empty { text-align: center; color: var(--text-muted); padding: 40px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .empty svg { opacity: 0.4; }
+    .hidden { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    @media (max-width: 600px) { .header { flex-direction: column; align-items: stretch; } .nav { justify-content: center; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
+        <span>Bot Client</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-tab="dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-btn" data-tab="logs">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Logs
+        </button>
+        <button class="nav-btn" data-tab="info">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Info
+        </button>
+      </nav>
+      <div class="actions">
+        <button class="icon-btn" id="themeToggle" title="Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Dashboard Tab -->
+    <section id="dashboard" class="tab active">
+      <div class="card">
+        <div class="row">
+          <div class="input-group">
+            <label class="label">Bot Token</label>
+            <input type="text" id="tokenInput" class="input" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+          </div>
+          <div class="input-group">
+            <label class="label">Status</label>
+            <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Idle</span></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="label">Message Payload</label>
+          <textarea id="msgInput" class="textarea" placeholder='{"chat_id": 123456789, "text": "Hello World"}'></textarea>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <span style="font-size:0.85rem; color:var(--text-muted);">Local Node: Storage Sync Active</span>
+          <button class="btn" id="sendBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Dispatch
+          </button>
+        </div>
+      </div>
+
+      <h3 style="margin:20px 0 12px; font-size:1.1rem;">Live Feed</h3>
+      <div class="card">
+        <div id="feed" class="feed">
+          <div class="empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>No messages dispatched</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logs Tab -->
+    <section id="logs" class="tab">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3>System Logs</h3>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline" id="copyLogsBtn">Copy All</button>
+            <button class="btn btn-outline" id="clearLogsBtn">Clear</button>
+          </div>
+        </div>
+        <div id="logList" class="log-list">
+          <div class="empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>System initialized. Awaiting events.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Info Tab -->
+    <section id="info" class="tab">
+      <div class="card">
+        <h3 style="margin-bottom:16px;">Documentation & Warnings</h3>
+        <div style="display:flex; flex-direction:column; gap:16px; font-size:0.95rem; color:var(--text-muted);">
+          <div>
+            <strong style="color:var(--text);">Architecture</strong>
+            <p>This client operates in LocalStorage mode. Messages sync across browser tabs instantly via the Storage Event API. No external network requests are made.</p>
+          </div>
+          <div>
+            <strong style="color:var(--warning);">Security Notice</strong>
+            <ul style="margin-left:20px; margin-top:6px;">
+              <li>Do not paste production tokens in shared environments.</li>
+              <li>Local storage is accessible by any script on this domain.</li>
+              <li>Auto-cleanup runs every 24h (simulated).</li>
+            </ul>
+          </div>
+          <div>
+            <strong style="color:var(--text);">Rate Limits</strong>
+            <p>Client enforces a 3-second cooldown between dispatches to simulate API fairness. Exceeding triggers a soft lock.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span id="modalTitle">Log Detail</span>
+        <button class="icon-btn" id="closeModal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="copyModalBtn">Copy</button>
+        <button class="btn" id="closeModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // ===== STATE & CONFIG =====
+    const DB_KEYS = { MSGS: 'bc_messages', LOGS: 'bc_logs', DRAFT: 'bc_draft' };
+    const state = { token: '', logs: [], cooldown: false, lastSend: 0 };
+    const els = {
+      token: document.getElementById('tokenInput'),
+      msg: document.getElementById('msgInput'),
+      feed: document.getElementById('feed'),
+      logList: document.getElementById('logList'),
+      sendBtn: document.getElementById('sendBtn'),
+      statusDot: document.getElementById('statusDot'),
+      statusText: document.getElementById('statusText'),
+      modal: document.getElementById('modalOverlay'),
+      modalTitle: document.getElementById('modalTitle'),
+      modalBody: document.getElementById('modalBody'),
+      toasts: document.getElementById('toastContainer')
+    };
+
+    // ===== UTILS =====
+    const fmtTime = (ts) => new Date(ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const genId = () => Math.random().toString(36).substr(2, 9);
+    const copyText = async (text) => {
+      try { await navigator.clipboard.writeText(text); toast('Copied to clipboard', 'success'); } 
+      catch { toast('Copy failed', 'error'); }
+    };
+
+    // ===== LOGGING SYSTEM =====
+    function log(level, message, data = null) {
+      const entry = { id: genId(), ts: Date.now(), level, message, data };
+      state.logs.unshift(entry);
+      save(DB_KEYS.LOGS, state.logs);
+      renderLogs();
+      if (level === 'error') toast(message, 'error');
+    }
+
+    function renderLogs() {
+      if (state.logs.length === 0) {
+        els.logList.innerHTML = `<div class="empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>System initialized. Awaiting events.</span></div>`;
+        return;
+      }
+      els.logList.innerHTML = state.logs.map(l => `
+        <div class="item" onclick="openLogModal('${l.id}')">
+          <div>
+            <div class="item-meta"><span class="level ${l.level}">${l.level}</span> <span>${fmtTime(l.ts)}</span></div>
+            <div class="item-content">${escHtml(l.message)}</div>
+          </div>
+          <button class="copy-btn" onclick="event.stopPropagation(); copyText('${escAttr(JSON.stringify(l))}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function openLogModal(id) {
+      const l = state.logs.find(x => x.id === id);
+      if (!l) return;
+      els.modalTitle.textContent = `${l.level.toUpperCase()} :: ${fmtTime(l.ts)}`;
+      els.modalBody.textContent = JSON.stringify(l, null, 2);
+      els.modal.classList.add('show');
+    }
+
+    // ===== STORAGE & SYNC =====
+    function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) { log('error', 'Storage quota exceeded', e.message); } }
+    function load(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } }
+
+    // Cross-tab sync
+    window.addEventListener('storage', (e) => {
+      if (e.key === DB_KEYS.MSGS) {
+        const msgs = load(DB_KEYS.MSGS);
+        const newMsg = msgs.find(m => m.ts > (state.lastSync || 0));
+        if (newMsg && newMsg.id !== state.lastId) {
+          state.lastId = newMsg.id;
+          addFeedItem(newMsg, true);
+          log('info', `Sync received: ${newMsg.text.substring(0, 20)}...`);
+        }
+      }
+    });
+
+    // ===== UI RENDERERS =====
+    function addFeedItem(msg, isRemote = false) {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.style.animation = 'fadeUp 0.3s ease';
+      div.innerHTML = `
+        <div>
+          <div class="item-meta">
+            <span class="level info">${isRemote ? 'INBOUND' : 'OUTBOUND'}</span>
+            <span>ID: ${msg.id}</span>
+            <span>${fmtTime(msg.ts)}</span>
+            <span>${msg.token ? 'Token: ' + msg.token.substring(0, 8) + '...' : 'No Token'}</span>
+          </div>
+          <div class="item-content">${escHtml(msg.text)}</div>
+        </div>
+        <button class="copy-btn" onclick="copyText('${escAttr(msg.text)}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      `;
+      els.feed.prepend(div);
+      if (els.feed.children.length > 50) els.feed.lastChild.remove();
+    }
+
+    function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function escAttr(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+    function toast(msg, type = 'info') {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      const color = type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : 'var(--primary)';
+      t.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>${msg}</span>`;
+      els.toasts.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(100%)'; setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    // ===== ACTIONS =====
+    // ===== ЗАМЕНИ ФУНКЦИЮ dispatch() НА ЭТУ =====
+// ===== РЕАЛЬНАЯ ОТПРАВКА В TELEGRAM (вставь вместо старой dispatch) =====
+async function dispatch() {
+  if (state.cooldown) { toast('Подождите 3 секунды', 'warn'); return; }
+  
+  const token = els.token.value.trim();
+  const text = els.msg.value.trim();
+  
+  if (!token) { log('error', 'Token required'); toast('Введите токен бота', 'error'); return; }
+  if (!text) { log('warn', 'Empty message'); toast('Сообщение не может быть пустым', 'error'); return; }
+  
+  // Парсим или используем как есть
+  let payload;
+  try {
+    payload = JSON.parse(text); // Если пользователь ввёл {"chat_id": ..., "text": ...}
+  } catch {
+    payload = { chat_id: 8165620138, text }; // Дефолтный chat_id (замени на свой)
+  }
+  
+  state.cooldown = true;
+  els.sendBtn.disabled = true;
+  els.statusText.textContent = 'Sending to Telegram...';
+  els.statusDot.className = 'dot';
+  
+  log('info', `Calling Telegram API with token ${token.substring(0, 8)}...`);
+  
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await res.json();
+    
+    if (res.ok && data.ok) {
+      // ✅ Успех — логируем и показываем
+      const msg = {
+        id: genId(), ts: Date.now(), token, text,
+        status: 'delivered', telegram: data.result
+      };
+      const msgs = load(DB_KEYS.MSGS);
+      msgs.unshift(msg); if (msgs.length > 100) msgs.length = 100;
+      save(DB_KEYS.MSGS, msgs);
+      addFeedItem(msg, false);
+      log('info', `Telegram: message sent [update_id: ${data.result?.message_id}]`);
+      toast('Sent to Telegram!', 'success');
+    } else {
+      // ❌ Ошибка API
+      const err = data.description || 'Unknown error';
+      log('error', `Telegram API error: ${err}`, data);
+      toast(`Ошибка: ${err}`, 'error');
+    }
+  } catch (e) {
+    log('error', 'Network error', e.message);
+    toast('Не удалось соединиться с Telegram', 'error');
+  } finally {
+    // Сброс через 3 сек
+    setTimeout(() => {
+      state.cooldown = false;
+      els.sendBtn.disabled = false;
+      els.statusText.textContent = 'Online';
+      els.statusDot.className = 'dot online';
+      els.msg.value = ''; save(DB_KEYS.DRAFT, '');
+    }, 3000);
+  }
+}
+
+    // ===== INIT & EVENTS =====
+    function init() {
+      // Load drafts & logs
+      els.token.value = localStorage.getItem('bc_token') || '';
+      els.msg.value = localStorage.getItem(DB_KEYS.DRAFT) || '';
+      state.logs = load(DB_KEYS.LOGS);
+      const msgs = load(DB_KEYS.MSGS);
+      msgs.forEach(m => addFeedItem(m));
+      renderLogs();
+
+      // Auto-save draft
+      els.msg.addEventListener('input', () => save(DB_KEYS.DRAFT, els.msg.value));
+      els.token.addEventListener('input', () => localStorage.setItem('bc_token', els.token.value));
+
+      // Send
+      els.sendBtn.addEventListener('click', dispatch);
+      els.msg.addEventListener('keydown', (e) => { if (e.ctrlKey && e.key === 'Enter') dispatch(); });
+
+      // Tabs
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // Modal
+      document.getElementById('closeModal').onclick = () => els.modal.classList.remove('show');
+      document.getElementById('closeModalBtn').onclick = () => els.modal.classList.remove('show');
+      document.getElementById('copyModalBtn').onclick = () => copyText(els.modalBody.textContent);
+      els.modal.addEventListener('click', (e) => { if (e.target === els.modal) els.modal.classList.remove('show'); });
+
+      // Logs actions
+      document.getElementById('copyLogsBtn').onclick = () => copyText(JSON.stringify(state.logs, null, 2));
+      document.getElementById('clearLogsBtn').onclick = () => {
+        if (confirm('Clear all logs?')) {
+          state.logs = [];
+          save(DB_KEYS.LOGS, []);
+          renderLogs();
+          log('info', 'Logs cleared by user');
+        }
+      };
+
+      // Theme
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.getElementById('themeToggle').onclick = () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      };
+
+      log('info', 'Client initialized. Storage sync active.');
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
