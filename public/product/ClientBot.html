@@ -316,400 +316,207 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
-  <script>
-    // ===== STATE & CONFIG =====
-    const STORAGE_KEYS = {
-      BOTS: 'clientbot_bots',
-      MSGS: 'clientbot_messages',
-      THEME: 'clientbot_theme'
-    };
+<script>
+  // ===== STATE =====
+  const STORAGE_KEYS = { BOTS: 'bc_bots', MSGS: 'bc_messages', THEME: 'theme', CUR_BOT: 'bc_cur_bot' };
+  let state = {
+    bots: [],
+    messages: [],
+    currentBot: null, // Индекс выбранного бота
+    currentChatId: '' // Текущий Chat ID для ввода
+  };
 
-    let state = {
-      bots: JSON.parse(localStorage.getItem(STORAGE_KEYS.BOTS) || '[]'),
-      messages: JSON.parse(localStorage.getItem(STORAGE_KEYS.MSGS) || '[]'),
-      selectedBotIndex: null,
-      buttons: [] // Кнопки, которые будут отправлены со следующим сообщением
-    };
+  // ===== УТИЛИТЫ =====
+  function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+  function load(key) { return JSON.parse(localStorage.getItem(key)) || null; }
 
-    // DOM Elements
-    const els = {
-      tokenInput: document.getElementById('tokenInput'),
-      connectBtn: document.getElementById('connectBtn'),
-      botList: document.getElementById('botList'),
-      
-      botSelect: document.getElementById('botSelect'),
-      chatIdInput: document.getElementById('chatIdInput'),
-      messageText: document.getElementById('messageText'),
-      sendBtn: document.getElementById('sendBtn'),
-      
-      buttonListContainer: document.getElementById('buttonListContainer'),
-      addBtnBtn: document.getElementById('addBtnBtn'),
-      
-      feedList: document.getElementById('feedList'),
-      
-      themeToggle: document.getElementById('themeToggle'),
-      tabBtns: document.querySelectorAll('.nav-btn'),
-      tabContents: document.querySelectorAll('.tab-content')
-    };
+  // ===== РИСОВАНИЕ БОТОВ (ИСПРАВЛЕНО) =====
+  function renderBots() {
+    // ВАЖНО: В HTML контейнер называется botListContainer
+    const container = document.getElementById('botListContainer');
 
-    // ===== UTILS =====
-    function saveState() {
-      localStorage.setItem(STORAGE_KEYS.BOTS, JSON.stringify(state.bots));
-      localStorage.setItem(STORAGE_KEYS.MSGS, JSON.stringify(state.messages));
+    // ЗАЩИТА: Если элемента нет — выходим, чтобы не было ошибки
+    if (!container) {
+      console.error("Ошибка: В HTML не найден элемент id='botListContainer'");
+      return;
     }
 
-    function showToast(msg, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      el.textContent = msg;
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 3000);
+    // Если ботов нет
+    if (state.bots.length === 0) {
+      container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">Нет подключенных ботов. Введите токен выше.</div>`;
+      return;
     }
 
-    function escHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+    // Рисуем список
+    container.innerHTML = state.bots.map((bot, idx) => `
+      <div class="bot-card ${state.currentBot === idx ? 'active' : ''}" onclick="window.selectBot(${idx})">
+         <div class="bot-header">
+           <div class="bot-avatar">${bot.username[0].toUpperCase()}</div>
+           <div class="bot-info">
+             <h3>@${bot.username}</h3>
+             <p>${bot.first_name}</p>
+           </div>
+         </div>
+         <div class="bot-actions">
+           <button class="btn btn-outline" style="padding:4px 8px; color:var(--error);" onclick="event.stopPropagation(); window.deleteBot(${idx})">✕</button>
+         </div>
+      </div>
+    `).join('');
+  }
 
-    // ===== BOT MANAGEMENT =====
-    async function connectBot() {
-      const token = els.tokenInput.value.trim();
-      if (!token) return showToast('Введите токен', 'error');
+  // ===== ЛОГИКА ВЫБОРА И УДАЛЕНИЯ =====
+  window.selectBot = (idx) => {
+    state.currentBot = idx;
+    save(STORAGE_KEYS.CUR_BOT, idx);
+    renderBots();
+    renderFeed(); // Обновить историю под выбранного бота
+  };
 
-      els.connectBtn.disabled = true;
-      els.connectBtn.textContent = 'Подключение...';
-
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
-        const data = await res.json();
-
-        if (data.ok) {
-          const botInfo = data.result;
-          // Проверяем, нет ли уже такого бота
-          if (state.bots.some(b => b.token === token)) {
-            return showToast('Этот бот уже добавлен', 'warn');
-          }
-
-          state.bots.push({
-            token: token,
-            username: botInfo.username,
-            first_name: botInfo.first_name,
-            id: botInfo.id
-          });
-          saveState();
-          renderBots();
-          updateBotSelect();
-          els.tokenInput.value = '';
-          showToast(`Бот @${botInfo.username} подключен`, 'success');
-        } else {
-          showToast(`Ошибка: ${data.description}`, 'error');
-        }
-      } catch (e) {
-        showToast('Ошибка сети', 'error');
-      } finally {
-        els.connectBtn.disabled = false;
-        els.connectBtn.textContent = 'Подключить';
-      }
-    }
-
-    function renderBots() {
-      els.botList.innerHTML = '';
-      if (state.bots.length === 0) {
-        els.botList.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-secondary);">Нет подключенных ботов</div>`;
-        return;
-      }
-
-      state.bots.forEach((bot, index) => {
-        const card = document.createElement('div');
-        card.className = `bot-card ${state.selectedBotIndex === index ? 'active' : ''}`;
-        card.innerHTML = `
-          <div class="bot-header">
-            <div class="bot-avatar">${bot.username[0].toUpperCase()}</div>
-            <div class="bot-info">
-              <h3>@${bot.username}</h3>
-              <p>${bot.first_name}</p>
-            </div>
-          </div>
-          <div class="bot-actions">
-            <button class="btn btn-outline action-btn delete-btn" data-idx="${index}">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-          </div>
-        `;
-        
-        // Выбор бота
-        card.addEventListener('click', (e) => {
-          if (!e.target.closest('.delete-btn')) {
-            state.selectedBotIndex = index;
-            renderBots();
-            updateBotSelect();
-          }
-        });
-
-        // Удаление бота
-        card.querySelector('.delete-btn').addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (confirm('Удалить бота?')) {
-            state.bots.splice(index, 1);
-            if (state.selectedBotIndex === index) state.selectedBotIndex = null;
-            saveState();
-            renderBots();
-            updateBotSelect();
-          }
-        });
-
-        els.botList.appendChild(card);
-      });
-    }
-
-    function updateBotSelect() {
-      els.botSelect.innerHTML = '<option value="">-- Выберите бота --</option>';
-      state.bots.forEach((bot, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = `@${bot.username}`;
-        if (state.selectedBotIndex === idx) opt.selected = true;
-        els.botSelect.appendChild(opt);
-      });
-    }
-
-    // ===== BUTTON BUILDER =====
-    function addNewButton() {
-      // Добавляем пустую кнопку по умолчанию (Красная / Danger)
-      state.buttons.push({
-        id: Date.now(),
-        text: 'Button Name',
-        url: 'https://',
-        style: 'danger', // primary | danger | secondary
-        emojiId: ''
-      });
-      renderButtonBuilder();
-    }
-
-    function removeButtonFromBuilder(id) {
-      state.buttons = state.buttons.filter(b => b.id !== id);
-      renderButtonBuilder();
-    }
-
-    function updateButtonField(id, field, value) {
-      const btn = state.buttons.find(b => b.id === id);
-      if (btn) {
-        btn[field] = value;
-      }
-    }
-
-    function renderButtonBuilder() {
-      els.buttonListContainer.innerHTML = '';
-      
-      if (state.buttons.length === 0) {
-        els.buttonListContainer.innerHTML = `<div style="font-size:0.85rem; color:var(--text-muted); padding:8px;">Нет кнопок. Нажмите "Добавить", чтобы создать.</div>`;
-        return;
-      }
-
-      state.buttons.forEach(btn => {
-        const row = document.createElement('div');
-        row.className = 'btn-builder-row';
-        row.innerHTML = `
-          <input type="text" placeholder="Текст кнопки" class="input" value="${escHtml(btn.text)}" oninput="window.updateBtnField(${btn.id}, 'text', this.value)">
-          <input type="text" placeholder="URL (https://...)" class="input" value="${escHtml(btn.url)}" oninput="window.updateBtnField(${btn.id}, 'url', this.value)">
-          
-          <div style="display:flex; gap:6px; align-items:center;">
-            <select class="input" style="padding:6px; min-width:100px;" onchange="window.updateBtnField(${btn.id}, 'style', this.value)">
-              <option value="primary" ${btn.style === 'primary' ? 'selected' : ''}>🔵 Blue</option>
-              <option value="danger" ${btn.style === 'danger' ? 'selected' : ''}>🔴 Red</option>
-              <option value="secondary" ${btn.style === 'secondary' ? 'selected' : ''}>⚪ Grey</option>
-            </select>
-            
-            <input type="text" placeholder="Emoji ID (optional)" class="input" style="font-size:0.75rem;" value="${escHtml(btn.emojiId)}" oninput="window.updateBtnField(${btn.id}, 'emojiId', this.value)">
-            
-            <button class="btn-icon remove" onclick="window.removeBtn(${btn.id})">✕</button>
-          </div>
-        `;
-        els.buttonListContainer.appendChild(row);
-      });
-    }
-
-    // Экспорт функций в глобальную область (для oninput/onclick)
-    window.updateBtnField = updateButtonField;
-    window.removeBtn = removeButtonFromBuilder;
-
-    // ===== MESSAGE FEED (RENDERING) =====
-    function renderFeed() {
-      els.feedList.innerHTML = '';
-      
-      // Сортируем: новые сверху
-      const sortedMsgs = [...state.messages].reverse();
-
-      if (sortedMsgs.length === 0) {
-        els.feedList.innerHTML = `
-          <div style="text-align:center; padding:40px; color:var(--text-muted);">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <p>История пуста</p>
-          </div>`;
-        return;
-      }
-
-      sortedMsgs.forEach(msg => {
-        const item = document.createElement('div');
-        item.className = 'feed-item';
-        
-        const date = new Date(msg.timestamp).toLocaleString();
-        // ИСПРАВЛЕНИЕ ОШИБКИ: проверка на существование buttons
-        const buttons = msg.buttons || []; 
-        
-        let buttonsHtml = '';
-        if (buttons.length > 0) {
-          buttonsHtml = `
-            <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; padding-top:12px; border-top:1px solid var(--border);">
-              ${buttons.map(b => {
-                // Определяем цвет фона для превью
-                let bg = 'var(--primary)';
-                if (b.style === 'danger') bg = '#ef4444';
-                else if (b.style === 'secondary') bg = '#64748b';
-                
-                const emoji = b.emojiId ? '🔷' : ''; // Просто маркер, что есть эмодзи
-                return `<span style="padding:6px 12px; border-radius:8px; background:${bg}; color:white; font-size:0.85rem; display:flex; align-items:center; gap:4px;">
-                  ${emoji} ${escHtml(b.text)}
-                </span>`;
-              }).join('')}
-            </div>`;
-        }
-
-        item.innerHTML = `
-          <div class="feed-header">
-            <span class="feed-bot">@${escHtml(msg.botUsername)}</span>
-            <span class="feed-time">${date}</span>
-          </div>
-          <div class="feed-chat-id">Chat ID: ${escHtml(msg.chatId)}</div>
-          <div class="feed-text">${escHtml(msg.text)}</div>
-          ${buttonsHtml}
-        `;
-        els.feedList.appendChild(item);
-      });
-    }
-
-    // ===== SENDING =====
-    async function sendMessage() {
-      const botIdx = els.botSelect.value;
-      const chatId = els.chatIdInput.value.trim();
-      const text = els.messageText.value.trim();
-
-      if (botIdx === '') return showToast('Выберите бота', 'error');
-      if (!chatId) return showToast('Введите Chat ID', 'error');
-      if (!text) return showToast('Введите текст сообщения', 'error');
-
-      const bot = state.bots[botIdx];
-      
-      // Формируем клавиатуру
-      let replyMarkup = undefined;
-      if (state.buttons.length > 0) {
-        replyMarkup = {
-          inline_keyboard: [
-            state.buttons.map(b => {
-              const btnObj = { text: b.text, url: b.url };
-              if (b.style && b.style !== 'secondary') btnObj.style = b.style; // secondary - дефолт, можно не слать
-              if (b.emojiId) btnObj.icon_custom_emoji_id = b.emojiId;
-              return btnObj;
-            })
-          ]
-        };
-      }
-
-      els.sendBtn.disabled = true;
-      const originalText = els.sendBtn.innerHTML;
-      els.sendBtn.innerHTML = 'Отправка...';
-
-      try {
-        const payload = {
-          chat_id: chatId,
-          text: text,
-          parse_mode: 'HTML'
-        };
-        if (replyMarkup) payload.reply_markup = JSON.stringify(replyMarkup);
-
-        const res = await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        const data = await res.json();
-        
-        if (data.ok) {
-          // Сохраняем в историю
-          state.messages.push({
-            id: Date.now(),
-            botId: bot.id,
-            botUsername: bot.username,
-            chatId: chatId,
-            text: text,
-            buttons: [...state.buttons], // Копия кнопок
-            timestamp: Date.now()
-          });
-          saveState();
-          
-          // Очистка
-          els.messageText.value = '';
-          state.buttons = [];
-          renderButtonBuilder();
-          renderFeed();
-          showToast('Сообщение отправлено!', 'success');
-        } else {
-          showToast(`Ошибка API: ${data.description}`, 'error');
-        }
-      } catch (e) {
-        showToast('Ошибка сети при отправке', 'error');
-      } finally {
-        els.sendBtn.disabled = false;
-        els.sendBtn.innerHTML = originalText;
-      }
-    }
-
-    // ===== INIT & EVENTS =====
-    function init() {
+  window.deleteBot = (idx) => {
+    if(confirm('Удалить этого бота?')) {
+      state.bots.splice(idx, 1);
+      if (state.currentBot === idx) state.currentBot = null;
+      save(STORAGE_KEYS.BOTS, state.bots);
       renderBots();
-      updateBotSelect();
-      renderFeed();
-      renderButtonBuilder();
+    }
+  };
 
-      // Event Listeners
-      els.connectBtn.addEventListener('click', connectBot);
-      els.addBtnBtn.addEventListener('click', addNewButton);
-      els.sendBtn.addEventListener('click', sendMessage);
-      
-      els.botSelect.addEventListener('change', (e) => {
-        state.selectedBotIndex = e.target.value === '' ? null : parseInt(e.target.value);
-        renderBots();
+  // ===== ПОДКЛЮЧЕНИЕ НОВОГО БОТА =====
+  async function connectBot() {
+    const token = document.getElementById('tokenInput').value.trim();
+    if (!token) return alert('Введите токен!');
+
+    const btn = document.getElementById('connectBtn');
+    btn.disabled = true;
+    btn.textContent = 'Проверка...';
+
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+      const data = await res.json();
+
+      if (data.ok) {
+        const newBot = {
+          id: data.result.id,
+          username: data.result.username,
+          first_name: data.result.first_name,
+          token: token
+        };
+
+        // Проверка на дубликаты
+        if (!state.bots.some(b => b.id === newBot.id)) {
+          state.bots.push(newBot);
+          save(STORAGE_KEYS.BOTS, state.bots);
+          document.getElementById('tokenInput').value = '';
+          renderBots();
+        } else {
+          alert('Этот бот уже добавлен!');
+        }
+      } else {
+        alert('Ошибка: Неверный токен');
+      }
+    } catch (e) {
+      alert('Ошибка сети');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Подключить';
+    }
+  }
+
+  // ===== ОТПРАВКА СООБЩЕНИЯ =====
+  async function sendMessage() {
+    const botIdx = state.currentBot;
+    const chatId = document.getElementById('chatIdInput').value.trim();
+    const text = document.getElementById('messageText').value.trim();
+
+    if (botIdx === null || botIdx === undefined) return alert('Сначала выберите бота из списка!');
+    if (!chatId) return alert('Введите Chat ID');
+    if (!text) return alert('Введите текст');
+
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.textContent = 'Отправка...';
+
+    try {
+      const bot = state.bots[botIdx];
+      const res = await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: text })
       });
+      const data = await res.json();
 
-      // Theme Toggle
-      els.themeToggle.addEventListener('click', () => {
-        const html = document.documentElement;
-        const current = html.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        html.setAttribute('data-theme', next);
-        localStorage.setItem(STORAGE_KEYS.THEME, next);
-      });
+      if (data.ok) {
+        const msg = { id: Date.now(), text, chatId, botId: bot.id, timestamp: Date.now() };
+        state.messages.unshift(msg);
+        save(STORAGE_KEYS.MSGS, state.messages);
+        
+        document.getElementById('messageText').value = ''; // Очистить поле
+        renderFeed();
+      } else {
+        alert('Ошибка API: ' + (data.description || 'Неизвестно'));
+      }
+    } catch (e) {
+      alert('Ошибка сети');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Отправить';
+    }
+  }
 
-      // Tabs
-      els.tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          els.tabBtns.forEach(b => b.classList.remove('active'));
-          els.tabContents.forEach(c => c.classList.remove('active'));
-          btn.classList.add('active');
-          const targetId = btn.getAttribute('data-tab');
-          document.getElementById(targetId).classList.add('active');
-        });
-      });
+  // ===== ИСТОРИЯ СООБЩЕНИЙ =====
+  function renderFeed() {
+    const feedContainer = document.getElementById('feed');
+    if (!feedContainer) return;
 
-      // Load Theme
-      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
+    // Фильтруем сообщения только для текущего бота (если выбран)
+    const bot = state.bots[state.currentBot];
+    const msgs = bot 
+      ? state.messages.filter(m => m.botId === bot.id) 
+      : state.messages;
+
+    if (msgs.length === 0) {
+      feedContainer.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">История пуста</div>`;
+      return;
     }
 
-    // Start
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+    feedContainer.innerHTML = msgs.map(m => `
+      <div class="feed-item">
+        <div class="feed-content">${m.text}</div>
+        <div class="feed-meta">Chat ID: ${m.chatId} • ${new Date(m.timestamp).toLocaleString()}</div>
+      </div>
+    `).join('');
+  }
+
+  // ===== ТЕМЫ =====
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    save(STORAGE_KEYS.THEME, next);
+  }
+
+  // ===== ИНИЦИАЛИЗАЦИЯ =====
+  function init() {
+    state.bots = load(STORAGE_KEYS.BOTS) || [];
+    state.messages = load(STORAGE_KEYS.MSGS) || [];
+    state.currentBot = load(STORAGE_KEYS.CUR_BOT);
+
+    // Если тема сохранена
+    const savedTheme = load(STORAGE_KEYS.THEME);
+    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Вешаем события
+    document.getElementById('connectBtn').addEventListener('click', connectBot);
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+    // Рисуем начальное состояние
+    renderBots();
+    renderFeed();
+  }
+
+  // Запуск после загрузки DOM
+  document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
