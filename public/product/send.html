@@ -345,49 +345,108 @@
     }
 
     // ===== ACTIONS =====
-    function dispatch() {
-      if (state.cooldown) { toast('Rate limit active (3s)', 'warn'); return; }
-      const token = els.token.value.trim();
-      const text = els.msg.value.trim();
-      if (!text) { toast('Message empty', 'error'); return; }
+    // ===== ЗАМЕНИ ФУНКЦИЮ dispatch() НА ЭТУ =====
+function dispatch() {
+  // 1. Проверка рейт-лимита
+  if (state.cooldown) {
+    toast('Подождите 3 секунды перед следующей отправкой', 'warn');
+    return;
+  }
+
+  // 2. Валидация данных
+  const token = els.token.value.trim();
+  const text = els.msg.value.trim();
+  
+  if (!text) {
+    log('warn', 'Attempted to send empty message');
+    toast('Сообщение не может быть пустым', 'error');
+    return;
+  }
+  if (text.length > 4000) {
+    log('warn', 'Message too long', { length: text.length });
+    toast('Сообщение слишком длинное (макс. 4000 символов)', 'error');
+    return;
+  }
+
+  // 3. Блокировка UI и логирование
+  state.cooldown = true;
+  els.sendBtn.disabled = true;
+  els.statusText.textContent = 'Sending...';
+  els.statusDot.className = 'dot';
+  
+  log('info', `Dispatching message [token: ${token ? token.substring(0, 8) + '...' : 'none'}]`);
+
+  // 4. Формирование пейлоада
+  const payload = {
+    id: genId(),
+    ts: Date.now(),
+    token: token || null,
+    text: text,
+    status: 'sent',
+    source: navigator.userAgent // для отладки
+  };
+
+  // 5. Сохранение локально + синхронизация
+  try {
+    const msgs = load(DB_KEYS.MSGS);
+    msgs.unshift(payload);
+    // Ограничиваем хранилище 100 последними сообщениями
+    if (msgs.length > 100) msgs.length = 100;
+    save(DB_KEYS.MSGS, msgs);
+    
+    // Триггерим синхронизацию для других вкладок
+    state.lastSync = payload.ts;
+    state.lastId = payload.id;
+    
+    // Добавляем в фид текущей вкладки
+    addFeedItem(payload, false);
+    log('info', `Message dispatched [ID: ${payload.id}]`);
+    toast('Message sent', 'success');
+    
+  } catch (e) {
+    log('error', 'Failed to save message', e.message);
+    toast('Ошибка сохранения', 'error');
+  }
+
+  // 6. Симуляция "ответа от бота" (через 600-1000ms)
+  setTimeout(() => {
+    try {
+      const echo = {
+        id: genId(),
+        ts: Date.now(),
+        token: token || null,
+        text: `[BOT] ${text}`, // Префикс для отличия
+        status: 'delivered',
+        isEcho: true
+      };
       
-      state.cooldown = true;
-      els.sendBtn.disabled = true;
-      els.statusText.textContent = 'Dispatching...';
-      els.statusDot.className = 'dot';
-
-      log('info', `Preparing payload for token: ${token || 'none'}`);
-
-      // Simulate network latency
-      setTimeout(() => {
-        const payload = { id: genId(), ts: Date.now(), token, text, status: 'delivered' };
-        
-        // Save & Sync
-        const msgs = load(DB_KEYS.MSGS);
-        msgs.unshift(payload);
-        save(DB_KEYS.MSGS, msgs);
-        state.lastSync = payload.ts;
-        state.lastId = payload.id;
-
-        addFeedItem(payload);
-        log('info', `Dispatched successfully [ID: ${payload.id}]`);
-        toast('Message dispatched', 'success');
-
-        // Simulate webhook echo
-        setTimeout(() => {
-          const echo = { ...payload, id: genId(), text: `[ECHO] ${text}`, status: 'received' };
-          addFeedItem(echo, true);
-          log('info', 'Webhook echo received');
-        }, 800);
-
-        // Reset cooldown
-        state.cooldown = false;
-        els.sendBtn.disabled = false;
-        els.statusText.textContent = 'Idle';
-        els.statusDot.className = 'dot online';
-        save(DB_KEYS.DRAFT, ''); // Clear draft on success
-      }, 400 + Math.random() * 300);
+      // Сохраняем эхо
+      const msgs = load(DB_KEYS.MSGS);
+      msgs.unshift(echo);
+      if (msgs.length > 100) msgs.length = 100;
+      save(DB_KEYS.MSGS, msgs);
+      
+      addFeedItem(echo, true);
+      log('info', 'Echo received from "bot"');
+      
+    } catch (e) {
+      log('warn', 'Echo simulation failed', e.message);
     }
+  }, 600 + Math.random() * 400);
+
+  // 7. Сброс состояния через 3 секунды
+  setTimeout(() => {
+    state.cooldown = false;
+    els.sendBtn.disabled = false;
+    els.statusText.textContent = 'Online';
+    els.statusDot.className = 'dot online';
+    
+    // Очищаем поле сообщения, но сохраняем токен
+    els.msg.value = '';
+    save(DB_KEYS.DRAFT, '');
+    
+  }, 3000);
+}
 
     // ===== INIT & EVENTS =====
     function init() {
