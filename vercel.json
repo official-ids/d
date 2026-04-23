@@ -7,13 +7,14 @@
     { "source": "/product", "destination": "/product/music-visualizer.html" },
     { "source": "/product/focus", "destination": "/product/focus.html" },
     { "source": "/product/ClientBot", "destination": "/product/ClientBot.html" },
+    { "source": "/product/clientbot", "destination": "/product/ClientBot.html" },
     { "source": "/register", "destination": "/register.html" },
     { "source": "/login", "destination": "/login.html" }
   ],
   "redirects": [
     {
-      "source": "/:path((?!project|MyBrowser|product|register|login|auth\\.js|components|api).+)",
-      "destination": "https://google.com",
+      "source": "/:path((?!project|MyBrowser|product|register|login|auth\\.js|components|api|404).+)",
+      "destination": "/404.html",
       "permanent": false
     }
   ]

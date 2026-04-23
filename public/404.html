@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 · Страница не найдена</title>
+  <style>
+    :root {
+      --bg: #0b1118; --surface: #111b27; --border: #1e2d3d;
+      --text: #e2e8f0; --text-muted: #64748b; --accent: #3b82f6;
+      --glow: rgba(59, 130, 246, 0.4);
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b; --accent: #2563eb;
+      --glow: rgba(37, 99, 235, 0.2);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Анимированный фон */
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image: 
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.15;
+      animation: gridMove 20s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes gridMove {
+      0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+      100% { transform: perspective(500px) rotateX(60deg) translateY(40px); }
+    }
+    
+    .container {
+      text-align: center;
+      max-width: 500px;
+      z-index: 1;
+      animation: fadeInUp 0.5s ease;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* 404 с эффектом свечения */
+    .code {
+      font-size: 8rem;
+      font-weight: 800;
+      letter-spacing: -8px;
+      line-height: 0.9;
+      background: linear-gradient(135deg, var(--text), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 30px var(--glow));
+      position: relative;
+    }
+    .code::after {
+      content: '404';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      opacity: 0.3;
+      filter: blur(8px);
+      animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.4; }
+    }
+    
+    .title { font-size: 1.8rem; font-weight: 600; margin: 16px 0 8px; }
+    .desc { color: var(--text-muted); margin-bottom: 32px; line-height: 1.6; }
+    
+    /* Кнопки */
+    .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent); filter: brightness(1.1); }
+    
+    /* Декоративные элементы */
+    .deco {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      opacity: 0.1;
+      animation: float 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .deco:nth-child(1) { top: 10%; right: 10%; animation-delay: 0s; }
+    .deco:nth-child(2) { bottom: 15%; left: 15%; animation-delay: -4s; width: 120px; height: 120px; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.05); }
+    }
+    
+    /* Адаптив */
+    @media (max-width: 600px) {
+      .code { font-size: 6rem; letter-spacing: -4px; }
+      .title { font-size: 1.4rem; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="deco"></div>
+  <div class="deco"></div>
+  
+  <div class="container">
+    <div class="code">404</div>
+    <h1 class="title">Страница не найдена</h1>
+    <p class="desc">
+      Похоже, ссылка ведёт в никуда. <br>
+      Проверте адрес.
+    </p>
+    
+    <div class="actions">
+      <a href="/" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        На главную
+      </a>
+      <button class="btn" onclick="history.back()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Назад
+      </button>
+    </div>
+    
+    <p style="margin-top:40px; font-size:0.85rem; color:var(--text-muted);">
+      Возможно адрес <code>устарел</code> или сайт не доступен.
+    </p>
+  </div>
+
+  <script>
+    // Тема синхронизируется с остальными продуктами
+    (function() {
+      const saved = localStorage.getItem('mybrowser_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
+</body>
+</html>
