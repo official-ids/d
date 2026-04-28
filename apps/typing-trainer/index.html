@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Trainer | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --correct: #10b981;
+      --incorrect: #ef4444;
+      --cursor: #0d9488;
+      --radius: 12px;
+      --font-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.6;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .stat-label { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
+    .stat-value { font-size: 28px; font-weight: 800; color: var(--text); margin-top: 4px; font-family: var(--font-mono); }
+    .stat-value.accent { color: var(--accent); }
+    
+    .typing-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      position: relative;
+      margin-bottom: 20px;
+      cursor: text;
+      transition: border-color 0.2s;
+    }
+    .typing-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+    
+    .text-display {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      line-height: 1.8;
+      letter-spacing: 0.5px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 120px;
+      position: relative;
+    }
+    .char { position: relative; border-radius: 2px; transition: color 0.1s, background 0.1s; }
+    .char.correct { color: var(--correct); background: rgba(16,185,129,0.1); }
+    .char.incorrect { color: var(--incorrect); background: rgba(239,68,68,0.15); text-decoration: underline; }
+    .char.current { background: rgba(13,148,136,0.2); }
+    .char.current::after {
+      content: '';
+      position: absolute;
+      left: -1px;
+      top: 10%;
+      height: 80%;
+      width: 2px;
+      background: var(--cursor);
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    
+    #hidden-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.2s ease;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn:hover { background: var(--border); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    
+    .history-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .history-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .history-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+    }
+    .history-item strong { display: block; color: var(--accent); margin-bottom: 4px; }
+    .history-item span { color: var(--text-muted); }
+    
+    .results-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15,23,42,0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .results-overlay.active { display: flex; }
+    .results-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .results-card h2 { margin-bottom: 16px; color: var(--accent); }
+    .results-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .r-stat { background: var(--bg); padding: 12px; border-radius: 8px; }
+    .r-stat div:first-child { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .r-stat div:last-child { font-size: 24px; font-weight: 800; color: var(--text); margin-top: 4px; }
+    
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .text-display { font-size: 16px; }
+      .typing-wrapper { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">Typing<span>Trainer</span></div>
+      <div style="font-size:13px;color:var(--text-muted)">Click text to focus</div>
+    </header>
+    
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">WPM</div><div class="stat-value accent" id="wpm">0</div></div>
+      <div class="stat-card"><div class="stat-label">Accuracy</div><div class="stat-value" id="accuracy">100%</div></div>
+      <div class="stat-card"><div class="stat-label">Time</div><div class="stat-value" id="time">0s</div></div>
+    </div>
+    
+    <div class="typing-wrapper" id="typing-area">
+      <div class="text-display" id="text-display"></div>
+      <input type="text" id="hidden-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div class="progress-bar"><div id="progress-fill"></div></div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn" onclick="newText()"> New Text</button>
+      <button class="btn primary" onclick="reset()">↻ Restart</button>
+    </div>
+    
+    <div class="history-panel">
+      <div class="stat-label">Best Results</div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </div>
+  
+  <div class="results-overlay" id="results-overlay">
+    <div class="results-card">
+      <h2>🎉 Session Complete</h2>
+      <div class="results-stats">
+        <div class="r-stat"><div>WPM</div><div id="res-wpm">0</div></div>
+        <div class="r-stat"><div>Accuracy</div><div id="res-acc">0%</div></div>
+        <div class="r-stat"><div>Time</div><div id="res-time">0s</div></div>
+        <div class="r-stat"><div>Errors</div><div id="res-err">0</div></div>
+      </div>
+      <button class="btn primary" onclick="closeResults()" style="width:100%;justify-content:center;">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    const texts = [
+      "The quick brown fox jumps over the lazy dog. This sentence contains every letter in the English alphabet.",
+      "Programming is not about typing, it's about thinking. Code is read much more often than it is written.",
+      "In a world full of algorithms and data structures, clarity and simplicity remain the ultimate sophistication.",
+      "function hello() { console.log('Hello, World!'); return true; } // Clean code is happy code.",
+      "Сердце компьютера — процессор, но его душа — программный код, который заставляет машины думать.",
+      "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+      "To understand recursion, you must first understand recursion. Keep practicing, keep learning.",
+      "git commit -m 'feat: add typing trainer' && git push origin main // The rhythm of a developer."
+    ];
+
+    let targetText = '';
+    let typed = '';
+    let errors = 0;
+    let startTime = null;
+    let timerInterval = null;
+    let isFinished = false;
+
+    const els = {
+      display: document.getElementById('text-display'),
+      input: document.getElementById('hidden-input'),
+      wpm: document.getElementById('wpm'),
+      acc: document.getElementById('accuracy'),
+      time: document.getElementById('time'),
+      progress: document.getElementById('progress-fill'),
+      history: document.getElementById('history-list'),
+      overlay: document.getElementById('results-overlay'),
+      resWpm: document.getElementById('res-wpm'),
+      resAcc: document.getElementById('res-acc'),
+      resTime: document.getElementById('res-time'),
+      resErr: document.getElementById('res-err')
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHistory();
+      newText();
+      els.input.addEventListener('input', handleInput);
+      document.getElementById('typing-area').addEventListener('click', () => els.input.focus());
+    });
+
+    function newText() {
+      targetText = texts[Math.floor(Math.random() * texts.length)];
+      reset();
+    }
+
+    function reset() {
+      typed = '';
+      errors = 0;
+      startTime = null;
+      isFinished = false;
+      clearInterval(timerInterval);
+      els.input.value = '';
+      els.wpm.textContent = '0';
+      els.acc.textContent = '100%';
+      els.time.textContent = '0s';
+      els.progress.style.width = '0%';
+      render();
+      els.input.focus();
+    }
+
+    function handleInput() {
+      if (isFinished) return;
+      typed = els.input.value;
+      
+      if (!startTime) {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 100);
+      }
+
+      // Count errors
+      let currentErrors = 0;
+      for (let i = 0; i < typed.length; i++) {
+        if (typed[i] !== targetText[i]) currentErrors++;
+      }
+      errors = currentErrors;
+
+      updateStats();
+      render();
+
+      if (typed.length === targetText.length) finish();
+    }
+
+    function updateTimer() {
+      if (!startTime || isFinished) return;
+      const sec = Math.floor((Date.now() - startTime) / 1000);
+      els.time.textContent = `${sec}s`;
+    }
+
+    function updateStats() {
+      const timeMin = (Date.now() - startTime) / 60000;
+      const wpm = timeMin > 0 ? Math.round((typed.length / 5) / timeMin) : 0;
+      const acc = typed.length > 0 ? Math.round(((typed.length - errors) / typed.length) * 100) : 100;
+      
+      els.wpm.textContent = wpm;
+      els.acc.textContent = `${acc}%`;
+      els.progress.style.width = `${(typed.length / targetText.length) * 100}%`;
+    }
+
+    function render() {
+      els.display.innerHTML = '';
+      for (let i = 0; i < targetText.length; i++) {
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = targetText[i] === ' ' ? '\u00A0' : targetText[i];
+        
+        if (i < typed.length) {
+          span.classList.add(typed[i] === targetText[i] ? 'correct' : 'incorrect');
+        } else if (i === typed.length) {
+          span.classList.add('current');
+        }
+        els.display.appendChild(span);
+      }
+    }
+
+    function finish() {
+      isFinished = true;
+      clearInterval(timerInterval);
+      const timeSec = Math.floor((Date.now() - startTime) / 1000);
+      const wpm = parseInt(els.wpm.textContent);
+      const acc = parseInt(els.acc.textContent);
+      
+      els.resWpm.textContent = wpm;
+      els.resAcc.textContent = `${acc}%`;
+      els.resTime.textContent = `${timeSec}s`;
+      els.resErr.textContent = errors;
+      
+      saveResult(wpm, acc, timeSec);
+      els.overlay.classList.add('active');
+    }
+
+    function closeResults() {
+      els.overlay.classList.remove('active');
+      newText();
+    }
+
+    function saveResult(wpm, acc, time) {
+      let history = JSON.parse(localStorage.getItem('seraviel_typing_history') || '[]');
+      history.unshift({ wpm, acc, time, date: new Date().toLocaleDateString() });
+      if (history.length > 6) history.pop();
+      localStorage.setItem('seraviel_typing_history', JSON.stringify(history));
+      loadHistory();
+    }
+
+    function loadHistory() {
+      const history = JSON.parse(localStorage.getItem('seraviel_typing_history') || '[]');
+      els.history.innerHTML = '';
+      if (history.length === 0) {
+        els.history.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1">No results yet. Start typing!</div>';
+        return;
+      }
+      history.forEach(h => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `<strong>${h.wpm} WPM</strong><span>${h.acc}% • ${h.time}s • ${h.date}</span>`;
+        els.history.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
