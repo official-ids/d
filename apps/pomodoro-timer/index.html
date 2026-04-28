@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Focus | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --accent-soft: rgba(13,148,136,0.1);
+      --danger: #ef4444;
+      --success: #10b981;
+      --radius: 14px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    
+    .stats-strip {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .stat-badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-badge span { color: var(--text); }
+    
+    .timer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      margin-bottom: 24px;
+    }
+    
+    .mode-switcher {
+      display: inline-flex;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+    .mode-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-btn.active { background: var(--accent); color: white; box-shadow: 0 2px 6px rgba(13,148,136,0.3); }
+    
+    .timer-ring-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 20px;
+    }
+    .timer-ring {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+    .ring-bg { fill: none; stroke: var(--bg); stroke-width: 8; }
+    .ring-progress {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
+    }
+    .ring-progress.break { stroke: #14b8a6; }
+    
+    .timer-display {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .time-text {
+      font-size: 42px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      letter-spacing: -1px;
+      color: var(--text);
+    }
+    .phase-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn:hover { background: var(--border); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn svg { width: 18px; height: 18px; }
+    
+    .tasks-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .tasks-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .tasks-header h2 { font-size: 18px; font-weight: 700; }
+    .clear-btn {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .clear-btn:hover { color: var(--danger); }
+    
+    .task-input-wrapper {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    #task-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    #task-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    
+    .task-list { list-style: none; }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-item:hover { background: var(--bg); }
+    
+    .task-check {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .task-check:hover { border-color: var(--accent); }
+    .task-check.checked { background: var(--accent); border-color: var(--accent); }
+    .task-check.checked svg { display: block; }
+    .task-check svg { display: none; width: 14px; height: 14px; stroke: white; stroke-width: 3; }
+    
+    .task-text { flex: 1; font-size: 14px; }
+    .task-text.completed { text-decoration: line-through; color: var(--text-muted); }
+    
+    .task-delete {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: all 0.2s;
+    }
+    .task-item:hover .task-delete { opacity: 1; }
+    .task-delete:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
+    
+    @media (max-width: 600px) {
+      .timer-ring-container { width: 180px; height: 180px; }
+      .time-text { font-size: 34px; }
+      .mode-btn { padding: 8px 10px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">Pomodoro<span>Focus</span></div>
+      <div class="stats-strip">
+        <div class="stat-badge"> <span id="stat-pomos">0</span></div>
+        <div class="stat-badge">⏱️ <span id="stat-minutes">0m</span></div>
+      </div>
+    </header>
+    
+    <div class="timer-card">
+      <div class="mode-switcher">
+        <button class="mode-btn active" data-mode="work">Focus</button>
+        <button class="mode-btn" data-mode="shortBreak">Short Break</button>
+        <button class="mode-btn" data-mode="longBreak">Long Break</button>
+      </div>
+      
+      <div class="timer-ring-container">
+        <svg class="timer-ring" viewBox="0 0 200 200">
+          <circle class="ring-bg" cx="100" cy="100" r="90"/>
+          <circle class="ring-progress" id="progress-ring" cx="100" cy="100" r="90" stroke-dasharray="565.48" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-display">
+          <div class="time-text" id="time-display">25:00</div>
+          <div class="phase-label" id="phase-label">Focus Time</div>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <button class="btn primary" id="start-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start
+        </button>
+        <button class="btn" id="reset-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Reset
+        </button>
+      </div>
+    </div>
+    
+    <div class="tasks-card">
+      <div class="tasks-header">
+        <h2>Tasks</h2>
+        <button class="clear-btn" id="clear-completed">Clear completed</button>
+      </div>
+      <form class="task-input-wrapper" id="task-form">
+        <input type="text" id="task-input" placeholder="What are you working on?" autocomplete="off">
+        <button type="submit" class="btn primary">Add</button>
+      </form>
+      <ul class="task-list" id="task-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Config
+    const MODES = {
+      work: { time: 25 * 60, label: 'Focus Time' },
+      shortBreak: { time: 5 * 60, label: 'Short Break' },
+      longBreak: { time: 15 * 60, label: 'Long Break' }
+    };
+    const CIRCUMFERENCE = 2 * Math.PI * 90; // ~565.48
+    
+    // State
+    let state = {
+      mode: 'work',
+      timeLeft: MODES.work.time,
+      isRunning: false,
+      tasks: [],
+      pomodoros: 0,
+      focusMinutes: 0,
+      endTime: null
+    };
+    
+    // Elements
+    const els = {
+      timeDisplay: document.getElementById('time-display'),
+      phaseLabel: document.getElementById('phase-label'),
+      progressRing: document.getElementById('progress-ring'),
+      startBtn: document.getElementById('start-btn'),
+      resetBtn: document.getElementById('reset-btn'),
+      modeBtns: document.querySelectorAll('.mode-btn'),
+      taskForm: document.getElementById('task-form'),
+      taskInput: document.getElementById('task-input'),
+      taskList: document.getElementById('task-list'),
+      clearBtn: document.getElementById('clear-completed'),
+      statPomos: document.getElementById('stat-pomos'),
+      statMinutes: document.getElementById('stat-minutes')
+    };
+    
+    let timerInterval = null;
+    let audioCtx = null;
+    
+    // Init
+    function init() {
+      loadState();
+      renderTasks();
+      updateStats();
+      switchMode(state.mode);
+      updateDisplay();
+      
+      els.modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (state.isRunning) pauseTimer();
+          switchMode(btn.dataset.mode);
+        });
+      });
+      
+      els.startBtn.addEventListener('click', toggleTimer);
+      els.resetBtn.addEventListener('click', resetTimer);
+      
+      els.taskForm.addEventListener('submit', e => {
+        e.preventDefault();
+        addTask(els.taskInput.value.trim());
+        els.taskInput.value = '';
+      });
+      
+      els.clearBtn.addEventListener('click', clearCompleted);
+    }
+    
+    function switchMode(mode) {
+      state.mode = mode;
+      state.timeLeft = MODES[mode].time;
+      state.isRunning = false;
+      clearInterval(timerInterval);
+      
+      els.modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+      els.phaseLabel.textContent = MODES[mode].label;
+      els.progressRing.classList.toggle('break', mode !== 'work');
+      
+      updateDisplay();
+      updateStartButton();
+      saveState();
+    }
+    
+    function toggleTimer() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      if (state.isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+    
+    function startTimer() {
+      state.isRunning = true;
+      state.endTime = Date.now() + state.timeLeft * 1000;
+      updateStartButton();
+      
+      timerInterval = setInterval(() => {
+        const now = Date.now();
+        state.timeLeft = Math.max(0, Math.ceil((state.endTime - now) / 1000));
+        
+        if (state.timeLeft <= 0) {
+          completeSession();
+        } else {
+          updateDisplay();
+        }
+      }, 100);
+    }
+    
+    function pauseTimer() {
+      state.isRunning = false;
+      clearInterval(timerInterval);
+      updateStartButton();
+    }
+    
+    function resetTimer() {
+      pauseTimer();
+      state.timeLeft = MODES[state.mode].time;
+      updateDisplay();
+    }
+    
+    function completeSession() {
+      pauseTimer();
+      playChime();
+      
+      if (state.mode === 'work') {
+        state.pomodoros++;
+        state.focusMinutes += MODES.work.time / 60;
+        updateStats();
+      }
+      
+      saveState();
+      
+      // Auto-switch suggestion
+      if (state.mode === 'work') {
+        switchMode(state.pomodoros % 4 === 0 ? 'longBreak' : 'shortBreak');
+      } else {
+        switchMode('work');
+      }
+    }
+    
+    function updateDisplay() {
+      const m = Math.floor(state.timeLeft / 60);
+      const s = state.timeLeft % 60;
+      els.timeDisplay.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      
+      const total = MODES[state.mode].time;
+      const progress = (total - state.timeLeft) / total;
+      const offset = CIRCUMFERENCE * (1 - progress);
+      els.progressRing.style.strokeDashoffset = offset;
+      
+      document.title = `${els.timeDisplay.textContent} - PomodoroFocus`;
+    }
+    
+    function updateStartButton() {
+      const icon = state.isRunning 
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start';
+      els.startBtn.innerHTML = icon;
+    }
+    
+    function updateStats() {
+      els.statPomos.textContent = state.pomodoros;
+      els.statMinutes.textContent = `${Math.round(state.focusMinutes)}m`;
+    }
+    
+    // Tasks
+    function addTask(text) {
+      if (!text) return;
+      state.tasks.unshift({ id: Date.now(), text, completed: false });
+      renderTasks();
+      saveState();
+    }
+    
+    function toggleTask(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (task) task.completed = !task.completed;
+      renderTasks();
+      saveState();
+    }
+    
+    function deleteTask(id) {
+      state.tasks = state.tasks.filter(t => t.id !== id);
+      renderTasks();
+      saveState();
+    }
+    
+    function clearCompleted() {
+      state.tasks = state.tasks.filter(t => !t.completed);
+      renderTasks();
+      saveState();
+    }
+    
+    function renderTasks() {
+      els.taskList.innerHTML = '';
+      if (state.tasks.length === 0) {
+        els.taskList.innerHTML = '<li style="text-align:center;color:var(--text-muted);padding:20px;font-size:14px;">No tasks yet. Add one to focus!</li>';
+        return;
+      }
+      
+      state.tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        li.innerHTML = `
+          <div class="task-check ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="task-text ${task.completed ? 'completed' : ''}">${escapeHtml(task.text)}</span>
+          <button class="task-delete" onclick="deleteTask(${task.id})" title="Delete">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        `;
+        els.taskList.appendChild(li);
+      });
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Audio
+    function playChime() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+      osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+      osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+      
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.6);
+    }
+    
+    // Storage
+    function saveState() {
+      localStorage.setItem('pomodoro_state', JSON.stringify(state));
+    }
+    
+    function loadState() {
+      const saved = localStorage.getItem('pomodoro_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        state = { ...state, ...parsed };
+        // Reset running state on load
+        state.isRunning = false;
+        clearInterval(timerInterval);
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
