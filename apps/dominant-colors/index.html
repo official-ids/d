@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Extractor | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --success: #10b981;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    
+    .upload-zone {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(13,148,136,0.03);
+    }
+    .upload-zone svg { width: 48px; height: 48px; stroke: var(--text-muted); margin-bottom: 12px; }
+    .upload-zone p { color: var(--text-muted); font-size: 14px; }
+    .upload-zone .hint { font-size: 12px; margin-top: 4px; opacity: 0.7; }
+    #file-input { display: none; }
+    
+    .loader {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+      display: none;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .results {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-top: 24px;
+      display: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .swatch {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .swatch:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .swatch-color { height: 80px; width: 100%; }
+    .swatch-info {
+      padding: 8px;
+      background: var(--bg);
+      text-align: center;
+    }
+    .swatch-hex { font-family: var(--font-mono); font-weight: 700; font-size: 14px; color: var(--text); }
+    .swatch-rgb { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .btn:hover { background: var(--border); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn svg { width: 18px; height: 18px; }
+    
+    .history-panel {
+      margin-top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .history-list {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 8px 0 4px;
+      scrollbar-width: thin;
+    }
+    .history-item {
+      flex: 0 0 100px;
+      height: 70px;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .history-item:hover { border-color: var(--accent); transform: scale(1.03); }
+    .history-item img { width: 100%; height: 100%; object-fit: cover; }
+    .history-item .overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.6); color: white;
+      font-size: 10px; text-align: center; padding: 4px;
+    }
+    
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: white; padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    
+    @media (max-width: 600px) {
+      .palette-grid { grid-template-columns: repeat(2, 1fr); }
+      .swatch-color { height: 60px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0-7 18 14.5 14.5 0 0 0 14 0 14.5 14.5 0 0 0-7-18z"/>
+      </svg>
+      <div class="logo">Color<span>Extractor</span></div>
+    </header>
+    
+    <div class="upload-zone" id="drop-zone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <p>Drag & drop image here or click to upload</p>
+      <div class="hint">Supports JPG, PNG, WEBP • Max 5MB</div>
+      <input type="file" id="file-input" accept="image/*">
+    </div>
+    
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+      <div>Analyzing colors...</div>
+    </div>
+    
+    <div class="results" id="results">
+      <div class="palette-grid" id="palette-grid"></div>
+      <div class="actions">
+        <button class="btn primary" onclick="copyAllHex()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy All HEX
+        </button>
+        <button class="btn" onclick="reset()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          New Image
+        </button>
+      </div>
+    </div>
+    
+    <div class="history-panel">
+      <div style="font-weight:700;color:var(--text-muted);font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Recent Extractions</div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast">Copied to clipboard!</div>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    const els = {
+      dropZone: document.getElementById('drop-zone'),
+      fileInput: document.getElementById('file-input'),
+      loader: document.getElementById('loader'),
+      results: document.getElementById('results'),
+      grid: document.getElementById('palette-grid'),
+      history: document.getElementById('history-list'),
+      toast: document.getElementById('toast'),
+      canvas: document.getElementById('canvas')
+    };
+    
+    let currentPalette = [];
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHistory();
+      
+      // Click to upload
+      els.dropZone.addEventListener('click', () => els.fileInput.click());
+      els.fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+      
+      // Drag & Drop
+      els.dropZone.addEventListener('dragover', e => { e.preventDefault(); els.dropZone.classList.add('dragover'); });
+      els.dropZone.addEventListener('dragleave', () => els.dropZone.classList.remove('dragover'));
+      els.dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        els.dropZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) handleFile(file);
+      });
+    });
+    
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return showToast('Please upload a valid image');
+      if (file.size > 5 * 1024 * 1024) return showToast('Image too large (max 5MB)');
+      
+      els.loader.style.display = 'block';
+      els.results.style.display = 'none';
+      
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => extractAndRender(img, file.name);
+        img.onerror = () => { els.loader.style.display = 'none'; showToast('Failed to load image'); };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    function extractAndRender(img, fileName) {
+      const ctx = els.canvas.getContext('2d');
+      // Resize for performance (max 200px dimension)
+      const scale = Math.min(200 / img.width, 200 / img.height, 1);
+      els.canvas.width = img.width * scale;
+      els.canvas.height = img.height * scale;
+      ctx.drawImage(img, 0, 0, els.canvas.width, els.canvas.height);
+      
+      const colors = extractDominantColors(els.canvas, 6);
+      currentPalette = colors.map(c => c.hex);
+      
+      renderPalette(colors);
+      saveToHistory(colors, els.canvas.toDataURL('image/jpeg', 0.5), fileName);
+      
+      els.loader.style.display = 'none';
+      els.results.style.display = 'block';
+    }
+    
+    function extractDominantColors(canvas, count) {
+      const ctx = canvas.getContext('2d');
+      const { width, height } = canvas;
+      const data = ctx.getImageData(0, 0, width, height).data;
+      const map = {};
+      const step = 4; // Sample every 4th pixel
+      const q = 32; // Quantization factor
+      
+      for (let i = 0; i < data.length; i += 4 * step) {
+        const r = Math.floor(data[i] / q) * q;
+        const g = Math.floor(data[i+1] / q) * q;
+        const b = Math.floor(data[i+2] / q) * q;
+        const key = `${r},${g},${b}`;
+        map[key] = (map[key] || 0) + 1;
+      }
+      
+      const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, count * 3);
+      const distinct = [];
+      
+      for (const [rgb] of sorted) {
+        if (distinct.length >= count) break;
+        const [r, g, b] = rgb.split(',').map(Number);
+        const hex = rgbToHex(r, g, b);
+        const isDistinct = distinct.every(c => colorDistance(c, {r,g,b}) > 45);
+        if (isDistinct) distinct.push({r, g, b, hex});
+      }
+      return distinct;
+    }
+    
+    function renderPalette(colors) {
+      els.grid.innerHTML = '';
+      colors.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'swatch';
+        el.innerHTML = `
+          <div class="swatch-color" style="background:${c.hex}"></div>
+          <div class="swatch-info">
+            <div class="swatch-hex">${c.hex.toUpperCase()}</div>
+            <div class="swatch-rgb">rgb(${c.r}, ${c.g}, ${c.b})</div>
+          </div>
+        `;
+        el.onclick = () => { navigator.clipboard.writeText(c.hex); showToast(`Copied ${c.hex}`); };
+        els.grid.appendChild(el);
+      });
+    }
+    
+    function copyAllHex() {
+      if (!currentPalette.length) return;
+      navigator.clipboard.writeText(currentPalette.join(', '));
+      showToast('All colors copied!');
+    }
+    
+    function reset() {
+      els.fileInput.value = '';
+      els.results.style.display = 'none';
+      currentPalette = [];
+    }
+    
+    // History Management
+    function saveToHistory(colors, thumb, name) {
+      let hist = JSON.parse(localStorage.getItem('seraviel_color_hist') || '[]');
+      hist.unshift({ palette: colors.map(c=>c.hex), thumb, name: name.split('.')[0], date: new Date().toLocaleDateString() });
+      if (hist.length > 8) hist.pop();
+      localStorage.setItem('seraviel_color_hist', JSON.stringify(hist));
+      loadHistory();
+    }
+    
+    function loadHistory() {
+      const hist = JSON.parse(localStorage.getItem('seraviel_color_hist') || '[]');
+      els.history.innerHTML = '';
+      if (hist.length === 0) {
+        els.history.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px;">No extractions yet</div>';
+        return;
+      }
+      hist.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `<img src="${h.thumb}"><div class="overlay">${h.name}</div>`;
+        el.title = `Palette: ${h.palette.join(', ')}`;
+        el.onclick = () => {
+          const colors = h.palette.map(hex => {
+            const r = parseInt(hex.slice(1,3),16);
+            const g = parseInt(hex.slice(3,5),16);
+            const b = parseInt(hex.slice(5,7),16);
+            return {r,g,b,hex};
+          });
+          currentPalette = h.palette;
+          renderPalette(colors);
+          els.results.style.display = 'block';
+          window.scrollTo({ top: els.results.offsetTop - 20, behavior: 'smooth' });
+        };
+        els.history.appendChild(el);
+      });
+    }
+    
+    // Helpers
+    function rgbToHex(r,g,b) {
+      return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+    }
+    function colorDistance(c1, c2) {
+      return Math.sqrt((c1.r-c2.r)**2 + (c1.g-c2.g)**2 + (c1.b-c2.b)**2);
+    }
+    function showToast(msg) {
+      els.toast.textContent = msg;
+      els.toast.classList.add('show');
+      setTimeout(() => els.toast.classList.remove('show'), 2000);
+    }
+  </script>
+</body>
+</html>
