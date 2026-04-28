@@ -37,6 +37,7 @@ const config = {
   rewrites,
   cleanUrls: true,
   trailingSlash: false,
+  outputDirectory: ".",
   headers: [
     {
       source: '/(.*)',
