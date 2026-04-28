@@ -1,0 +1,4 @@
+# Автоматически генерируемые файлы
+vercel.json
+node_modules/
+.DS_Store

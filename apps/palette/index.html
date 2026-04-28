@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palette Generator | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #111827;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --border: #1f2937;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Header */
+    header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+    }
+    .logo svg { stroke: var(--accent); width: 24px; height: 24px; }
+    .controls { display: flex; gap: 12px; }
+    
+    /* Buttons */
+    button {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    button:hover { background: var(--border); border-color: var(--text-muted); }
+    button.primary { background: var(--accent); border-color: var(--accent); }
+    button.primary:hover { background: #4f46e5; }
+    button svg { width: 16px; height: 16px; }
+
+    /* Palette Area */
+    main { flex: 1; display: flex; overflow: hidden; }
+    .palette-container {
+      flex: 1;
+      display: flex;
+      width: 100%;
+    }
+    .color-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: background 0.4s ease;
+      cursor: pointer;
+    }
+    .color-col:hover .color-info { transform: scale(1.05); }
+    .color-col:hover .lock-btn { opacity: 1; }
+    
+    .color-info {
+      text-align: center;
+      transition: transform 0.2s;
+      background: rgba(0,0,0,0.2);
+      padding: 20px;
+      border-radius: 16px;
+      backdrop-filter: blur(5px);
+    }
+    .hex-code { font-size: 24px; font-weight: 700; font-family: monospace; margin-bottom: 4px; }
+    .rgb-code { font-size: 14px; opacity: 0.8; font-family: monospace; }
+    .click-hint {
+      position: absolute;
+      bottom: 20px;
+      font-size: 12px;
+      opacity: 0.5;
+    }
+
+    /* Lock Button */
+    .lock-btn {
+      position: absolute;
+      top: 20px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      background: rgba(0,0,0,0.3);
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+    }
+    .lock-btn svg { stroke: white; }
+    .lock-btn.locked { opacity: 1; background: rgba(0,0,0,0.5); }
+    .lock-btn.locked svg { stroke: var(--accent); }
+
+    /* Saved Palettes */
+    .saved-area {
+      height: 200px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 16px;
+      overflow-y: auto;
+      display: none; /* Hidden by default */
+    }
+    .saved-area.active { display: block; }
+    .saved-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .saved-item {
+      height: 80px;
+      border-radius: 8px;
+      display: flex;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid var(--border);
+    }
+    .saved-item:hover { border-color: var(--accent); }
+    .saved-item div { flex: 1; }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--bg);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 100;
+    }
+    .toast.show { opacity: 1; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .palette-container { flex-direction: column; }
+      .hex-code { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="1" fill="currentColor"/>
+        <path d="M12 2a14.5 14.5 0 0 0-7 18 14.5 14.5 0 0 0 14 0 14.5 14.5 0 0 0-7-18z"/>
+      </svg>
+      Palette Generator
+    </div>
+    <div class="controls">
+  <button onclick="toggleSaved()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    Saved
+  </button>
+  <button onclick="savePalette()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 12 8"/></svg>
+    Save
+  </button>
+  <button class="primary" onclick="generate()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    Generate
+  </button>
+</div>
+  </header>
+
+  <main>
+    <div class="palette-container" id="palette">
+      <!-- Columns will be injected by JS -->
+    </div>
+  </main>
+
+  <div class="saved-area" id="saved-area">
+    <div style="margin-bottom: 12px; font-weight: 600; color: var(--text-muted);">Saved Palettes</div>
+    <div class="saved-grid" id="saved-grid"></div>
+  </div>
+
+  <div class="toast" id="toast">Copied to Clipboard!</div>
+
+  <script>
+    // State
+    let palette = [];
+    let locks = [false, false, false, false, false];
+    
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      generate(true);
+      renderSaved();
+    });
+
+    // Generate Logic
+    function generate(isInitial = false) {
+      // If first time, generate 5 colors. Else, respect locks.
+      if (isInitial) {
+        palette = Array.from({ length: 5 }, () => getRandomHex());
+      } else {
+        palette = palette.map((color, i) => locks[i] ? color : getRandomHex());
+      }
+      renderPalette();
+    }
+
+    function getRandomHex() {
+      return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    }
+
+    // Render Palette UI
+    function renderPalette() {
+      const container = document.getElementById('palette');
+      container.innerHTML = '';
+
+      palette.forEach((hex, index) => {
+        const col = document.createElement('div');
+        col.className = 'color-col';
+        col.style.backgroundColor = hex;
+        
+        // Contrast check
+        const textColor = getContrastColor(hex);
+        col.style.color = textColor;
+
+        // HTML Structure
+        col.innerHTML = `
+          <button class="lock-btn ${locks[index] ? 'locked' : ''}" onclick="toggleLock(event, ${index})">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              ${locks[index] ? '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' : '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>'}
+            </svg>
+          </button>
+          
+          <div class="color-info">
+            <div class="hex-code">${hex.toUpperCase()}</div>
+            <div class="rgb-code">${hexToRgb(hex)}</div>
+          </div>
+          
+          <div class="click-hint" style="color: ${textColor}">Click to Copy</div>
+        `;
+
+        // Click to copy
+        col.addEventListener('click', (e) => {
+          if (!e.target.closest('.lock-btn')) {
+            copyToClipboard(hex);
+          }
+        });
+
+        container.appendChild(col);
+      });
+    }
+
+    // Lock Toggle
+    window.toggleLock = function(e, index) {
+      e.stopPropagation();
+      locks[index] = !locks[index];
+      renderPalette();
+    }
+
+    // Copy Logic
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text);
+      showToast(`Copied ${text}`);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // Helper: Contrast
+    function getContrastColor(hex) {
+      const r = parseInt(hex.substr(1, 2), 16);
+      const g = parseInt(hex.substr(3, 2), 16);
+      const b = parseInt(hex.substr(5, 2), 16);
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.5 ? '#000000' : '#ffffff';
+    }
+
+    function hexToRgb(hex) {
+      const r = parseInt(hex.substr(1, 2), 16);
+      const g = parseInt(hex.substr(3, 2), 16);
+      const b = parseInt(hex.substr(5, 2), 16);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Saved Palettes Logic
+    window.toggleSaved = function() {
+      document.getElementById('saved-area').classList.toggle('active');
+    }
+
+    window.savePalette = function() {
+      let saved = JSON.parse(localStorage.getItem('seraviel_palettes') || '[]');
+      saved.unshift(palette);
+      if (saved.length > 20) saved.pop(); // Limit to 20
+      localStorage.setItem('seraviel_palettes', JSON.stringify(saved));
+      renderSaved();
+      showToast('Palette Saved');
+    }
+
+    function renderSaved() {
+      const grid = document.getElementById('saved-grid');
+      const saved = JSON.parse(localStorage.getItem('seraviel_palettes') || '[]');
+      
+      grid.innerHTML = '';
+      if (saved.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text-muted); grid-column: 1/-1; text-align:center;">No saved palettes</div>';
+        return;
+      }
+
+      saved.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'saved-item';
+        item.onclick = () => {
+          palette = p;
+          locks = [false,false,false,false,false];
+          renderPalette();
+          window.scrollTo(0,0);
+        };
+        
+        p.forEach(c => {
+          const div = document.createElement('div');
+          div.style.backgroundColor = c;
+          item.appendChild(div);
+        });
+        
+        // Save button overlay (delete) - simplified for now
+        grid.appendChild(item);
+      });
+    }
+
+    // Keyboard Shortcut: Spacebar
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+        e.preventDefault();
+        generate();
+      }
+    });
+  </script>
+</body>
+</html>
