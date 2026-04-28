@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gradient Studio | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --accent: #0ea5e9;
+      --accent-hover: #0284c7;
+      --danger: #ef4444;
+      --success: #10b981;
+      --font-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .logo span { color: var(--accent); }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+    }
+    
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .panel-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Controls */
+    .control-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+    
+    select, input[type="number"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .range-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    
+    /* Color Stops */
+    .stops-container { display: flex; flex-direction: column; gap: 10px; }
+    .stop-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    input[type="color"] {
+      width: 40px;
+      height: 36px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .stop-pos {
+      flex: 1;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      font-size: 13px;
+      text-align: center;
+    }
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .btn-icon:hover { background: var(--border); color: var(--danger); }
+    
+    .btn-add {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 8px;
+      transition: all 0.2s;
+    }
+    .btn-add:hover { border-color: var(--accent); color: var(--accent); }
+    
+    /* Preview */
+    .preview-box {
+      width: 100%;
+      height: 280px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .preview-label {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(4px);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    
+    .output-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    textarea {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text);
+      resize: none;
+      height: 48px;
+    }
+    .btn-copy {
+      padding: 0 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-copy:hover { background: var(--accent-hover); }
+    .btn-copy.copied { background: var(--success); }
+    
+    /* History */
+    .history-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: thin;
+    }
+    .history-item {
+      flex: 0 0 60px;
+      height: 60px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .history-item:hover { transform: scale(1.05); border-color: var(--accent); }
+    
+    @media (max-width: 850px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">Gradient<span>Studio</span></div>
+    </header>
+    
+    <div class="grid">
+      <!-- Controls Panel -->
+      <div class="panel">
+        <div class="panel-title">Parameters</div>
+        
+        <div class="control-group">
+          <label>Type</label>
+          <select id="grad-type">
+            <option value="linear">Linear</option>
+            <option value="radial">Radial</option>
+            <option value="conic">Conic</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label id="angle-label">Angle: 90°</label>
+          <input type="range" id="grad-angle" min="0" max="360" value="90">
+          <div class="range-labels"><span>0°</span><span>180°</span><span>360°</span></div>
+        </div>
+        
+        <div class="control-group" id="size-group" style="display:none;">
+          <label>Size</label>
+          <select id="grad-size">
+            <option value="farthest-corner">Farthest Corner</option>
+            <option value="closest-corner">Closest Corner</option>
+            <option value="farthest-side">Farthest Side</option>
+            <option value="closest-side">Closest Side</option>
+          </select>
+        </div>
+        
+        <div class="panel-title" style="margin-top:20px;">Color Stops</div>
+        <div class="stops-container" id="stops-list"></div>
+        <button class="btn-add" onclick="addStop()">+ Add Stop</button>
+      </div>
+      
+      <!-- Preview Panel -->
+      <div class="panel">
+        <div class="panel-title">Preview & Output</div>
+        <div class="preview-box" id="preview-box">
+          <div class="preview-label">Live Preview</div>
+        </div>
+        
+        <div class="output-box">
+          <textarea id="css-output" readonly></textarea>
+          <button class="btn-copy" id="copy-btn" onclick="copyCSS()">Copy CSS</button>
+        </div>
+        
+        <div class="panel-title" style="margin-top:16px;">History</div>
+        <div class="history-scroll" id="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    const state = {
+      type: 'linear',
+      angle: 90,
+      size: 'farthest-corner',
+      stops: [
+        { color: '#0ea5e9', pos: 0 },
+        { color: '#10b981', pos: 100 }
+      ]
+    };
+
+    const els = {
+      type: document.getElementById('grad-type'),
+      angle: document.getElementById('grad-angle'),
+      angleLabel: document.getElementById('angle-label'),
+      sizeGroup: document.getElementById('size-group'),
+      size: document.getElementById('grad-size'),
+      stopsList: document.getElementById('stops-list'),
+      preview: document.getElementById('preview-box'),
+      output: document.getElementById('css-output'),
+      copyBtn: document.getElementById('copy-btn'),
+      history: document.getElementById('history-list')
+    };
+
+    // Init
+    function init() {
+      loadHistory();
+      bindEvents();
+      render();
+    }
+
+    function bindEvents() {
+      els.type.addEventListener('change', e => {
+        state.type = e.target.value;
+        els.sizeGroup.style.display = state.type === 'linear' ? 'none' : 'block';
+        els.angleLabel.textContent = state.type === 'conic' ? `From: ${state.angle}°` : `Angle: ${state.angle}°`;
+        render();
+      });
+      els.angle.addEventListener('input', e => {
+        state.angle = e.target.value;
+        els.angleLabel.textContent = state.type === 'conic' ? `From: ${state.angle}°` : `Angle: ${state.angle}°`;
+        render();
+      });
+      els.size.addEventListener('change', e => { state.size = e.target.value; render(); });
+    }
+
+    function renderStops() {
+      els.stopsList.innerHTML = '';
+      state.stops.forEach((stop, i) => {
+        const row = document.createElement('div');
+        row.className = 'stop-row';
+        row.innerHTML = `
+          <input type="color" value="${stop.color}" data-idx="${i}" data-field="color">
+          <input type="number" class="stop-pos" value="${stop.pos}" min="0" max="100" data-idx="${i}" data-field="pos">
+          <span style="font-size:12px;color:var(--text-muted)">%</span>
+          <button class="btn-icon" onclick="removeStop(${i})" title="Remove">✕</button>
+        `;
+        els.stopsList.appendChild(row);
+      });
+
+      // Delegate events
+      els.stopsList.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', e => {
+          const idx = e.target.dataset.idx;
+          const field = e.target.dataset.field;
+          state.stops[idx][field] = e.target.value;
+          render();
+        });
+      });
+    }
+
+    function buildCSS() {
+      const stopsStr = state.stops.map(s => `${s.color} ${s.pos}%`).join(', ');
+      if (state.type === 'linear') return `linear-gradient(${state.angle}deg, ${stopsStr})`;
+      if (state.type === 'radial') return `radial-gradient(${state.size}, ${stopsStr})`;
+      if (state.type === 'conic') return `conic-gradient(from ${state.angle}deg, ${stopsStr})`;
+    }
+
+    function render() {
+      const css = buildCSS();
+      els.preview.style.background = css;
+      els.output.value = css;
+      renderStops();
+    }
+
+    window.addStop = function() {
+      state.stops.push({ color: '#ffffff', pos: Math.floor(Math.random() * 100) });
+      render();
+    };
+
+    window.removeStop = function(idx) {
+      if (state.stops.length <= 2) return alert('Minimum 2 stops required');
+      state.stops.splice(idx, 1);
+      render();
+    };
+
+    window.copyCSS = function() {
+      navigator.clipboard.writeText(els.output.value);
+      els.copyBtn.textContent = 'Copied!';
+      els.copyBtn.classList.add('copied');
+      setTimeout(() => {
+        els.copyBtn.textContent = 'Copy CSS';
+        els.copyBtn.classList.remove('copied');
+      }, 1500);
+    };
+
+    function saveToHistory() {
+      let hist = JSON.parse(localStorage.getItem('seraviel_grad_history') || '[]');
+      const css = buildCSS();
+      if (hist[0]?.css === css) return; // Avoid duplicates
+      hist.unshift({ css, stops: [...state.stops], type: state.type, angle: state.angle, size: state.size });
+      if (hist.length > 10) hist.pop();
+      localStorage.setItem('seraviel_grad_history', JSON.stringify(hist));
+      loadHistory();
+    }
+
+    function loadHistory() {
+      const hist = JSON.parse(localStorage.getItem('seraviel_grad_history') || '[]');
+      els.history.innerHTML = '';
+      if (hist.length === 0) {
+        els.history.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">No saved gradients yet</div>';
+        return;
+      }
+      hist.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.style.background = item.css;
+        div.onclick = () => {
+          state.type = item.type;
+          state.angle = item.angle;
+          state.size = item.size;
+          state.stops = item.stops;
+          els.type.value = state.type;
+          els.angle.value = state.angle;
+          els.size.value = state.size;
+          els.sizeGroup.style.display = state.type === 'linear' ? 'none' : 'block';
+          els.angleLabel.textContent = state.type === 'conic' ? `From: ${state.angle}°` : `Angle: ${state.angle}°`;
+          render();
+        };
+        els.history.appendChild(div);
+      });
+    }
+
+    // Auto-save on change (debounced)
+    let saveTimer;
+    const origRender = render;
+    render = function() {
+      origRender();
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveToHistory, 800);
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
