@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Blindness Sim | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    
+    /* Upload Zone */
+    .upload-zone {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(13,148,136,0.03);
+    }
+    .upload-zone svg { width: 48px; height: 48px; stroke: var(--text-muted); margin-bottom: 12px; }
+    .upload-zone p { color: var(--text-muted); font-size: 14px; }
+    #file-input { display: none; }
+    
+    /* Simulator Controls */
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .filter-btn {
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    
+    .hint-text { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; font-style: italic; }
+    
+    /* Viewer */
+    .viewer-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    #sim-image {
+      max-width: 100%;
+      max-height: 600px;
+      border-radius: 8px;
+      display: none; /* Hidden until loaded */
+    }
+    
+    .empty-state {
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    /* History */
+    .history-panel {
+      margin-top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .history-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 8px 0 4px;
+      scrollbar-width: thin;
+    }
+    .history-item {
+      flex: 0 0 100px;
+      height: 70px;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .history-item:hover { border-color: var(--accent); transform: scale(1.03); }
+    .history-item img { width: 100%; height: 100%; object-fit: cover; }
+    
+    @media (max-width: 600px) {
+      .controls { gap: 6px; }
+      .filter-btn { flex: 1; padding: 10px 8px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0-7 18 14.5 14.5 0 0 0 14 0 14.5 14.5 0 0 0-7-18z"/>
+      </svg>
+      <div class="logo">Color<span>Simulator</span></div>
+    </header>
+    
+    <!-- Upload -->
+    <div class="upload-zone" id="drop-zone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <p>Drag & drop image or click to upload</p>
+      <input type="file" id="file-input" accept="image/*">
+    </div>
+    
+    <!-- Controls -->
+    <div id="controls-area" style="display:none;">
+      <div class="controls">
+        <button class="filter-btn active" onclick="applyFilter('none')">Normal</button>
+        <button class="filter-btn" onclick="applyFilter('protanopia')">Red-Blind</button>
+        <button class="filter-btn" onclick="applyFilter('deuteranopia')">Green-Blind</button>
+        <button class="filter-btn" onclick="applyFilter('tritanopia')">Blue-Blind</button>
+        <button class="filter-btn" onclick="applyFilter('achromatopsia')">Grayscale</button>
+      </div>
+      <div class="hint-text">Hold "Normal" button to see original temporarily</div>
+    </div>
+    
+    <!-- Viewer -->
+    <div class="viewer-container">
+      <div class="empty-state" id="empty-state">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span>Upload an image to start simulation</span>
+      </div>
+      <div id="image-wrapper" style="display:none;">
+        <img id="sim-image" src="" alt="Simulated">
+      </div>
+    </div>
+    
+    <!-- History -->
+    <div class="history-panel">
+      <div style="font-weight:700;color:var(--text-muted);font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Recent Simulations</div>
+      <div class="history-scroll" id="history-list"></div>
+    </div>
+  </div>
+  
+  <!-- SVG Filters Definition -->
+  <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Normal (Identity) -->
+      <filter id="none"><feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
+      
+      <!-- Protanopia (Red-Blind) -->
+      <filter id="protanopia">
+        <feColorMatrix type="matrix" values="
+          0.56667 0.43333 0     0  0
+          0.55833 0.44167 0     0  0
+          0     0.24167 0.75833 0  0
+          0     0       0       1  0"/>
+      </filter>
+      
+      <!-- Deuteranopia (Green-Blind) -->
+      <filter id="deuteranopia">
+        <feColorMatrix type="matrix" values="
+          0.625   0.375   0     0  0
+          0.7     0.3     0     0  0
+          0       0.3     0.7   0  0
+          0       0       0     1  0"/>
+      </filter>
+      
+      <!-- Tritanopia (Blue-Blind) -->
+      <filter id="tritanopia">
+        <feColorMatrix type="matrix" values="
+          0.95  0.05  0     0  0
+          0     0.433 0.567 0  0
+          0     0.475 0.525 0  0
+          0     0     0     1  0"/>
+      </filter>
+      
+      <!-- Achromatopsia (Full Color Blindness) -->
+      <filter id="achromatopsia">
+        <feColorMatrix type="matrix" values="
+          0.2126 0.7152 0.0722 0  0
+          0.2126 0.7152 0.0722 0  0
+          0.2126 0.7152 0.0722 0  0
+          0      0      0      1  0"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <script>
+    const els = {
+      dropZone: document.getElementById('drop-zone'),
+      fileInput: document.getElementById('file-input'),
+      emptyState: document.getElementById('empty-state'),
+      imageWrapper: document.getElementById('image-wrapper'),
+      controlsArea: document.getElementById('controls-area'),
+      image: document.getElementById('sim-image'),
+      history: document.getElementById('history-list')
+    };
+
+    let currentFilter = 'none';
+    let currentImageSrc = '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHistory();
+      
+      // Upload Events
+      els.dropZone.addEventListener('click', () => els.fileInput.click());
+      els.fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+      
+      els.dropZone.addEventListener('dragover', e => { e.preventDefault(); els.dropZone.classList.add('dragover'); });
+      els.dropZone.addEventListener('dragleave', () => els.dropZone.classList.remove('dragover'));
+      els.dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        els.dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+      });
+      
+      // Hold "Normal" to see original
+      const normalBtn = document.querySelector('[onclick="applyFilter(\'none\')"]');
+      normalBtn.addEventListener('mousedown', () => els.image.style.filter = 'url(#none)');
+      normalBtn.addEventListener('mouseup', () => applyFilter(currentFilter));
+      normalBtn.addEventListener('mouseleave', () => applyFilter(currentFilter));
+      
+      // Touch support for mobile hold
+      normalBtn.addEventListener('touchstart', (e) => { e.preventDefault(); els.image.style.filter = 'url(#none)'; });
+      normalBtn.addEventListener('touchend', () => applyFilter(currentFilter));
+    });
+
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      
+      const reader = new FileReader();
+      reader.onload = e => {
+        currentImageSrc = e.target.result;
+        els.image.src = currentImageSrc;
+        els.image.style.display = 'block';
+        els.emptyState.style.display = 'none';
+        els.imageWrapper.style.display = 'block';
+        els.controlsArea.style.display = 'block';
+        
+        applyFilter('protanopia'); // Default to a filter on load
+        saveToHistory(currentImageSrc);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.applyFilter = function(filterId) {
+      currentFilter = filterId;
+      els.image.style.filter = `url(#${filterId})`;
+      
+      // Update buttons
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(filterId));
+      });
+    };
+
+    function saveToHistory(src) {
+      let hist = JSON.parse(localStorage.getItem('seraviel_cbsim_hist') || '[]');
+      // Avoid duplicates
+      if (hist[0]?.src === src) return;
+      hist.unshift({ src, date: new Date().toLocaleDateString() });
+      if (hist.length > 6) hist.pop();
+      localStorage.setItem('seraviel_cbsim_hist', JSON.stringify(hist));
+      loadHistory();
+    }
+
+    function loadHistory() {
+      const hist = JSON.parse(localStorage.getItem('seraviel_cbsim_hist') || '[]');
+      els.history.innerHTML = '';
+      if (hist.length === 0) {
+        els.history.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px;">No images yet</div>';
+        return;
+      }
+      hist.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `<img src="${h.src}">`;
+        el.onclick = () => {
+          currentImageSrc = h.src;
+          els.image.src = h.src;
+          els.image.style.display = 'block';
+          els.emptyState.style.display = 'none';
+          els.imageWrapper.style.display = 'block';
+          els.controlsArea.style.display = 'block';
+          applyFilter('protanopia');
+        };
+        els.history.appendChild(el);
+      });
+    }
+  </script>
+</body>
+</html>
