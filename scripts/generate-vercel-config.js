@@ -4,40 +4,42 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const APPS_DIR = path.join(ROOT, 'apps');
 
-// 1. Проверяем существование папки apps
 if (!fs.existsSync(APPS_DIR)) {
-  console.warn('️ Папка apps/ не найдена. Пропускаем генерацию.');
+  console.warn('⚠️ Папка apps/ не найдена.');
   process.exit(0);
 }
 
-// 2. Собираем список папок-проектов (игнорируем скрытые и node_modules)
 const projects = fs.readdirSync(APPS_DIR, { withFileTypes: true })
   .filter(dirent => dirent.isDirectory())
   .map(dirent => dirent.name)
   .filter(name => !name.startsWith('.') && name !== 'node_modules');
 
 if (projects.length === 0) {
-  console.log('ℹ️ В папке apps/ нет проектов. Генерация отменена.');
+  console.log('ℹ️ Нет проектов в apps/.');
   process.exit(0);
 }
 
-// 3. Формируем правила маршрутизации
-const rewrites = projects.flatMap(project => [
-  // Точный путь к проекту
-  { source: `/${project}`, destination: `/apps/${project}/index.html` },
-  // Вложенные пути (картинки, стили, JS внутри проекта)
-  { source: `/${project}/:path*`, destination: `/apps/${project}/:path*` }
-]);
+// Формируем rewrites — ВАЖНО: сначала конкретные пути, потом общие
+const rewrites = [];
 
-// Добавляем корень сайта
+// 1. Сначала добавляем правила для проектов
+projects.forEach(project => {
+  rewrites.push(
+    { source: `/${project}`, destination: `/apps/${project}/index.html` },
+    { source: `/${project}/`, destination: `/apps/${project}/index.html` }, // с trailing slash
+    { source: `/${project}/:path*`, destination: `/apps/${project}/:path*` }
+  );
+});
+
+// 2. Корень сайта — в КОНЦЕ, чтобы не перехватывал другие пути
 rewrites.push({ source: '/', destination: '/index.html' });
 
-// 4. Собираем конфигурацию Vercel
 const config = {
-  rewrites,
+  version: 2,
+  outputDirectory: ".",
   cleanUrls: true,
   trailingSlash: false,
-  outputDirectory: ".",
+  rewrites,
   headers: [
     {
       source: '/(.*)',
@@ -49,10 +51,9 @@ const config = {
   ]
 };
 
-// 5. Записываем vercel.json в корень
 const outputPath = path.join(ROOT, 'vercel.json');
 fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
 
-console.log(`✅ vercel.json успешно сгенерирован!`);
-console.log(` Подключено проектов: ${projects.length}`);
+console.log(`✅ vercel.json сгенерирован!`);
+console.log(`📦 Проектов: ${projects.length}`);
 console.log(`🔗 Маршруты: ${projects.map(p => `/${p}`).join(', ')}`);
