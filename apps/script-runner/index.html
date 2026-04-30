@@ -610,8 +610,8 @@
       
       clearConsole();
       
-      // Interceptor safely overrides console methods and communicates to parent window
-      var consoleInterceptor = '<script>(function(){var send=function(t,a){parent.postMessage({type:"console",level:t,args:Array.prototype.slice.call(a)},"*")};["log","warn","error","info"].forEach(function(m){var o=console[m];console[m]=function(){send(m,arguments);o.apply(console,arguments)}});window.onerror=function(msg,src,line){send("error",["Error at "+line+": "+msg])}})();\x3C/script>';
+      // Перехватчик: добавлена поддержка console.clear()
+      var consoleInterceptor = '<script>(function(){var send=function(t,a){parent.postMessage({type:"console",level:t,args:Array.prototype.slice.call(a)},"*")};["log","warn","error","info"].forEach(function(m){var o=console[m];console[m]=function(){send(m,arguments);if(o)o.apply(console,arguments)}});console.clear=function(){parent.postMessage({type:"clear"},"*")};window.onerror=function(msg,src,line){send("error",["Error at "+line+": "+msg])}})();\x3C/script>';
 
       if (currentMode === 'html') {
         var enhancedCode = code.replace(/<\/body>/i, consoleInterceptor + '</body>');
@@ -619,8 +619,8 @@
         els.preview.srcdoc = enhancedCode;
         
       } else if (currentMode === 'js') {
-        // Safe wrapping block with explicit newlines ensuring single-line comments don't break code execution
-        var wrapped = '(function(){var send=function(t,a){parent.postMessage({type:"console",level:t,args:Array.prototype.slice.call(a)},"*")};["log","warn","error","info"].forEach(function(m){var o=console[m];console[m]=function(){send(m,arguments);o.apply(console,arguments)}});window.onerror=function(msg){send("error",[msg])};try{var r=(function(){\n' + code + '\n})();if(r!==undefined)send("log",[r])}catch(e){send("error",[e.message])}})();';
+        // В JS режиме тоже добавляем console.clear()
+        var wrapped = '(function(){var send=function(t,a){parent.postMessage({type:"console",level:t,args:Array.prototype.slice.call(a)},"*")};["log","warn","error","info"].forEach(function(m){var o=console[m];console[m]=function(){send(m,arguments);if(o)o.apply(console,arguments)}});console.clear=function(){parent.postMessage({type:"clear"},"*")};window.onerror=function(msg){send("error",[msg])};try{var r=(function(){\n' + code + '\n})();if(r!==undefined)send("log",[r])}catch(e){send("error",[e.message])}})();';
         var bg = isDark ? '#1e293b' : '#ffffff';
         var color = isDark ? '#f8fafc' : '#0f172a';
         els.preview.srcdoc = '<!DOCTYPE html><html><body style="background:'+bg+';color:'+color+';font-family:system-ui;padding:20px;margin:0;"><script>' + wrapped + '\x3C/script></body></html>';
@@ -635,10 +635,24 @@
       els.execTime.textContent = execTime.toFixed(1) + ' ms';
       els.shareStatus.textContent = 'Ready to share';
       els.shareStatus.style.color = 'var(--success)';
+
+      // АВТОФОКУС: чтобы после запуска сразу работали стрелочки на клавиатуре
+      setTimeout(function() {
+        if (els.preview.contentWindow) {
+          els.preview.contentWindow.focus();
+        }
+      }, 100);
     }
 
-    // Listen for console messages from iframe with advanced stringification
+   // Listen for console messages from iframe with advanced stringification
     window.addEventListener('message', function(e) {
+      // --- НОВОЕ: Обработка console.clear() ---
+      if (e.data && e.data.type === 'clear') {
+        window.clearConsole();
+        return;
+      }
+      // ---------------------------------------
+
       if (e.data && e.data.type === 'console') {
         var level = e.data.level;
         var args = e.data.args;
