@@ -4,34 +4,120 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const APPS_DIR = path.join(ROOT, 'apps');
 
-if (!fs.existsSync(APPS_DIR)) {
-  console.warn('⚠️ Папка apps/ не найдена.');
-  process.exit(0);
+// ─────────────────────────────────────────────────────────────
+// 1. Генерация manifest.json для каталога приложений
+// ─────────────────────────────────────────────────────────────
+function generateManifest() {
+  if (!fs.existsSync(APPS_DIR)) {
+    console.warn('⚠️ Папка apps/ не найдена.');
+    return [];
+  }
+
+  const projects = fs.readdirSync(APPS_DIR, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name)
+    .filter(name => !name.startsWith('.') && name !== 'node_modules');
+
+  const apps = projects.map(project => {
+    const pkgPath = path.join(APPS_DIR, project, 'package.json');
+    const indexPath = path.join(APPS_DIR, project, 'index.html');
+    
+    // Пытаемся извлечь метаданные из package.json или index.html
+    let name = project.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    let description = 'Tool by SERAVIEL LABS';
+    let icon = '🧩';
+    let tags = [];
+
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        if (pkg.description) description = pkg.description;
+        if (pkg.keywords) tags = pkg.keywords;
+        if (pkg.name) name = pkg.name;
+      } catch (e) {}
+    }
+
+    // Пытаемся найти <title> в index.html для имени
+    if (fs.existsSync(indexPath)) {
+      const html = fs.readFileSync(indexPath, 'utf8');
+      const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+      if (titleMatch) {
+        const title = titleMatch[1].trim();
+        if (title && !title.includes('SERAVIEL')) {
+          name = title.replace(/\s*\|\s*.*/, '').trim();
+        }
+      }
+      // Пытаемся найти эмодзи-иконку в <svg> или заголовке
+      const iconMatch = html.match(/<div[^>]*class="[^"]*logo[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
+      if (iconMatch && iconMatch[1].includes('svg')) {
+        // Если есть SVG логотип — оставляем дефолтную иконку
+      }
+    }
+
+    // Авто-теги на основе названия папки
+    const autoTags = {
+      'palette': ['colors', 'design'],
+      'qr-generator': ['qr', 'tools'],
+      'gradient-studio': ['css', 'gradient'],
+      'typing-trainer': ['typing', 'game'],
+      'dominant-colors': ['image', 'colors'],
+      'color-blindness-sim': ['accessibility', 'a11y'],
+      'pomodoro-timer': ['productivity', 'timer'],
+      'shadow-studio': ['css', 'shadow'],
+      'json-studio': ['json', 'dev'],
+      'favicon-generator': ['favicon', 'seo'],
+      'hash-generator': ['crypto', 'security'],
+      'url-builder': ['url', 'tools'],
+      'md-preview': ['markdown', 'editor'],
+      'web-terminal': ['terminal', 'shell'],
+      'console': ['terminal', 'backend']
+    };
+    if (autoTags[project]) tags = [...new Set([...tags, ...autoTags[project]])];
+
+    return {
+      id: project,
+      name,
+      description,
+      icon,
+      path: `/apps/${project}`,
+      tags: tags.slice(0, 4) // максимум 4 тега
+    };
+  });
+
+  const manifestPath = path.join(ROOT, 'apps/manifest.json');
+  fs.writeFileSync(manifestPath, JSON.stringify({ apps }, null, 2));
+  console.log(`✅ apps/manifest.json сгенерирован (${apps.length} apps)`);
+  
+  return apps;
 }
 
-const projects = fs.readdirSync(APPS_DIR, { withFileTypes: true })
-  .filter(dirent => dirent.isDirectory())
-  .map(dirent => dirent.name)
-  .filter(name => !name.startsWith('.') && name !== 'node_modules');
+// ─────────────────────────────────────────────────────────────
+// 2. Генерация vercel.json с маршрутами
+// ─────────────────────────────────────────────────────────────
+const apps = generateManifest();
+const projects = apps.map(a => a.id);
 
 if (projects.length === 0) {
   console.log('ℹ️ Нет проектов в apps/.');
   process.exit(0);
 }
 
-// Формируем rewrites — ВАЖНО: сначала конкретные пути, потом общие
+// Формируем rewrites
 const rewrites = [];
 
-// 1. Сначала добавляем правила для проектов
+// 1. Каталог приложений
+rewrites.push({ source: '/list', destination: '/list/index.html' });
+
+// 2. Правила для проектов (сначала конкретные, потом общие)
 projects.forEach(project => {
   rewrites.push(
     { source: `/${project}`, destination: `/apps/${project}/index.html` },
-    { source: `/${project}/`, destination: `/apps/${project}/index.html` }, // с trailing slash
+    { source: `/${project}/`, destination: `/apps/${project}/index.html` },
     { source: `/${project}/:path*`, destination: `/apps/${project}/:path*` }
   );
 });
 
-// 2. Корень сайта — в КОНЦЕ, чтобы не перехватывал другие пути
+// 3. Корень сайта — в КОНЦЕ
 rewrites.push({ source: '/', destination: '/index.html' });
 
 const config = {
@@ -56,4 +142,4 @@ fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
 
 console.log(`✅ vercel.json сгенерирован!`);
 console.log(`📦 Проектов: ${projects.length}`);
-console.log(`🔗 Маршруты: ${projects.map(p => `/${p}`).join(', ')}`);
+console.log(`🔗 Маршруты: /list, ${projects.map(p => `/${p}`).join(', ')}`);
