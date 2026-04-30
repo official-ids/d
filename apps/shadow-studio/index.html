@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadow Studio | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --success: #10b981;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 950px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    
+    .control-group { margin-bottom: 16px; }
+    label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+    .val { color: var(--accent); font-family: var(--font-mono); }
+    
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    input[type="color"] {
+      width: 48px; height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: none;
+      cursor: pointer;
+      padding: 2px;
+    }
+    
+    .checkbox-row {
+      display: flex; align-items: center; gap: 8px; margin-top: 8px;
+    }
+    input[type="checkbox"] {
+      width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;
+    }
+    
+    .presets {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;
+    }
+    .preset-btn {
+      padding: 8px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; color: var(--text);
+    }
+    .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+    
+    /* Preview Area */
+    .preview-area {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 260px;
+      background: var(--bg);
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .preview-area::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 16px 16px; opacity: 0.6;
+    }
+    .preview-card {
+      width: 140px; height: 140px; background: var(--surface);
+      border-radius: 16px; position: relative; z-index: 1;
+      transition: box-shadow 0.2s ease;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-weight: 600; font-size: 13px;
+      user-select: none;
+    }
+    
+    /* Output & Copy */
+    .output-row {
+      display: flex; gap: 10px; margin-top: 20px;
+    }
+    textarea {
+      flex: 1; padding: 10px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg); font-family: var(--font-mono);
+      font-size: 13px; color: var(--text); resize: none; height: 44px;
+    }
+    .btn-copy {
+      padding: 0 16px; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+      transition: background 0.2s; white-space: nowrap;
+    }
+    .btn-copy:hover { background: var(--accent-hover); }
+    .btn-copy.copied { background: var(--success); }
+    
+    /* History */
+    .history-scroll {
+      display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 8px;
+      scrollbar-width: thin;
+    }
+    .history-item {
+      flex: 0 0 70px; height: 70px; background: var(--surface);
+      border-radius: 10px; border: 1px solid var(--border);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; position: relative;
+    }
+    .history-item:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .history-item .mini-card {
+      width: 40px; height: 40px; background: var(--bg); border-radius: 8px;
+    }
+    .history-item .overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.7); color: white; font-size: 9px;
+      text-align: center; padding: 2px; border-radius: 0 0 8px 8px;
+    }
+    
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: white; padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+      <div class="logo">Shadow<span>Studio</span></div>
+    </header>
+    
+    <div class="grid">
+      <!-- Controls -->
+      <div class="panel">
+        <div class="panel-title">Parameters</div>
+        
+        <div class="control-group">
+          <label>Offset X <span class="val" id="val-x">0px</span></label>
+          <input type="range" id="inp-x" min="-50" max="50" value="0">
+        </div>
+        
+        <div class="control-group">
+          <label>Offset Y <span class="val" id="val-y">10px</span></label>
+          <input type="range" id="inp-y" min="-50" max="50" value="10">
+        </div>
+        
+        <div class="control-group">
+          <label>Blur <span class="val" id="val-blur">20px</span></label>
+          <input type="range" id="inp-blur" min="0" max="100" value="20">
+        </div>
+        
+        <div class="control-group">
+          <label>Spread <span class="val" id="val-spread">-2px</span></label>
+          <input type="range" id="inp-spread" min="-50" max="50" value="-2">
+        </div>
+        
+        <div class="control-group">
+          <label>Color & Opacity <span class="val" id="val-opacity">15%</span></label>
+          <div class="color-row">
+            <input type="color" id="inp-color" value="#0f172a">
+            <input type="range" id="inp-opacity" min="0" max="1" step="0.01" value="0.15" style="flex:1">
+          </div>
+        </div>
+        
+        <div class="checkbox-row">
+          <input type="checkbox" id="inp-inset">
+          <label for="inp-inset" style="margin:0; cursor:pointer; font-size:13px;">Inset (Inner Shadow)</label>
+        </div>
+        
+        <div class="presets">
+          <button class="preset-btn" onclick="applyPreset('soft')">Soft UI</button>
+          <button class="preset-btn" onclick="applyPreset('elevated')">Elevated</button>
+          <button class="preset-btn" onclick="applyPreset('sharp')">Sharp</button>
+          <button class="preset-btn" onclick="applyPreset('neumorphism')">Neumorphism</button>
+        </div>
+      </div>
+      
+      <!-- Preview & Output -->
+      <div class="panel">
+        <div class="panel-title">Preview & Output</div>
+        
+        <div class="preview-area">
+          <div class="preview-card" id="preview-card">Preview</div>
+        </div>
+        
+        <div class="output-row">
+          <textarea id="css-output" readonly></textarea>
+          <button class="btn-copy" id="copy-btn" onclick="copyCSS()">Copy CSS</button>
+        </div>
+        
+        <div class="panel-title" style="margin-top:20px;">History</div>
+        <div class="history-scroll" id="history-list"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    const state = { x: 0, y: 10, blur: 20, spread: -2, color: '#0f172a', opacity: 0.15, inset: false };
+    const els = {
+      x: document.getElementById('inp-x'), y: document.getElementById('inp-y'),
+      blur: document.getElementById('inp-blur'), spread: document.getElementById('inp-spread'),
+      color: document.getElementById('inp-color'), opacity: document.getElementById('inp-opacity'),
+      inset: document.getElementById('inp-inset'),
+      valX: document.getElementById('val-x'), valY: document.getElementById('val-y'),
+      valBlur: document.getElementById('val-blur'), valSpread: document.getElementById('val-spread'),
+      valOpacity: document.getElementById('val-opacity'),
+      preview: document.getElementById('preview-card'),
+      output: document.getElementById('css-output'),
+      copyBtn: document.getElementById('copy-btn'),
+      history: document.getElementById('history-list'),
+      toast: document.getElementById('toast')
+    };
+
+    const presets = {
+      soft: { x: 0, y: 8, blur: 24, spread: -4, color: '#0f172a', opacity: 0.08, inset: false },
+      elevated: { x: 0, y: 12, blur: 30, spread: -6, color: '#0f172a', opacity: 0.15, inset: false },
+      sharp: { x: 4, y: 4, blur: 0, spread: 0, color: '#000000', opacity: 0.2, inset: false },
+      neumorphism: { x: 8, y: 8, blur: 16, spread: -4, color: '#0f172a', opacity: 0.12, inset: false }
+    };
+
+    function init() {
+      bindEvents();
+      loadHistory();
+      update();
+    }
+
+    function bindEvents() {
+      const inputs = [els.x, els.y, els.blur, els.spread, els.opacity];
+      inputs.forEach(inp => {
+        inp.addEventListener('input', e => {
+          const key = e.target.id.replace('inp-', '');
+          state[key] = parseFloat(e.target.value);
+          update();
+        });
+      });
+      
+      els.color.addEventListener('input', e => { state.color = e.target.value; update(); });
+      els.inset.addEventListener('change', e => { state.inset = e.target.checked; update(); });
+    }
+
+    function update() {
+      // Update labels
+      els.valX.textContent = `${state.x}px`;
+      els.valY.textContent = `${state.y}px`;
+      els.valBlur.textContent = `${state.blur}px`;
+      els.valSpread.textContent = `${state.spread}px`;
+      els.valOpacity.textContent = `${Math.round(state.opacity * 100)}%`;
+      
+      // Build shadow string
+      const rgba = hexToRgba(state.color, state.opacity);
+      const insetStr = state.inset ? 'inset ' : '';
+      const shadow = `${insetStr}${state.x}px ${state.y}px ${state.blur}px ${state.spread}px ${rgba}`;
+      
+      // Apply
+      els.preview.style.boxShadow = shadow;
+      els.output.value = `box-shadow: ${shadow};`;
+      
+      // Debounce save to history
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveToHistory, 800);
+    }
+
+    window.applyPreset = function(name) {
+      const p = presets[name];
+      if (!p) return;
+      Object.assign(state, p);
+      els.x.value = state.x; els.y.value = state.y;
+      els.blur.value = state.blur; els.spread.value = state.spread;
+      els.opacity.value = state.opacity; els.color.value = state.color;
+      els.inset.checked = state.inset;
+      update();
+    };
+
+    window.copyCSS = function() {
+      navigator.clipboard.writeText(els.output.value);
+      els.copyBtn.textContent = 'Copied!';
+      els.copyBtn.classList.add('copied');
+      showToast('Shadow copied!');
+      setTimeout(() => {
+        els.copyBtn.textContent = 'Copy CSS';
+        els.copyBtn.classList.remove('copied');
+      }, 1500);
+    };
+
+    function saveToHistory() {
+      const shadow = els.output.value;
+      let hist = JSON.parse(localStorage.getItem('seraviel_shadow_hist') || '[]');
+      if (hist[0]?.css === shadow) return;
+      hist.unshift({ css: shadow, timestamp: Date.now() });
+      if (hist.length > 8) hist.pop();
+      localStorage.setItem('seraviel_shadow_hist', JSON.stringify(hist));
+      loadHistory();
+    }
+
+    function loadHistory() {
+      const hist = JSON.parse(localStorage.getItem('seraviel_shadow_hist') || '[]');
+      els.history.innerHTML = '';
+      if (hist.length === 0) {
+        els.history.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px;">No saved shadows yet</div>';
+        return;
+      }
+      hist.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `<div class="mini-card" style="box-shadow:${h.css.replace('box-shadow: ','').replace(';','')}"></div><div class="overlay">Load</div>`;
+        el.onclick = () => {
+          // Parse simple preset back to state (approximate)
+          const match = h.css.match(/(inset\s*)?(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(-?\d+)px\s+rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+          if (match) {
+            state.inset = !!match[1];
+            state.x = parseInt(match[2]); state.y = parseInt(match[3]);
+            state.blur = parseInt(match[4]); state.spread = parseInt(match[5]);
+            state.color = `#${parseInt(match[6]).toString(16).padStart(2,'0')}${parseInt(match[7]).toString(16).padStart(2,'0')}${parseInt(match[8]).toString(16).padStart(2,'0')}`;
+            state.opacity = parseFloat(match[9]);
+            
+            els.x.value = state.x; els.y.value = state.y;
+            els.blur.value = state.blur; els.spread.value = state.spread;
+            els.opacity.value = state.opacity; els.color.value = state.color;
+            els.inset.checked = state.inset;
+            update();
+          }
+        };
+        els.history.appendChild(el);
+      });
+    }
+
+    function hexToRgba(hex, alpha) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function showToast(msg) {
+      els.toast.textContent = msg;
+      els.toast.classList.add('show');
+      setTimeout(() => els.toast.classList.remove('show'), 2000);
+    }
+
+    let saveTimer;
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
