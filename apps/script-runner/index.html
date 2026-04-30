@@ -19,6 +19,18 @@
       --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'SF Mono', 'Consolas', monospace;
     }
+    
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #14b8a6;
+      --accent-hover: #0d9488;
+      color-scheme: dark;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--font-sans);
@@ -27,6 +39,7 @@
       min-height: 100vh;
       padding: 24px;
       line-height: 1.5;
+      transition: background-color 0.3s, color 0.3s;
     }
     .container { max-width: 1200px; margin: 0 auto; }
     
@@ -37,6 +50,11 @@
       margin-bottom: 24px;
       padding-bottom: 16px;
       border-bottom: 2px solid var(--border);
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
     .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
     .logo span { color: var(--accent); }
@@ -53,6 +71,20 @@
     .back-link:hover { color: var(--accent); }
     .back-link svg { width: 16px; height: 16px; }
     
+    .theme-toggle-btn {
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .theme-toggle-btn:hover { background: var(--border); }
+
     .warning-box {
       background: rgba(245,158,11,0.1);
       border: 1px solid #f59e0b;
@@ -95,7 +127,7 @@
     }
     .mode-btn.active { background: var(--accent); color: white; }
     
-    .actions { display: flex; gap: 8px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .btn {
       padding: 10px 16px;
       background: var(--surface);
@@ -148,7 +180,7 @@
     #code-editor {
       flex: 1;
       width: 100%;
-      min-height: 300px;
+      min-height: 350px;
       padding: 16px;
       border: none;
       background: var(--surface);
@@ -165,9 +197,9 @@
     #preview-frame {
       flex: 1;
       width: 100%;
-      min-height: 300px;
+      min-height: 350px;
       border: none;
-      background: white;
+      background: var(--surface);
     }
     
     .console-panel {
@@ -191,7 +223,7 @@
       align-items: center;
     }
     #console-output {
-      max-height: 150px;
+      max-height: 200px;
       overflow-y: auto;
       padding: 12px 16px;
       font-family: var(--font-mono);
@@ -199,10 +231,10 @@
       background: var(--surface);
       color: var(--text);
     }
-    .log-entry { padding: 4px 0; border-bottom: 1px solid var(--border); }
+    .log-entry { padding: 6px 0; border-bottom: 1px solid var(--border); word-break: break-word; }
     .log-entry:last-child { border-bottom: none; }
-    .log-entry.error { color: var(--danger); }
-    .log-entry.warn { color: #f59e0b; }
+    .log-entry.error { color: var(--danger); background: rgba(239, 68, 68, 0.05); padding: 8px; border-radius: 6px; margin: 4px 0; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .log-entry.warn { color: #f59e0b; background: rgba(245, 158, 11, 0.05); padding: 8px; border-radius: 6px; margin: 4px 0; border: 1px solid rgba(245, 158, 11, 0.2); }
     .log-entry.info { color: var(--accent); }
     
     .meta-bar {
@@ -284,27 +316,18 @@
       left: 50%;
       transform: translateX(-50%) translateY(20px);
       background: var(--text);
-      color: white;
+      color: var(--bg);
       padding: 10px 20px;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       opacity: 0;
-      transition: all 0.3s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       pointer-events: none;
       z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    
-    .spinner {
-      width: 16px; height: 16px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
     
     @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
@@ -316,16 +339,22 @@
 <body>
   <div class="container">
     <header>
-      <a href="/" class="back-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-        Back to Hub
-      </a>
+      <div class="header-left">
+        <a href="/" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Back to Hub
+        </a>
+      </div>
       <div class="logo">Script<span>Runner</span></div>
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Dark Mode">
+        <svg id="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
     </header>
     
     <div class="warning-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-      <span>Code runs in a sandboxed iframe. Do not paste untrusted scripts. Max size: 50KB.</span>
+      <span>Code runs in a sandboxed iframe. Do not paste untrusted scripts. Max size: 50KB. Auto-saves locally.</span>
     </div>
     
     <div class="toolbar">
@@ -335,6 +364,10 @@
         <button class="mode-btn" data-mode="css">CSS</button>
       </div>
       <div class="actions">
+        <button class="btn" onclick="downloadScript()" title="Download as file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </button>
         <button class="btn" onclick="loadTemplate()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           Templates
@@ -401,72 +434,59 @@
   <div class="toast" id="toast">Action completed</div>
 
   <script>
-    const TEMPLATES = {
-      hello: `<!DOCTYPE html>
-<html>
-<head><style>body{font-family:system-ui;padding:20px;background:#f8fafc;color:#0f172a}</style></head>
-<body>
-  <h1>Hello from Script Runner! 👋</h1>
-  <p>Edit this code and click Run.</p>
-  <script>console.log('Page loaded');<\/script>
-</body>
-</html>`,
-      dom: `<!DOCTYPE html>
-<html>
-<body style="font-family:system-ui;padding:20px">
-  <button id="btn">Click me</button>
-  <p id="output">Click the button</p>
-  <script>
-    document.getElementById('btn').onclick = () => {
-      document.getElementById('output').textContent = 'Button clicked!';
-      console.log('Button clicked at', new Date().toLocaleTimeString());
-    };
-  <\/script>
-</body>
-</html>`,
-      fetch: `<!DOCTYPE html>
-<html>
-<body style="font-family:system-ui;padding:20px">
-  <div id="result">Loading...</div>
-  <script>
-    fetch('https://api.github.com')
-      .then(r => r.json())
-      .then(d => {
-        document.getElementById('result').textContent = 'GitHub API: ' + d.current_user_url;
-        console.log('Fetched:', d);
-      })
-      .catch(e => {
-        document.getElementById('result').textContent = 'Error: ' + e.message;
-        console.error(e);
-      });
-  <\/script>
-</body>
-</html>`,
-      css: `<!DOCTYPE html>
-<html>
-<head>
-<style>
-  body { font-family: system-ui; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: linear-gradient(135deg, #f8fafc, #e2e8f0); }
-  .box { width: 100px; height: 100px; background: #0d9488; border-radius: 12px; animation: bounce 1s infinite alternate; }
-  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-30px); } }
-</style>
-</head>
-<body>
-  <div class="box"></div>
-  <script>console.log('CSS animation running');<\/script>
-</body>
-</html>`,
-      console: `// JavaScript mode - console output only
-console.log('Script Runner Console Test');
-console.warn('This is a warning');
-console.error('This is an error');
-console.log('Current time:', new Date().toLocaleTimeString());
-// Return a value to see it in preview
-"Done!"`,
-      empty: ``
+    /* 
+     * Script Runner - Enhanced Version
+     * - Fixes parsing errors: correctly escapes script tags with \x3C/script>
+     * - Dark Mode, Auto-saving drafts, Download option, Tab formatting
+     * - Reliable ES5-compatible syntax
+     */
+
+    // Theme Management
+    var themeToggle = document.getElementById('theme-toggle');
+    var moonIcon = document.getElementById('moon-icon');
+    var sunIcon = document.getElementById('sun-icon');
+    
+    function setTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        moonIcon.style.display = 'none';
+        sunIcon.style.display = 'block';
+        localStorage.setItem('seraviel_theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        moonIcon.style.display = 'block';
+        sunIcon.style.display = 'none';
+        localStorage.setItem('seraviel_theme', 'light');
+      }
+    }
+    
+    var savedTheme = localStorage.getItem('seraviel_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(savedTheme);
+    
+    themeToggle.addEventListener('click', function() {
+      var current = document.documentElement.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+      if (currentMode !== 'html') runScript(); // Update iframe theme if needed
+    });
+
+    var TEMPLATES = {
+      hello: '<!DOCTYPE html>\n<html>\n<head><style>body{font-family:system-ui;padding:20px;}</style></head>\n<body>\n  <h1>Hello from Script Runner!</h1>\n  <p>Edit this code and click Run.</p>\n  <script>console.log("Page loaded");\x3C/script>\n</body>\n</html>',
+      
+      dom: '<!DOCTYPE html>\n<html>\n<body style="font-family:system-ui;padding:20px">\n  <button id="btn" style="padding:10px 20px; border-radius:8px; border:none; background:#0d9488; color:#fff; cursor:pointer;">Click me</button>\n  <p id="output" style="margin-top:16px;">Waiting...</p>\n  <script>\n    document.getElementById("btn").onclick = function() {\n      document.getElementById("output").textContent = "Button clicked!";\n      console.log("Button clicked at", new Date().toLocaleTimeString());\n    };\n  \x3C/script>\n</body>\n</html>',
+      
+      fetch: '<!DOCTYPE html>\n<html>\n<body style="font-family:system-ui;padding:20px">\n  <div id="result">Loading API data...</div>\n  <script>\n    fetch("https://api.github.com")\n      .then(function(r) { return r.json(); })\n      .then(function(d) {\n        document.getElementById("result").textContent = "GitHub API: " + d.current_user_url;\n        console.log("Fetched:", d);\n      })\n      .catch(function(e) {\n        document.getElementById("result").textContent = "Error: " + e.message;\n        console.error(e);\n      });\n  \x3C/script>\n</body>\n</html>',
+      
+      css: 'body {\n  font-family: system-ui;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 100vh;\n  margin: 0;\n  background: linear-gradient(135deg, #0f172a, #334155);\n}\n.preview-box {\n  width: 100px;\n  height: 100px;\n  background: #14b8a6;\n  border-radius: 16px;\n  animation: spin 2s infinite ease-in-out alternate;\n}\n@keyframes spin {\n  to { transform: rotate(180deg) scale(1.5); border-radius: 50%; }\n}',
+      
+      console: '// JavaScript mode - Output will show in the console below\nconsole.log("Script Runner Console Test");\nconsole.warn("This is a warning log");\nconsole.error("This is an error log");\n\nconst user = { name: "Alice", id: 123, active: true };\nconsole.log("Object logging:", user);\n\n// Return a value to log it automatically\n"Execution Finished!"',
+      
+      empty: ''
     };
 
-    const els = {
+    var currentMode = 'html';
+    var autoRunTimer;
+
+    var els = {
       editor: document.getElementById('code-editor'),
       preview: document.getElementById('preview-frame'),
       console: document.getElementById('console-output'),
@@ -480,35 +500,77 @@ console.log('Current time:', new Date().toLocaleTimeString());
       modeBtns: document.querySelectorAll('.mode-btn')
     };
 
-    let currentMode = 'html';
-    let lastExecTime = null;
-
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function() {
       loadHistory();
-      updateMeta();
       
-      // Mode switcher
-      els.modeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          els.modeBtns.forEach(b => b.classList.remove('active'));
+      // Load from URL params or localStorage Drafts
+      var params = new URLSearchParams(window.location.search);
+      var src = params.get('src');
+      var mode = params.get('mode');
+      
+      if (src && mode) {
+        try {
+          currentMode = mode;
+          els.editor.value = decodeURIComponent(src);
+          updatePlaceholder();
+          updateMeta();
+          runScript();
+          showToast('Loaded from URL');
+        } catch (e) {
+          console.error('Failed to decode URL', e);
+        }
+      } else {
+        var draft = localStorage.getItem('seraviel_runner_draft');
+        var draftMode = localStorage.getItem('seraviel_runner_mode');
+        if (draft !== null && draftMode) {
+          currentMode = draftMode;
+          els.editor.value = draft;
+          updatePlaceholder();
+          updateMeta();
+          runScript();
+        } else {
+          updatePlaceholder();
+          updateMeta();
+        }
+      }
+
+      // Sync active button state
+      els.modeBtns.forEach(function(b) { 
+        b.classList.toggle('active', b.dataset.mode === currentMode); 
+      });
+      
+      els.modeBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          els.modeBtns.forEach(function(b) { b.classList.remove('active'); });
           btn.classList.add('active');
           currentMode = btn.dataset.mode;
           updatePlaceholder();
+          localStorage.setItem('seraviel_runner_mode', currentMode);
+          runScript();
         });
       });
       
-      // Editor input
-      els.editor.addEventListener('input', () => {
+      els.editor.addEventListener('input', function() {
         updateMeta();
-        // Auto-run for JS mode (debounced)
-        if (currentMode === 'js') {
-          clearTimeout(autoRunTimer);
-          autoRunTimer = setTimeout(() => runScript(), 500);
-        }
+        localStorage.setItem('seraviel_runner_draft', els.editor.value);
+        localStorage.setItem('seraviel_runner_mode', currentMode);
+        
+        clearTimeout(autoRunTimer);
+        var delay = currentMode === 'html' ? 800 : 500;
+        autoRunTimer = setTimeout(function() { runScript(); }, delay);
       });
       
-      // Keyboard shortcuts
-      document.addEventListener('keydown', (e) => {
+      // Handle Tab and Ctrl+Enter
+      els.editor.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          var start = this.selectionStart;
+          var end = this.selectionEnd;
+          this.value = this.value.substring(0, start) + "  " + this.value.substring(end);
+          this.selectionStart = this.selectionEnd = start + 2;
+          updateMeta();
+          localStorage.setItem('seraviel_runner_draft', this.value);
+        }
         if (e.ctrlKey && e.key === 'Enter') {
           e.preventDefault();
           runScript();
@@ -518,110 +580,83 @@ console.log('Current time:', new Date().toLocaleTimeString());
           saveToHistory();
         }
       });
-      
-      // Load from URL params
-      const params = new URLSearchParams(window.location.search);
-      const src = params.get('src');
-      const mode = params.get('mode');
-      if (src && mode) {
-        try {
-          currentMode = mode;
-          els.modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-          els.editor.value = atob(src);
-          updatePlaceholder();
-          updateMeta();
-          runScript();
-          showToast('Loaded from URL');
-        } catch (e) {
-          console.error('Failed to decode URL', e);
-        }
-      }
     });
 
-    let autoRunTimer;
     function updatePlaceholder() {
-      const placeholders = {
+      var placeholders = {
         html: '<!DOCTYPE html>\n<html>\n<body>\n  <!-- Write HTML here -->\n</body>\n</html>',
-        js: '// Write JavaScript here\nconsole.log("Hello");',
+        js: '// Write JavaScript here\nconsole.log("Hello World");',
         css: '/* Write CSS here */\nbody {\n  background: #f8fafc;\n}'
       };
       els.editor.placeholder = placeholders[currentMode];
     }
 
     function updateMeta() {
-      const code = els.editor.value;
-      const bytes = new Blob([code]).size;
-      els.editorMeta.textContent = `${bytes} bytes`;
+      var code = els.editor.value;
+      var bytes = new Blob([code]).size;
+      els.editorMeta.textContent = bytes + ' bytes';
       if (bytes > 50 * 1024) {
         els.editorMeta.style.color = 'var(--danger)';
-        els.editorMeta.textContent += ' (⚠️ over limit)';
+        els.editorMeta.textContent += ' (over limit)';
       } else {
         els.editorMeta.style.color = 'var(--text-muted)';
       }
     }
 
     function runScript() {
-      const code = els.editor.value;
-      const start = performance.now();
+      var code = els.editor.value;
+      var start = performance.now();
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       
-      // Clear previous console
       clearConsole();
       
+      // Interceptor safely overrides console methods and communicates to parent window
+      var consoleInterceptor = '<script>(function(){var send=function(t,a){parent.postMessage({type:"console",level:t,args:Array.prototype.slice.call(a)},"*")};["log","warn","error","info"].forEach(function(m){var o=console[m];console[m]=function(){send(m,arguments);o.apply(console,arguments)}});window.onerror=function(msg,src,line){send("error",["Error at "+line+": "+msg])}})();\x3C/script>';
+
       if (currentMode === 'html') {
-        // Inject console interceptor into HTML
-        const enhancedCode = code.replace('</body>', `
-          <script>
-            (function() {
-              const send = (type, args) => parent.postMessage({ type: 'console', level: type, args: Array.from(args) }, '*');
-              ['log','warn','error','info'].forEach(m => {
-                const orig = console[m];
-                console[m] = (...a) => { send(m, a); orig.apply(console, a); };
-              });
-              window.onerror = (msg, src, line) => { send('error', [\`Error at \${line}: \${msg}\`]); };
-            })();
-          <\/script>
-          </body>`);
+        var enhancedCode = code.replace(/<\/body>/i, consoleInterceptor + '</body>');
+        if (!/<\/body>/i.test(enhancedCode)) enhancedCode += consoleInterceptor;
         els.preview.srcdoc = enhancedCode;
+        
       } else if (currentMode === 'js') {
-        // Wrap JS code with console interceptor
-        const wrapped = `
-          (function() {
-            const send = (type, args) => parent.postMessage({ type: 'console', level: type, args: Array.from(args) }, '*');
-            ['log','warn','error','info'].forEach(m => {
-              const orig = console[m];
-              console[m] = (...a) => { send(m, a); orig.apply(console, a); };
-            });
-            try {
-              const result = (function() { ${code} })();
-              if (result !== undefined) send('log', [result]);
-            } catch (e) { send('error', [e.message]); }
-          })();
-        `;
-        els.preview.srcdoc = `<!DOCTYPE html><html><body><script>${wrapped}<\/script></body></html>`;
+        // Safe wrapping block with explicit newlines ensuring single-line comments don't break code execution
+        var wrapped = '(function(){var send=function(t,a){parent.postMessage({type:"console",level:t,args:Array.prototype.slice.call(a)},"*")};["log","warn","error","info"].forEach(function(m){var o=console[m];console[m]=function(){send(m,arguments);o.apply(console,arguments)}});window.onerror=function(msg){send("error",[msg])};try{var r=(function(){\n' + code + '\n})();if(r!==undefined)send("log",[r])}catch(e){send("error",[e.message])}})();';
+        var bg = isDark ? '#1e293b' : '#ffffff';
+        var color = isDark ? '#f8fafc' : '#0f172a';
+        els.preview.srcdoc = '<!DOCTYPE html><html><body style="background:'+bg+';color:'+color+';font-family:system-ui;padding:20px;margin:0;"><script>' + wrapped + '\x3C/script></body></html>';
+        
       } else if (currentMode === 'css') {
-        // CSS mode: apply to a preview page
-        els.preview.srcdoc = `<!DOCTYPE html><html><head><style>${code}</style></head><body style="font-family:system-ui;padding:20px"><h3>CSS Preview</h3><div class="preview-box" style="width:100px;height:100px;background:#0d9488;border-radius:8px;margin-top:20px"></div></body></html>`;
+        var bg = isDark ? '#1e293b' : '#ffffff';
+        var color = isDark ? '#f8fafc' : '#0f172a';
+        els.preview.srcdoc = '<!DOCTYPE html><html><head><style>\n' + code + '\n</style></head><body style="background:'+bg+';color:'+color+';font-family:system-ui;padding:20px;margin:0;"><h3>CSS Preview Area</h3><div class="preview-box"></div></body></html>';
       }
       
-      // Measure execution time (approximate)
-      lastExecTime = performance.now() - start;
-      els.execTime.textContent = `${lastExecTime.toFixed(1)} ms`;
-      
-      // Update share status
+      var execTime = performance.now() - start;
+      els.execTime.textContent = execTime.toFixed(1) + ' ms';
       els.shareStatus.textContent = 'Ready to share';
       els.shareStatus.style.color = 'var(--success)';
     }
 
-    // Listen for console messages from iframe
-    window.addEventListener('message', (e) => {
-      if (e.data?.type === 'console') {
-        const { level, args } = e.data;
-        args.forEach(arg => {
-          const entry = document.createElement('div');
-          entry.className = `log-entry ${level}`;
-          entry.textContent = typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
-          els.console.appendChild(entry);
-        });
+    // Listen for console messages from iframe with advanced stringification
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'console') {
+        var level = e.data.level;
+        var args = e.data.args;
+        var entry = document.createElement('div');
+        entry.className = 'log-entry ' + level;
+        
+        var msg = args.map(function(arg) {
+          if (arg === null) return 'null';
+          if (arg === undefined) return 'undefined';
+          if (typeof arg === 'object') {
+            try { return JSON.stringify(arg, null, 2); } catch(err) { return String(arg); }
+          }
+          return String(arg);
+        }).join(' ');
+        
+        entry.style.whiteSpace = 'pre-wrap';
+        entry.textContent = msg;
+        els.console.appendChild(entry);
         els.console.scrollTop = els.console.scrollHeight;
       }
     });
@@ -636,36 +671,68 @@ console.log('Current time:', new Date().toLocaleTimeString());
 
     window.setTemplate = function(name) {
       els.editor.value = TEMPLATES[name] || '';
+      
+      // Auto-switch mode based on template type
+      if (name === 'css') currentMode = 'css';
+      else if (name === 'console') currentMode = 'js';
+      else if (name !== 'empty') currentMode = 'html';
+      
+      els.modeBtns.forEach(function(b) { 
+        b.classList.toggle('active', b.dataset.mode === currentMode); 
+      });
+      
       updatePlaceholder();
       updateMeta();
+      localStorage.setItem('seraviel_runner_draft', els.editor.value);
+      localStorage.setItem('seraviel_runner_mode', currentMode);
+      
       els.templates.style.display = 'none';
-      showToast(`Template "${name}" loaded`);
-      if (currentMode === 'js') runScript();
+      showToast('Template "' + name + '" loaded');
+      runScript();
+    };
+
+    window.downloadScript = function() {
+      var code = els.editor.value;
+      if (!code) return showToast('Nothing to download');
+      
+      var ext = currentMode === 'js' ? 'js' : (currentMode === 'css' ? 'css' : 'html');
+      var blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      
+      a.href = url;
+      a.download = 'script.' + ext;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showToast('File downloaded successfully');
     };
 
     window.saveToHistory = function() {
-      const code = els.editor.value.trim();
+      var code = els.editor.value.trim();
       if (!code) return showToast('Nothing to save');
       
-      const item = {
+      var item = {
         id: Date.now(),
-        name: `Script ${new Date().toLocaleTimeString()}`,
-        code,
+        name: 'Script ' + new Date().toLocaleTimeString(),
+        code: code,
         mode: currentMode,
         timestamp: Date.now()
       };
       
-      let history = JSON.parse(localStorage.getItem('seraviel_runner_hist') || '[]');
+      var history = JSON.parse(localStorage.getItem('seraviel_runner_hist') || '[]');
       history.unshift(item);
       if (history.length > 10) history.pop();
       localStorage.setItem('seraviel_runner_hist', JSON.stringify(history));
       
       loadHistory();
-      showToast('Saved to history');
+      showToast('Saved to local history');
     };
 
     function loadHistory() {
-      const history = JSON.parse(localStorage.getItem('seraviel_runner_hist') || '[]');
+      var history = JSON.parse(localStorage.getItem('seraviel_runner_hist') || '[]');
       els.history.innerHTML = '';
       
       if (history.length === 0) {
@@ -673,55 +740,78 @@ console.log('Current time:', new Date().toLocaleTimeString());
         return;
       }
       
-      history.forEach(item => {
-        const el = document.createElement('div');
+      for (var i = 0; i < history.length; i++) {
+        var item = history[i];
+        var el = document.createElement('div');
         el.className = 'history-item';
-        el.innerHTML = `
-          <div class="history-info">
-            <div class="history-name">${item.name}</div>
-            <div class="history-meta">${item.mode.toUpperCase()} · ${new Date(item.timestamp).toLocaleDateString()}</div>
-          </div>
-          <div class="history-actions">
-            <button class="history-btn" onclick="loadFromHistory(${item.id})">Load</button>
-            <button class="history-btn" onclick="shareScript(${item.id})">Share</button>
-          </div>
-        `;
+        el.innerHTML = '<div class="history-info"><div class="history-name">' + item.name + '</div><div class="history-meta">' + item.mode.toUpperCase() + ' · ' + new Date(item.timestamp).toLocaleDateString() + '</div></div><div class="history-actions"><button class="history-btn" onclick="loadFromHistory(' + item.id + ')">Load</button><button class="history-btn" onclick="shareScript(' + item.id + ')">Share</button></div>';
         els.history.appendChild(el);
-      });
+      }
     }
 
     window.loadFromHistory = function(id) {
-      const history = JSON.parse(localStorage.getItem('seraviel_runner_hist') || '[]');
-      const item = history.find(i => i.id === id);
+      var history = JSON.parse(localStorage.getItem('seraviel_runner_hist') || '[]');
+      var item = null;
+      for (var i = 0; i < history.length; i++) {
+        if (history[i].id === id) { item = history[i]; break; }
+      }
       if (item) {
         currentMode = item.mode;
-        els.modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === item.mode));
+        els.modeBtns.forEach(function(b) { 
+          b.classList.toggle('active', b.dataset.mode === item.mode); 
+        });
         els.editor.value = item.code;
         updatePlaceholder();
         updateMeta();
+        localStorage.setItem('seraviel_runner_draft', item.code);
+        localStorage.setItem('seraviel_runner_mode', item.mode);
         runScript();
         showToast('Loaded from history');
       }
     };
 
     window.shareScript = function(id) {
-      const history = JSON.parse(localStorage.getItem('seraviel_runner_hist') || '[]');
-      const item = history.find(i => i.id === id);
+      var history = JSON.parse(localStorage.getItem('seraviel_runner_hist') || '[]');
+      var item = null;
+      for (var i = 0; i < history.length; i++) {
+        if (history[i].id === id) { item = history[i]; break; }
+      }
       if (!item) return;
       
-      const encoded = btoa(item.code);
-      const url = `${location.origin}${location.pathname}?src=${encoded}&mode=${item.mode}`;
+      var encoded = encodeURIComponent(item.code);
+      var url = location.origin + location.pathname + '?src=' + encoded + '&mode=' + item.mode;
       
-      navigator.clipboard.writeText(url);
-      els.shareStatus.textContent = 'Link copied!';
-      els.shareStatus.style.color = 'var(--success)';
-      showToast('Share link copied');
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(function() {
+          els.shareStatus.textContent = 'Link copied!';
+          els.shareStatus.style.color = 'var(--success)';
+          showToast('Share link copied to clipboard');
+        }).catch(function(err) {
+          console.error('Clipboard write failed', err);
+          showToast('Failed to copy link');
+        });
+      } else {
+        // Fallback for non-https contexts
+        var textArea = document.createElement("textarea");
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          els.shareStatus.textContent = 'Link copied!';
+          els.shareStatus.style.color = 'var(--success)';
+          showToast('Share link copied to clipboard');
+        } catch (err) {
+          showToast('Failed to copy link');
+        }
+        document.body.removeChild(textArea);
+      }
     };
 
     function showToast(msg) {
       els.toast.textContent = msg;
       els.toast.classList.add('show');
-      setTimeout(() => els.toast.classList.remove('show'), 2000);
+      setTimeout(function() { els.toast.classList.remove('show'); }, 2500);
     }
   </script>
 </body>
