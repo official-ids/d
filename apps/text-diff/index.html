@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Diff Checker | SERAVIEL LABS</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --diff-add: #dcfce7;
+      --diff-add-dark: #166534;
+      --diff-del: #fee2e2;
+      --diff-del-dark: #991b1b;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 1200px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; flex: 1; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 16px; height: 16px; }
+    
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; }
+    
+    select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      font-size: 14px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    select:focus { outline: none; border-color: var(--accent); }
+    
+    .btn {
+      padding: 8px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .btn:hover { background: var(--border); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn svg { width: 16px; height: 16px; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex: 0 0 auto;
+    }
+    
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .panel-header {
+      padding: 10px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    textarea {
+      width: 100%;
+      flex: 1;
+      min-height: 200px;
+      padding: 16px;
+      border: none;
+      background: var(--surface);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      resize: vertical;
+      outline: none;
+    }
+    
+    .result-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 200px;
+    }
+    
+    #diff-output {
+      flex: 1;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .added { background: var(--diff-add); color: var(--diff-add-dark); }
+    .removed { background: var(--diff-del); color: var(--diff-del-dark); text-decoration: line-through; }
+    
+    .stats {
+      padding: 8px 16px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 16px;
+    }
+    .stat-item { display: flex; align-items: center; gap: 6px; }
+    .stat-item svg { width: 14px; height: 14px; }
+    .stat-add { color: var(--diff-add-dark); }
+    .stat-del { color: var(--diff-del-dark); }
+    
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 40px;
+    }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
+    
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-left, .toolbar-right { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to Hub
+      </a>
+      <div class="logo">Diff<span>Checker</span></div>
+    </header>
+    
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <select id="diff-mode">
+          <option value="lines">Compare Lines</option>
+          <option value="words">Compare Words</option>
+          <option value="chars">Compare Chars</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn" onclick="clearAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Clear
+        </button>
+        <button class="btn" onclick="copyResult()" id="copy-btn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <button class="btn primary" onclick="runDiff()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M8 21H3v-5"/><path d="M3 21l7-7"/></svg>
+          Compare
+        </button>
+      </div>
+    </div>
+    
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-header">Original Text</div>
+        <textarea id="text-a" placeholder="Paste original text here..."></textarea>
+      </div>
+      <div class="panel">
+        <div class="panel-header">Modified Text</div>
+        <textarea id="text-b" placeholder="Paste modified text here..."></textarea>
+      </div>
+    </div>
+    
+    <div class="result-panel">
+      <div class="panel-header">
+        <span>Comparison Result</span>
+        <span id="stats-summary" style="font-weight:400;text-transform:none;">No changes detected</span>
+      </div>
+      <div id="diff-output">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <div>Enter text in both fields and click "Compare"</div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat-item stat-add">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="add-count">0 Added</span>
+        </div>
+        <div class="stat-item stat-del">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="del-count">0 Removed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast">Copied to clipboard</div>
+
+  <script>
+    const els = {
+      a: document.getElementById('text-a'),
+      b: document.getElementById('text-b'),
+      mode: document.getElementById('diff-mode'),
+      output: document.getElementById('diff-output'),
+      addCount: document.getElementById('add-count'),
+      delCount: document.getElementById('del-count'),
+      summary: document.getElementById('stats-summary'),
+      copyBtn: document.getElementById('copy-btn'),
+      toast: document.getElementById('toast')
+    };
+
+    let rawDiffText = '';
+
+    function runDiff() {
+      const textA = els.a.value;
+      const textB = els.b.value;
+      const mode = els.mode.value;
+
+      if (!textA && !textB) {
+        showToast('Please enter text to compare');
+        return;
+      }
+
+      let diff;
+      if (mode === 'lines') diff = Diff.diffLines(textA, textB);
+      else if (mode === 'words') diff = Diff.diffWords(textA, textB);
+      else diff = Diff.diffChars(textA, textB);
+
+      let html = '';
+      let added = 0;
+      let removed = 0;
+      let changed = false;
+
+      diff.forEach((part) => {
+        const escaped = escapeHtml(part.value);
+        if (part.added) {
+          html += `<span class="added">${escaped}</span>`;
+          added += (mode === 'lines' ? 1 : part.value.length);
+          changed = true;
+        } else if (part.removed) {
+          html += `<span class="removed">${escaped}</span>`;
+          removed += (mode === 'lines' ? 1 : part.value.length);
+          changed = true;
+        } else {
+          html += escaped;
+        }
+      });
+
+      els.output.innerHTML = html || '<div style="color:var(--text-muted)">Texts are identical</div>';
+      
+      els.addCount.textContent = `${added} Added`;
+      els.delCount.textContent = `${removed} Removed`;
+      els.summary.textContent = changed ? 'Differences found' : 'No differences';
+      els.copyBtn.disabled = !changed;
+
+      // Store raw text for copy (simple format)
+      rawDiffText = diff.map(part => {
+        if (part.added) return `+ ${part.value}`;
+        if (part.removed) return `- ${part.value}`;
+        return `  ${part.value}`;
+      }).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function clearAll() {
+      els.a.value = '';
+      els.b.value = '';
+      els.output.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <div>Enter text in both fields and click "Compare"</div>
+        </div>`;
+      els.addCount.textContent = '0 Added';
+      els.delCount.textContent = '0 Removed';
+      els.summary.textContent = 'No changes detected';
+      els.copyBtn.disabled = true;
+    }
+
+    function copyResult() {
+      if (!rawDiffText) return;
+      navigator.clipboard.writeText(rawDiffText);
+      showToast('Diff copied to clipboard');
+    }
+
+    function showToast(msg) {
+      els.toast.textContent = msg;
+      els.toast.classList.add('show');
+      setTimeout(() => els.toast.classList.remove('show'), 2000);
+    }
+
+    // Allow Ctrl+Enter to compare
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        runDiff();
+      }
+    });
+  </script>
+</body>
+</html>
