@@ -105,8 +105,9 @@ if (projects.length === 0) {
 // Формируем rewrites
 const rewrites = [];
 
-// 1. Каталог приложений
+// 1. Статические страницы каталога и инфо
 rewrites.push({ source: '/list', destination: '/list/index.html' });
+rewrites.push({ source: '/info', destination: '/info/index.html' }); // ← ДОБАВИТЬ ЭТУ СТРОКУ
 
 // 2. Правила для проектов (сначала конкретные, потом общие)
 projects.forEach(project => {
