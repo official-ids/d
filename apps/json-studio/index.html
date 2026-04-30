@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Studio | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --danger: #ef4444;
+      --success: #10b981;
+      
+      /* Editor Colors (Dark Theme) */
+      --editor-bg: #1e293b;
+      --editor-text: #e2e8f0;
+      --json-key: #a5f3fc; /* Sky */
+      --json-string: #86efac; /* Green */
+      --json-number: #fdba74; /* Orange */
+      --json-bool: #d8b4fe; /* Purple */
+      --json-null: #94a3b8; /* Slate */
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      height: calc(100vh - 180px);
+      min-height: 400px;
+    }
+    
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    
+    .panel-header {
+      padding: 12px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-title { font-weight: 700; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover { background: var(--border); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn svg { width: 14px; height: 14px; }
+    
+    /* Editor (Input) */
+    .editor {
+      flex: 1;
+      background: var(--editor-bg);
+      color: var(--editor-text);
+      border: none;
+      padding: 16px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: none;
+      outline: none;
+    }
+    
+    /* Viewer (Output) */
+    .viewer {
+      flex: 1;
+      padding: 16px;
+      overflow: auto;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      background: var(--surface);
+    }
+    
+    /* Tree View Styles */
+    .json-tree { list-style: none; padding-left: 20px; color: var(--editor-text); }
+    .json-item { position: relative; margin: 2px 0; }
+    
+    /* Toggle Arrow */
+    .json-toggle {
+      display: inline-block;
+      width: 16px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 10px;
+      transition: transform 0.2s;
+      user-select: none;
+    }
+    .json-toggle.collapsed { transform: rotate(-90deg); }
+    .json-toggle.leaf { visibility: hidden; }
+    
+    /* Syntax Highlighting Classes */
+    .key { color: var(--json-key); }
+    .string { color: var(--json-string); }
+    .number { color: var(--json-number); }
+    .boolean { color: var(--json-bool); }
+    .null { color: var(--json-null); font-style: italic; }
+    .bracket { color: #94a3b8; }
+    
+    /* Nested container */
+    .children { overflow: hidden; }
+    .children.collapsed { display: none; }
+    
+    .item-summary { cursor: default; }
+    .count { color: var(--text-muted); font-size: 12px; margin-left: 6px; }
+    
+    /* Status Bar */
+    .status-bar {
+      margin-top: 16px;
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+    .status-dot.valid { background: var(--success); box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+    .status-dot.invalid { background: var(--danger); box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
+    
+    .error-msg { color: var(--danger); font-weight: 500; margin-left: 8px; }
+    
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: white; padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; height: auto; }
+      .panel { height: 400px; margin-bottom: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">JSON<span>Studio</span></div>
+      <button class="btn" onclick="loadSample()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Sample Data
+      </button>
+    </header>
+    
+    <div class="grid">
+      <!-- Input Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Raw Input</span>
+          <div class="toolbar">
+            <button class="btn" onclick="minify()">Minify</button>
+            <button class="btn primary" onclick="beautify()">Beautify</button>
+          </div>
+        </div>
+        <textarea class="editor" id="json-input" spellcheck="false" placeholder="Paste your JSON here..."></textarea>
+      </div>
+      
+      <!-- Output Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Viewer (Tree)</span>
+          <div class="toolbar">
+            <button class="btn" onclick="copyResult()">Copy</button>
+            <button class="btn" onclick="toggleView()" id="view-toggle">View Text</button>
+          </div>
+        </div>
+        <div class="viewer" id="json-viewer">
+          <div style="color:var(--text-muted); text-align:center; padding-top:40px;">Enter JSON to start...</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="status-bar">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Waiting for input...</span>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast">Copied!</div>
+
+  <script>
+    const els = {
+      input: document.getElementById('json-input'),
+      viewer: document.getElementById('json-viewer'),
+      dot: document.getElementById('status-dot'),
+      text: document.getElementById('status-text'),
+      viewBtn: document.getElementById('view-toggle'),
+      toast: document.getElementById('toast')
+    };
+    
+    let viewMode = 'tree'; // 'tree' or 'text'
+    
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      els.input.addEventListener('input', debounce(processInput, 500));
+    });
+    
+    function debounce(func, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+    
+    function processInput() {
+      const raw = els.input.value.trim();
+      if (!raw) {
+        els.viewer.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding-top:40px;">Enter JSON to start...</div>';
+        els.dot.className = 'status-dot';
+        els.text.textContent = 'Waiting for input...';
+        return;
+      }
+      
+      try {
+        const parsed = JSON.parse(raw);
+        els.dot.className = 'status-dot valid';
+        els.text.textContent = `Valid JSON (${raw.length} chars)`;
+        renderOutput(parsed);
+      } catch (e) {
+        els.dot.className = 'status-dot invalid';
+        els.text.innerHTML = `Invalid JSON: <span class="error-msg">${e.message}</span>`;
+        els.viewer.innerHTML = `<div style="color:var(--danger); padding:20px;">${e.message}</div>`;
+      }
+    }
+    
+    function renderOutput(data) {
+      if (viewMode === 'tree') {
+        els.viewer.innerHTML = '';
+        els.viewer.appendChild(buildTree(data));
+      } else {
+        els.viewer.innerHTML = `<pre style="white-space:pre-wrap;word-break:break-all;color:var(--text-muted)">${JSON.stringify(data, null, 2)}</pre>`;
+      }
+    }
+    
+    // Recursive Tree Builder
+    function buildTree(data) {
+      if (data === null) return createSpan('null', 'null');
+      if (typeof data !== 'object') return createPrimitive(data);
+      
+      const isArray = Array.isArray(data);
+      const keys = Object.keys(data);
+      const count = keys.length;
+      
+      const container = document.createElement('div');
+      container.className = 'json-item';
+      
+      // Summary line
+      const summary = document.createElement('div');
+      summary.className = 'item-summary';
+      
+      const toggle = document.createElement('span');
+      toggle.className = 'json-toggle';
+      toggle.textContent = '▼';
+      summary.appendChild(toggle);
+      
+      const bracketOpen = document.createElement('span');
+      bracketOpen.className = 'bracket';
+      bracketOpen.textContent = isArray ? '[' : '{';
+      summary.appendChild(bracketOpen);
+      
+      const countSpan = document.createElement('span');
+      countSpan.className = 'count';
+      countSpan.textContent = `${count} ${count === 1 ? (isArray ? 'item' : 'key') : (isArray ? 'items' : 'keys')}`;
+      summary.appendChild(countSpan);
+      
+      container.appendChild(summary);
+      
+      // Children
+      const ul = document.createElement('ul');
+      ul.className = 'json-tree';
+      
+      keys.forEach((key, index) => {
+        const li = document.createElement('li');
+        
+        if (!isArray) {
+          const keySpan = document.createElement('span');
+          keySpan.className = 'key';
+          keySpan.textContent = `"${key}"`;
+          li.appendChild(keySpan);
+          li.appendChild(document.createTextNode(': '));
+        }
+        
+        const value = data[key];
+        if (typeof value === 'object' && value !== null) {
+          li.appendChild(buildTree(value));
+        } else {
+          li.appendChild(createPrimitive(value));
+        }
+        ul.appendChild(li);
+      });
+      
+      container.appendChild(ul);
+      
+      // Closing bracket
+      const bracketClose = document.createElement('div');
+      bracketClose.className = 'bracket';
+      bracketClose.style.paddingLeft = '20px';
+      bracketClose.textContent = isArray ? ']' : '}';
+      container.appendChild(bracketClose);
+      
+      // Toggle Logic
+      let isCollapsed = false;
+      toggle.onclick = (e) => {
+        e.stopPropagation();
+        isCollapsed = !isCollapsed;
+        toggle.classList.toggle('collapsed', isCollapsed);
+        ul.classList.toggle('collapsed', isCollapsed);
+        countSpan.style.display = isCollapsed ? 'inline' : 'none';
+        bracketClose.style.display = isCollapsed ? 'inline' : 'block';
+        
+        if(isCollapsed) {
+           bracketOpen.textContent = isArray ? '[...]' : '{...}';
+        } else {
+           bracketOpen.textContent = isArray ? '[' : '{';
+        }
+      };
+      
+      return container;
+    }
+    
+    function createPrimitive(val) {
+      if (typeof val === 'string') return createSpan(`"${val}"`, 'string');
+      if (typeof val === 'number') return createSpan(val, 'number');
+      if (typeof val === 'boolean') return createSpan(val, 'boolean');
+      return createSpan(val, 'null');
+    }
+    
+    function createSpan(text, className) {
+      const span = document.createElement('span');
+      span.className = className;
+      span.textContent = text;
+      return span;
+    }
+    
+    // Actions
+    window.beautify = function() {
+      try {
+        const obj = JSON.parse(els.input.value);
+        els.input.value = JSON.stringify(obj, null, 2);
+        processInput();
+      } catch (e) { /* handled */ }
+    };
+    
+    window.minify = function() {
+      try {
+        const obj = JSON.parse(els.input.value);
+        els.input.value = JSON.stringify(obj);
+        processInput();
+      } catch (e) { /* handled */ }
+    };
+    
+    window.copyResult = function() {
+      const text = els.input.value; // Always copy the editor content
+      navigator.clipboard.writeText(text);
+      showToast('JSON copied!');
+    };
+    
+    window.toggleView = function() {
+      viewMode = viewMode === 'tree' ? 'text' : 'tree';
+      els.viewBtn.textContent = viewMode === 'tree' ? 'View Text' : 'View Tree';
+      processInput();
+    };
+    
+    window.loadSample = function() {
+      els.input.value = JSON.stringify({
+        "name": "JSON Studio",
+        "version": 1.0,
+        "features": ["Beautify", "Minify", "Tree View", "Validation"],
+        "author": {
+          "name": "Seraviel Labs",
+          "isBot": false,
+          "stats": null
+        }
+      }, null, 2);
+      processInput();
+    };
+    
+    function showToast(msg) {
+      els.toast.textContent = msg;
+      els.toast.classList.add('show');
+      setTimeout(() => els.toast.classList.remove('show'), 2000);
+    }
+  </script>
+</body>
+</html>
