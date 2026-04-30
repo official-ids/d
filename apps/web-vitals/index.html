@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Vitals Checker | SERAVIEL LABS</title>
+  <script src="https://unpkg.com/web-vitals@4.2.4/dist/web-vitals.iife.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --good: #10b981;
+      --needs: #f59e0b;
+      --poor: #ef4444;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .btn:hover { background: var(--border); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn svg { width: 18px; height: 18px; }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .metric-card.good { border-color: var(--good); box-shadow: 0 0 0 1px var(--good); }
+    .metric-card.needs { border-color: var(--needs); box-shadow: 0 0 0 1px var(--needs); }
+    .metric-card.poor { border-color: var(--poor); box-shadow: 0 0 0 1px var(--poor); }
+    
+    .metric-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .metric-icon { width: 32px; height: 32px; color: var(--text-muted); }
+    .metric-name { font-weight: 700; font-size: 15px; color: var(--text); }
+    .metric-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 20px;
+      background: var(--bg);
+      color: var(--text-muted);
+    }
+    .metric-badge.good { background: rgba(16,185,129,0.15); color: var(--good); }
+    .metric-badge.needs { background: rgba(245,158,11,0.15); color: var(--needs); }
+    .metric-badge.poor { background: rgba(239,68,68,0.15); color: var(--poor); }
+    
+    .metric-value {
+      font-size: 32px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--text);
+      margin: 8px 0;
+      transition: color 0.3s;
+    }
+    .metric-value.good { color: var(--good); }
+    .metric-value.needs { color: var(--needs); }
+    .metric-value.poor { color: var(--poor); }
+    
+    .metric-desc { font-size: 13px; color: var(--text-muted); }
+    
+    .tips-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .tips-title { font-weight: 700; margin-bottom: 12px; color: var(--text); }
+    .tips-list { list-style: none; }
+    .tips-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .tips-list li:last-child { border-bottom: none; }
+    .tips-list svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
+    .tips-list li.good-tip svg { color: var(--good); }
+    .tips-list li.warn-tip svg { color: var(--needs); }
+    .tips-list li.bad-tip svg { color: var(--poor); }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+    .spinner {
+      width: 24px; height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    @media (max-width: 700px) {
+      .metrics-grid { grid-template-columns: 1fr; }
+      .controls { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">Web<span>Vitals</span></div>
+      <div style="font-size:13px;color:var(--text-muted)">Client-Side Performance Audit</div>
+    </header>
+    
+    <div class="controls">
+      <button class="btn primary" onclick="location.reload()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Reload to Measure
+      </button>
+      <button class="btn" onclick="exportReport()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export JSON
+      </button>
+    </div>
+    
+    <div class="metrics-grid" id="metrics-grid">
+      <!-- Cards injected by JS -->
+    </div>
+    
+    <div class="tips-panel">
+      <div class="tips-title">Optimization Tips</div>
+      <ul class="tips-list" id="tips-list">
+        <li class="good-tip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Start interacting with the page to trigger INP measurement. Metrics update in real-time.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const METRICS = {
+      LCP: { name: 'Largest Contentful Paint', icon: 'content', unit: 's', thresholds: { good: 2.5, needs: 4.0 } },
+      INP: { name: 'Interaction to Next Paint', icon: 'cursor', unit: 'ms', thresholds: { good: 200, needs: 500 } },
+      CLS: { name: 'Cumulative Layout Shift', icon: 'layout', unit: '', thresholds: { good: 0.1, needs: 0.25 } },
+      FCP: { name: 'First Contentful Paint', icon: 'flash', unit: 's', thresholds: { good: 1.8, needs: 3.0 } },
+      TTFB: { name: 'Time to First Byte', icon: 'server', unit: 's', thresholds: { good: 0.8, needs: 1.8 } }
+    };
+
+    const ICONS = {
+      content: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+      cursor: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>`,
+      layout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>`,
+      flash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      server: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>`
+    };
+
+    let currentData = {};
+    const grid = document.getElementById('metrics-grid');
+    const tipsList = document.getElementById('tips-list');
+
+    function init() {
+      Object.keys(METRICS).forEach(key => {
+        const m = METRICS[key];
+        const card = document.createElement('div');
+        card.className = 'metric-card';
+        card.id = `card-${key}`;
+        card.innerHTML = `
+          <div class="metric-header">
+            <div class="metric-icon">${ICONS[m.icon]}</div>
+            <div class="metric-name">${key}</div>
+            <div class="metric-badge" id="badge-${key}">Waiting</div>
+          </div>
+          <div class="metric-value" id="value-${key}">--</div>
+          <div class="metric-desc">${m.name}</div>
+        `;
+        grid.appendChild(card);
+      });
+      startListeners();
+    }
+
+    function getStatus(key, val) {
+      const t = METRICS[key].thresholds;
+      if (val <= t.good) return 'good';
+      if (val <= t.needs) return 'needs';
+      return 'poor';
+    }
+
+    function formatValue(key, val) {
+      if (METRICS[key].unit === 'ms') return Math.round(val) + ' ms';
+      return (val / 1000).toFixed(2) + ' s';
+    }
+
+    function updateUI(key, val) {
+      currentData[key] = val;
+      const status = getStatus(key, val);
+      const card = document.getElementById(`card-${key}`);
+      const badge = document.getElementById(`badge-${key}`);
+      const valueEl = document.getElementById(`value-${key}`);
+      
+      card.className = `metric-card ${status}`;
+      badge.className = `metric-badge ${status}`;
+      badge.textContent = status === 'good' ? 'Good' : status === 'needs' ? 'Needs Fix' : 'Poor';
+      valueEl.className = `metric-value ${status}`;
+      valueEl.textContent = formatValue(key, val);
+      
+      updateTips();
+    }
+
+    function updateTips() {
+      tipsList.innerHTML = '';
+      const tips = [];
+      
+      Object.keys(METRICS).forEach(key => {
+        if (!currentData[key]) return;
+        const status = getStatus(key, currentData[key]);
+        const m = METRICS[key];
+        let tip = { status, text: '' };
+        
+        if (status === 'poor') {
+          if (key === 'LCP') tip.text = 'Optimize images, use CDN, or preload critical resources to improve LCP.';
+          if (key === 'INP') tip.text = 'Break up long tasks, defer non-critical JS, and optimize event handlers.';
+          if (key === 'CLS') tip.text = 'Set explicit width/height on media, reserve space for ads/embeds, avoid injecting content above existing content.';
+          if (key === 'FCP') tip.text = 'Minimize CSS/JS blocking, use server-side rendering, or enable compression.';
+          if (key === 'TTFB') tip.text = 'Optimize server response time, use caching, or switch to a faster hosting provider.';
+        } else if (status === 'needs') {
+          if (key === 'LCP') tip.text = 'LCP is acceptable but could be faster. Consider lazy-loading below-fold images.';
+          if (key === 'INP') tip.text = 'INP is within limits but may feel sluggish. Audit main thread blocking time.';
+          if (key === 'CLS') tip.text = 'CLS is low but watch for late-loading banners or dynamic content shifts.';
+          if (key === 'FCP') tip.text = 'FCP is passing. Ensure critical CSS is inlined for faster perception.';
+          if (key === 'TTFB') tip.text = 'TTFB is acceptable. Consider edge caching or HTTP/2 for further gains.';
+        }
+        if (tip.text) tips.push(tip);
+      });
+      
+      if (tips.length === 0) {
+        tipsList.innerHTML = `<li class="good-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>All metrics are currently in the "Good" range. Great job!</span></li>`;
+        return;
+      }
+      
+      tips.forEach(t => {
+        const li = document.createElement('li');
+        li.className = t.status === 'poor' ? 'bad-tip' : 'warn-tip';
+        const icon = t.status === 'poor' 
+          ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
+          : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+        li.innerHTML = `${icon}<span>${t.text}</span>`;
+        tipsList.appendChild(li);
+      });
+    }
+
+    function startListeners() {
+      if (!window.webVitals) {
+        grid.innerHTML = `<div class="empty-state">Web Vitals library failed to load. Check network or adblocker.</div>`;
+        return;
+      }
+
+      const { onLCP, onINP, onCLS, onFCP, onTTFB } = window.webVitals;
+      
+      onLCP(({ value }) => updateUI('LCP', value));
+      onINP(({ value }) => updateUI('INP', value));
+      onCLS(({ value }) => updateUI('CLS', value));
+      onFCP(({ value }) => updateUI('FCP', value));
+      onTTFB(({ value }) => updateUI('TTFB', value));
+    }
+
+    window.exportReport = function() {
+      if (Object.keys(currentData).length === 0) {
+        alert('No metrics collected yet. Reload the page and wait a few seconds.');
+        return;
+      }
+      const report = {
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        metrics: Object.fromEntries(
+          Object.entries(currentData).map(([k, v]) => [k, { value: v, status: getStatus(k, v) }])
+        )
+      };
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `web-vitals-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
