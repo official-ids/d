@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Visualizer | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; flex: 1; }
+    
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    .visualizer-area {
+      background: #0f172a; /* Dark background for contrast */
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      flex: 1;
+      min-height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+    
+    .controls {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    
+    .btn {
+      padding: 10px 16px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      color: var(--text); display: inline-flex; align-items: center; gap: 8px; font-size: 14px;
+    }
+    .btn:hover { background: var(--border); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.active { background: var(--text); color: white; border-color: var(--text); }
+    .btn svg { width: 16px; height: 16px; }
+
+    .file-input { display: none; }
+    
+    .info-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 13px; color: var(--text-muted);
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); display: inline-block; margin-right: 6px; }
+    .status-dot.active { background: var(--accent); }
+
+    @media (max-width: 600px) {
+      .controls { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to Hub
+      </a>
+      <div class="logo">Audio<span>Viz</span></div>
+    </header>
+
+    <div class="visualizer-area">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="play-btn" onclick="togglePlay()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span id="play-text">Start / Play</span>
+      </button>
+      
+      <button class="btn" onclick="document.getElementById('file-upload').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Load MP3
+      </button>
+      <input type="file" id="file-upload" class="file-input" accept="audio/*">
+
+      <button class="btn" id="mic-btn" onclick="toggleMic()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        Microphone
+      </button>
+
+      <div style="flex:1"></div>
+
+      <button class="btn active" id="mode-freq" onclick="setMode('freq')">Frequency</button>
+      <button class="btn" id="mode-wave" onclick="setMode('wave')">Waveform</button>
+    </div>
+
+    <div class="info-bar">
+      <div>
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Ready. Load a file or click Microphone.</span>
+      </div>
+      <div id="time-display">00:00</div>
+    </div>
+  </div>
+
+    <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let audioCtx, analyser, source, dataArray, bufferLength;
+    let isPlaying = false;
+    let isMic = false;
+    let mode = 'freq';
+    let animationId;
+    let micStream = null; // Храним ссылку на поток микрофона
+
+    // Resize canvas
+    function resize() {
+      canvas.width = canvas.parentElement.offsetWidth;
+      canvas.height = canvas.parentElement.offsetHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Init Audio Context
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    // Безопасная очистка предыдущего источника
+    function clearSource() {
+      if (source) {
+        try { source.stop(); } catch(e) {} // Игнорируем, если не поддерживает stop или уже остановлен
+        source.disconnect();
+        source = null;
+      }
+      if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+        micStream = null;
+      }
+      isMic = false;
+      isPlaying = false;
+    }
+
+    // Visualizer Loop
+    function draw() {
+      animationId = requestAnimationFrame(draw);
+      if (!analyser) return;
+
+      if (mode === 'freq') analyser.getByteFrequencyData(dataArray);
+      else analyser.getByteTimeDomainData(dataArray);
+
+      const w = canvas.width, h = canvas.height;
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, w, h);
+
+      if (mode === 'freq') {
+        const barWidth = (w / bufferLength) * 2.5;
+        let x = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const barHeight = (dataArray[i] / 255) * h;
+          const gradient = ctx.createLinearGradient(0, h, 0, h - barHeight);
+          gradient.addColorStop(0, '#0d9488');
+          gradient.addColorStop(1, '#2dd4bf');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(x, h - barHeight, barWidth, barHeight);
+          x += barWidth + 1;
+        }
+      } else {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#2dd4bf';
+        ctx.beginPath();
+        const sliceWidth = w / bufferLength;
+        let x = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128.0;
+          const y = (v * h) / 2;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          x += sliceWidth;
+        }
+        ctx.lineTo(w, h / 2);
+        ctx.stroke();
+      }
+    }
+
+    // Загрузка файла
+    document.getElementById('file-upload').addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      initAudio();
+      clearSource(); // Безопасно останавливаем всё предыдущее
+      updateStatus('Loading: ' + file.name);
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        
+        source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        
+        source.loop = true;
+        source.start(0);
+        isPlaying = true;
+        updatePlayButton();
+        updateStatus('Playing: ' + file.name);
+        if (!animationId) draw();
+      } catch (err) {
+        updateStatus('Error: ' + err.message);
+      }
+    });
+
+    // Микрофон
+    async function toggleMic() {
+      initAudio();
+
+      if (isMic) {
+        clearSource();
+        updateStatus('Microphone stopped.');
+        updatePlayButton();
+        return;
+      }
+
+      clearSource(); // Останавливаем файл если играет
+      updateStatus('Requesting microphone...');
+
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        source = audioCtx.createMediaStreamSource(micStream);
+        source.connect(analyser);
+        // НЕ подключаем к destination, чтобы избежать_feedback_ (эха)
+
+        isMic = true;
+        isPlaying = true;
+        updateStatus('Microphone active.');
+        updatePlayButton();
+        if (!animationId) draw();
+      } catch (err) {
+        updateStatus('Mic access denied.');
+      }
+    }
+
+    // Play/Pause (только для файлов)
+    function togglePlay() {
+      if (isMic || !audioCtx) return;
+      
+      if (audioCtx.state === 'running') {
+        audioCtx.suspend();
+        isPlaying = false;
+      } else {
+        audioCtx.resume();
+        isPlaying = true;
+      }
+      updatePlayButton();
+      updateStatus(isPlaying ? 'Resumed' : 'Paused');
+    }
+
+    function updatePlayButton() {
+      const btn = document.getElementById('play-text');
+      const icon = document.querySelector('#play-btn svg');
+      if (isPlaying) {
+        btn.textContent = 'Pause';
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      } else {
+        btn.textContent = 'Resume';
+        icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      }
+    }
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('mode-freq').classList.toggle('active', m === 'freq');
+      document.getElementById('mode-wave').classList.toggle('active', m === 'wave');
+    }
+
+    function updateStatus(text) {
+      document.getElementById('status-text').textContent = text;
+      document.getElementById('status-dot').classList.add('active');
+    }
+
+    // Таймер
+    setInterval(() => {
+      if (isPlaying && audioCtx && audioCtx.state === 'running') {
+        const d = new Date(audioCtx.currentTime * 1000);
+        document.getElementById('time-display').textContent = 
+          d.getMinutes().toString().padStart(2, '0') + ':' + d.getSeconds().toString().padStart(2, '0');
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
