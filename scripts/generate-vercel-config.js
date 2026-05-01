@@ -68,7 +68,6 @@ function generateManifest() {
       'favicon-generator': ['favicon', 'seo'],
       'hash-generator': ['crypto', 'security'],
       'url-builder': ['url', 'tools'],
-      'md-preview': ['markdown', 'editor'],
       'web-terminal': ['terminal', 'shell'],
       'console': ['terminal', 'backend']
     };
