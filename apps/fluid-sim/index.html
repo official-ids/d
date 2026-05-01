@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluid Simulation | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Prevent scrolling on mobile */
+    }
+    
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px; background: var(--surface); border-bottom: 2px solid var(--border);
+      z-index: 10;
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background: #0f172a; /* Dark canvas for better contrast */
+      overflow: hidden;
+      cursor: crosshair;
+    }
+
+    canvas { display: block; width: 100%; height: 100%; }
+
+    .controls {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      color: var(--text-muted);
+    }
+    .btn:hover { background: var(--bg); color: var(--text); }
+    .btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn svg { width: 20px; height: 20px; }
+
+    .stats {
+      position: absolute;
+      top: 16px; right: 24px;
+      font-family: monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      pointer-events: none;
+    }
+
+    .hint {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255,255,255,0.3);
+      font-size: 18px;
+      font-weight: 600;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+
+    @media (max-width: 600px) {
+      .controls { width: 90%; justify-content: center; }
+      header { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Back to Hub
+    </a>
+    <div class="logo">Fluid<span>Sim</span></div>
+  </header>
+
+  <div class="canvas-container">
+    <div class="hint" id="hint">Click & Drag to spawn fluid</div>
+    <div class="stats" id="stats">0 particles</div>
+    <canvas id="canvas"></canvas>
+    
+    <div class="controls">
+      <!-- Water Mode (Default) -->
+      <button class="btn active" id="btn-water" onclick="setMode('water')" title="Water">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </svg>
+      </button>
+      
+      <!-- Sand Mode -->
+      <button class="btn" id="btn-sand" onclick="setMode('sand')" title="Sand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/>
+        </svg>
+      </button>
+      
+      <!-- Smoke Mode -->
+      <button class="btn" id="btn-smoke" onclick="setMode('smoke')" title="Smoke">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/>
+        </svg>
+      </button>
+
+      <div style="width: 1px; height: 24px; background: var(--border); margin: 0 4px;"></div>
+
+      <!-- Clear -->
+      <button class="btn" onclick="clearParticles()" title="Clear">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const statsEl = document.getElementById('stats');
+    const hintEl = document.getElementById('hint');
+    
+    let particles = [];
+    let width, height;
+    let mouse = { x: 0, y: 0, isDown: false };
+    let mode = 'water';
+    let animationId;
+
+    // Configuration per mode
+    const MODES = {
+      water: { color: '#0d9488', size: 5, gravity: 0.4, friction: 0.98, elasticity: 0.7, repulsion: 1.5 },
+      sand:  { color: '#f59e0b', size: 3, gravity: 0.5, friction: 0.90, elasticity: 0.2, repulsion: 0.5 },
+      smoke: { color: '#64748b', size: 15, gravity: -0.2, friction: 0.95, elasticity: 0.9, repulsion: 2.0 }
+    };
+
+    function resize() {
+      width = canvas.parentElement.clientWidth;
+      height = canvas.parentElement.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Particle Class
+    class Particle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4;
+        this.life = 1.0; // For smoke
+        const cfg = MODES[mode];
+        this.color = cfg.color;
+        this.size = cfg.size + (Math.random() * 2);
+        this.gravity = cfg.gravity;
+        this.friction = cfg.friction;
+        this.elasticity = cfg.elasticity;
+        this.repulsion = cfg.repulsion;
+      }
+
+      update() {
+        // Apply Gravity
+        this.vy += this.gravity;
+        
+        // Apply Friction
+        this.vx *= this.friction;
+        this.vy *= this.friction;
+
+        // Move
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Wall Collisions
+        if (this.x < this.size) { this.x = this.size; this.vx *= -this.elasticity; }
+        if (this.x > width - this.size) { this.x = width - this.size; this.vx *= -this.elasticity; }
+        if (this.y < this.size) { this.y = this.size; this.vy *= -this.elasticity; }
+        if (this.y > height - this.size) { this.y = height - this.size; this.vy *= -this.elasticity; }
+        
+        // Smoke decay
+        if (mode === 'smoke') {
+          this.life -= 0.005;
+          this.size += 0.1; // Smoke expands
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        
+        if (mode === 'smoke') {
+          ctx.globalAlpha = this.life;
+        } else {
+          ctx.globalAlpha = 1;
+        }
+        
+        ctx.fill();
+        ctx.globalAlpha = 1; // Reset
+      }
+    }
+
+    // Simple Spatial Partitioning for performance (Optimization)
+    // Only checking neighbors reduces complexity from O(N^2) to O(N)
+    function resolveCollisions() {
+      // Optimization: Only do collision for 'water' mode (sand is rigid, smoke is gas)
+      if (mode !== 'water') return;
+
+      const threshold = MODES.water.size * 2; // 10px
+      const thresholdSq = threshold * threshold;
+      
+      // Naive O(N^2) for simplicity in this demo (works well up to ~1000 particles)
+      // For production, use a Grid system.
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const p1 = particles[i];
+          const p2 = particles[j];
+          
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const distSq = dx*dx + dy*dy;
+
+          if (distSq < thresholdSq) {
+            const dist = Math.sqrt(distSq);
+            const overlap = threshold - dist;
+            
+            // Separate particles
+            const forceX = (dx / dist) * overlap * 0.5;
+            const forceY = (dy / dist) * overlap * 0.5;
+            
+            p1.x -= forceX;
+            p1.y -= forceY;
+            p2.x += forceX;
+            p2.y += forceY;
+            
+            // Exchange velocity slightly (viscosity)
+            const avgVx = (p1.vx + p2.vx) / 2;
+            const avgVy = (p1.vy + p2.vy) / 2;
+            
+            p1.vx = avgVx; p1.vy = avgVy;
+            p2.vx = avgVx; p2.vy = avgVy;
+          }
+        }
+      }
+    }
+
+    function spawnParticles() {
+      if (!mouse.isDown) return;
+      
+      const count = mode === 'smoke' ? 2 : 5;
+      for (let i = 0; i < count; i++) {
+        if (particles.length > 1500) { // Limit max particles
+          particles.shift(); // Remove oldest
+        }
+        particles.push(new Particle(mouse.x + (Math.random()-0.5)*20, mouse.y + (Math.random()-0.5)*20));
+      }
+    }
+
+    function animate() {
+      // Clear canvas with trail effect
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.4)'; // Slight trail
+      ctx.fillRect(0, 0, width, height);
+
+      spawnParticles();
+      resolveCollisions();
+
+      // Update and Draw
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        p.draw();
+        
+        // Remove dead smoke
+        if (mode === 'smoke' && p.life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+      
+      // Update Stats
+      statsEl.textContent = particles.length + ' particles';
+      if (particles.length > 0) hintEl.style.opacity = '0';
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    // Input Handling
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    canvas.addEventListener('mousedown', e => { mouse.isDown = true; const p = getPos(e); mouse.x = p.x; mouse.y = p.y; });
+    canvas.addEventListener('mousemove', e => { const p = getPos(e); mouse.x = p.x; mouse.y = p.y; });
+    canvas.addEventListener('mouseup', () => mouse.isDown = false);
+    canvas.addEventListener('mouseleave', () => mouse.isDown = false);
+
+    canvas.addEventListener('touchstart', e => { mouse.isDown = true; const p = getPos(e); mouse.x = p.x; mouse.y = p.y; e.preventDefault(); }, {passive: false});
+    canvas.addEventListener('touchmove', e => { const p = getPos(e); mouse.x = p.x; mouse.y = p.y; e.preventDefault(); }, {passive: false});
+    canvas.addEventListener('touchend', () => mouse.isDown = false);
+
+    // UI Controls
+    window.setMode = function(m) {
+      mode = m;
+      document.querySelectorAll('.controls .btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-' + m).classList.add('active');
+    };
+
+    window.clearParticles = function() {
+      particles = [];
+      hintEl.style.opacity = '1';
+    };
+
+    // Start
+    animate();
+  </script>
+</body>
+</html>
