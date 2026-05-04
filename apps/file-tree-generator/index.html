@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Tree Generator | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 1100px; margin: 0 auto; width: 100%; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .input-section, .output-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .label {
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    textarea {
+      width: 100%; min-height: 200px; padding: 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: var(--font-mono); font-size: 13px;
+      background: var(--bg); color: var(--text); resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,148,136,0.15); }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    select, input[type="text"], input[type="number"] {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; background: var(--bg); color: var(--text);
+    }
+    select:focus, input:focus { outline: none; border-color: var(--accent); }
+
+    .btn {
+      padding: 10px 16px; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; font-size: 14px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn.secondary:hover { background: var(--bg); }
+    .btn svg { width: 16px; height: 16px; }
+
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: 8px;
+      padding: 24px; text-align: center; cursor: pointer;
+      transition: all 0.2s; background: var(--bg);
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent); background: rgba(13,148,136,0.05);
+    }
+    .drop-zone input { display: none; }
+    .drop-zone svg { width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 8px; }
+
+    .preview-box {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px;
+      font-family: var(--font-mono); font-size: 13px;
+      white-space: pre-wrap; word-break: break-word;
+      min-height: 200px; max-height: 400px; overflow: auto;
+      line-height: 1.5;
+    }
+
+    .output-actions {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 12px;
+    }
+
+    .hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .checkbox-group {
+      display: flex; flex-direction: column; gap: 8px;
+      margin: 8px 0;
+    }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 8px; font-size: 13px;
+    }
+    .checkbox-item input { width: auto; margin: 0; }
+
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to Hub
+      </a>
+      <div class="logo">File<span>Tree</span></div>
+    </header>
+
+    <div class="layout">
+      <!-- Input Section -->
+      <div class="card input-section">
+        <h3 style="margin-bottom: 8px">Input Structure</h3>
+        <p class="hint" style="margin-bottom: 16px">Enter file paths manually or upload a folder</p>
+
+        <!-- Mode Tabs -->
+        <div class="btn-group" style="margin-bottom: 12px">
+          <button class="btn secondary active" id="mode-manual" onclick="setMode('manual')">Manual Input</button>
+          <button class="btn secondary" id="mode-upload" onclick="setMode('upload')">Upload Folder</button>
+        </div>
+
+        <!-- Manual Input -->
+        <div id="manual-input">
+          <label class="label">File Paths (one per line)</label>
+          <textarea id="input-paths" placeholder="src/index.js&#10;src/utils/helper.ts&#10;README.md&#10;.gitignore&#10;package.json"></textarea>
+          <p class="hint">Use forward slashes (/). Supports nested paths like `src/components/Button.tsx`</p>
+        </div>
+
+        <!-- Upload Input -->
+        <div id="upload-input" style="display: none">
+          <div class="drop-zone" id="drop-zone">
+            <input type="file" id="folder-input" webkitdirectory directory multiple>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <div style="font-weight: 600">Drop folder here or click to browse</div>
+            <div class="hint">Uses File System Access API • Files are processed locally</div>
+          </div>
+          <div id="upload-info" class="hint" style="margin-top: 8px; display: none"></div>
+        </div>
+
+        <!-- Options -->
+        <div style="margin-top: 16px">
+          <label class="label">Options</label>
+          <div class="controls">
+            <div>
+              <label class="label" style="margin-bottom: 4px">Style</label>
+              <select id="style-select" onchange="generateTree()">
+                <option value="unicode">Unicode (├─ └─)</option>
+                <option value="ascii">ASCII (|_ )</option>
+                <option value="markdown">Markdown (📁 📄)</option>
+              </select>
+            </div>
+            <div>
+              <label class="label" style="margin-bottom: 4px">Max Depth</label>
+              <input type="number" id="depth-limit" value="10" min="1" max="20" onchange="generateTree()">
+            </div>
+            <div>
+              <label class="label" style="margin-bottom: 4px">Sort By</label>
+              <select id="sort-select" onchange="generateTree()">
+                <option value="name">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="ext">Extension</option>
+                <option value="type">Type (folders first)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="checkbox-group">
+            <label class="checkbox-item">
+              <input type="checkbox" id="hide-git" checked onchange="generateTree()">
+              Hide .git, node_modules, .DS_Store
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="show-files-only" onchange="generateTree()">
+              Show files only (no empty folders)
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="include-root" checked onchange="generateTree()">
+              Include root folder name
+            </label>
+          </div>
+        </div>
+
+        <button class="btn" onclick="generateTree()" style="margin-top: 8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Generate Tree
+        </button>
+      </div>
+
+      <!-- Output Section -->
+      <div class="card output-section">
+        <h3 style="margin-bottom: 8px">Preview</h3>
+        <p class="hint" style="margin-bottom: 16px">Live preview of your file tree</p>
+
+        <div class="preview-box" id="preview">
+          <!-- Generated tree will appear here -->
+          <span style="color: var(--text-muted)">Enter paths or upload a folder to generate tree...</span>
+        </div>
+
+        <div class="output-actions">
+          <span id="stats" style="font-size: 12px; color: var(--text-muted)"></span>
+          <button class="btn" id="copy-btn" onclick="copyTree()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy to Clipboard
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === State ===
+    let currentMode = 'manual';
+    let generatedTree = '';
+    let fileCount = 0;
+    let folderCount = 0;
+
+    // === Mode Switching ===
+    window.setMode = function(mode) {
+      currentMode = mode;
+      document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
+      document.getElementById('mode-upload').classList.toggle('active', mode === 'upload');
+      document.getElementById('manual-input').style.display = mode === 'manual' ? 'block' : 'none';
+      document.getElementById('upload-input').style.display = mode === 'upload' ? 'block' : 'none';
+      
+      if (mode === 'upload') {
+        document.getElementById('preview').innerHTML = '<span style="color:var(--text-muted)">Select a folder to generate tree...</span>';
+        document.getElementById('copy-btn').disabled = true;
+      } else {
+        generateTree();
+      }
+    };
+
+    // === File Upload Handling ===
+    const dropZone = document.getElementById('drop-zone');
+    const folderInput = document.getElementById('folder-input');
+
+    dropZone.addEventListener('click', () => folderInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      // Note: Drop of folders is limited in browsers, so we rely on the file input
+    });
+
+    folderInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      const info = document.getElementById('upload-info');
+      info.style.display = 'block';
+      info.textContent = `Loaded ${files.length} files. Click "Generate Tree" to process.`;
+
+      // Store files for generation
+      window.uploadedFiles = files.map(f => f.webkitRelativePath || f.name);
+      generateTree();
+    });
+
+    // === Tree Generation Logic ===
+    window.generateTree = function() {
+      const style = document.getElementById('style-select').value;
+      const maxDepth = parseInt(document.getElementById('depth-limit').value) || 10;
+      const sortBy = document.getElementById('sort-select').value;
+      const hidePatterns = document.getElementById('hide-git').checked;
+      const filesOnly = document.getElementById('show-files-only').checked;
+      const includeRoot = document.getElementById('include-root').checked;
+
+      // Get paths from input
+      let paths = [];
+      if (currentMode === 'manual') {
+        const text = document.getElementById('input-paths').value;
+        paths = text.split('\n').map(p => p.trim()).filter(p => p);
+      } else if (window.uploadedFiles) {
+        paths = [...window.uploadedFiles];
+      }
+
+      if (paths.length === 0) {
+        document.getElementById('preview').innerHTML = '<span style="color:var(--text-muted)">No paths to display</span>';
+        document.getElementById('copy-btn').disabled = true;
+        return;
+      }
+
+      // Filter paths
+      if (hidePatterns) {
+        const patterns = [/^\.git(\/|$)/, /node_modules(\/|$)/, /\.DS_Store$/, /^\.\./];
+        paths = paths.filter(p => !patterns.some(r => r.test(p)));
+      }
+
+      // Build tree structure
+      const tree = buildTree(paths, maxDepth, filesOnly);
+      
+      // Sort
+      const sorted = sortTree(tree, sortBy);
+
+      // Render
+      const prefix = includeRoot ? 'project-root/' : '';
+      generatedTree = renderTree(sorted, style, prefix, '', true);
+      
+      // Update preview
+      document.getElementById('preview').textContent = generatedTree;
+      document.getElementById('copy-btn').disabled = false;
+
+      // Stats
+      const stats = countItems(tree);
+      fileCount = stats.files;
+      folderCount = stats.folders;
+      document.getElementById('stats').textContent = `${fileCount} files, ${folderCount} folders`;
+    };
+
+    function buildTree(paths, maxDepth, filesOnly) {
+      const root = { name: '', children: {}, isFolder: true, depth: 0 };
+
+      paths.forEach(path => {
+        const parts = path.split('/').filter(p => p);
+        if (parts.length === 0) return;
+
+        let current = root;
+        for (let i = 0; i < Math.min(parts.length, maxDepth); i++) {
+          const name = parts[i];
+          const isLast = i === parts.length - 1;
+
+          if (!current.children[name]) {
+            current.children[name] = {
+              name,
+              children: {},
+              isFolder: !isLast,
+              depth: i + 1,
+              isFile: isLast
+            };
+          }
+          current = current.children[name];
+        }
+      });
+
+      // Remove empty folders if filesOnly is true
+      if (filesOnly) {
+        pruneEmptyFolders(root);
+      }
+
+      return root;
+    }
+
+    function pruneEmptyFolders(node) {
+      if (node.isFile) return true;
+      
+      for (const name in node.children) {
+        if (!pruneEmptyFolders(node.children[name])) {
+          delete node.children[name];
+        }
+      }
+      
+      // Keep folder if it has children or is a file
+      return Object.keys(node.children).length > 0 || node.isFile;
+    }
+
+    function sortTree(node, sortBy) {
+      const entries = Object.entries(node.children);
+      
+      entries.sort((a, b) => {
+        const [nameA, dataA] = a;
+        const [nameB, dataB] = b;
+
+        // Folders first if sortBy === 'type'
+        if (sortBy === 'type') {
+          if (dataA.isFolder && !dataB.isFolder) return -1;
+          if (!dataA.isFolder && dataB.isFolder) return 1;
+        }
+
+        if (sortBy === 'name-desc') {
+          return nameB.localeCompare(nameA);
+        } else if (sortBy === 'ext') {
+          const extA = nameA.split('.').pop() || '';
+          const extB = nameB.split('.').pop() || '';
+          if (extA !== extB) return extA.localeCompare(extB);
+          return nameA.localeCompare(nameB);
+        }
+        return nameA.localeCompare(nameB);
+      });
+
+      // Recursively sort children
+      const sorted = {};
+      for (const [name, data] of entries) {
+        sorted[name] = data;
+        if (data.isFolder && !data.isFile) {
+          sorted[name] = sortTree(data, sortBy);
+        }
+      }
+      node.children = sorted;
+      return node;
+    }
+
+    function renderTree(node, style, prefix, indent, isRoot) {
+      let result = '';
+      const entries = Object.entries(node.children);
+      const total = entries.length;
+
+      entries.forEach(([name, data], index) => {
+        const isLast = index === total - 1;
+        const connector = style === 'ascii' 
+          ? (isLast ? '└─ ' : '├─ ')
+          : (isLast ? '└─ ' : '├─ ');
+        
+        const icon = style === 'markdown'
+          ? (data.isFolder && !data.isFile ? '📁 ' : '📄 ')
+          : '';
+
+        const line = `${indent}${isRoot ? '' : connector}${icon}${name}\n`;
+        result += line;
+
+        if (data.isFolder && !data.isFile && data.children) {
+          const newIndent = indent + (isRoot ? '' : (isLast ? '   ' : '│  '));
+          result += renderTree(data, style, name, newIndent, false);
+        }
+      });
+
+      return result;
+    }
+
+    function countItems(node) {
+      let files = 0, folders = 0;
+      for (const name in node.children) {
+        const data = node.children[name];
+        if (data.isFile) {
+          files++;
+        } else if (data.isFolder) {
+          folders++;
+          const childCounts = countItems(data);
+          files += childCounts.files;
+          folders += childCounts.folders;
+        }
+      }
+      return { files, folders };
+    }
+
+    // === Copy Function ===
+    window.copyTree = function() {
+      if (!generatedTree) return;
+      navigator.clipboard.writeText(generatedTree);
+      
+      const btn = document.getElementById('copy-btn');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+      btn.style.background = 'var(--success)';
+      
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.style.background = '';
+      }, 2000);
+    };
+
+    // === Init ===
+    document.addEventListener('DOMContentLoaded', () => {
+      // Auto-generate on manual input change
+      document.getElementById('input-paths').addEventListener('input', () => {
+        if (currentMode === 'manual') generateTree();
+      });
+    });
+  </script>
+</body>
+</html>
