@@ -4,18 +4,20 @@ import crypto from 'crypto';
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '5mb', // Лимит на размер файла/текста
+      sizeLimit: '5mb',
     },
   },
 };
 
 export default function handler(req, res) {
-  // Разрешаем CORS для использования с других доменов
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -24,7 +26,6 @@ export default function handler(req, res) {
   try {
     const { text, fileBase64, algorithm } = req.body;
 
-    // Валидация
     if (!algorithm || !['md5', 'sha1', 'sha256', 'sha512'].includes(algorithm)) {
       return res.status(400).json({ error: 'Invalid or missing algorithm' });
     }
@@ -33,11 +34,13 @@ export default function handler(req, res) {
     }
 
     const hashInstance = crypto.createHash(algorithm);
-
-    // Выбор источника данных (Текст или Файл в Base64)
     let dataToHash;
+
     if (fileBase64) {
-      dataToHash = Buffer.from(fileBase64.split(',')[1] || fileBase64, 'base64');
+      const base64Data = fileBase64.includes(',') 
+        ? fileBase64.split(',')[1] 
+        : fileBase64;
+      dataToHash = Buffer.from(base64Data, 'base64');
     } else {
       dataToHash = text;
     }
@@ -48,7 +51,9 @@ export default function handler(req, res) {
       success: true,
       data: {
         algorithm: algorithm.toUpperCase(),
-        inputLength: typeof dataToHash === 'string' ? dataToHash.length : dataToHash.length + ' bytes',
+        inputLength: typeof dataToHash === 'string' 
+          ? dataToHash.length 
+          : dataToHash.length + ' bytes',
         hash: hash,
         timestamp: new Date().toISOString(),
       },
@@ -56,6 +61,9 @@ export default function handler(req, res) {
 
   } catch (error) {
     console.error('Hash Error:', error);
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
+    return res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message 
+    });
   }
 }
