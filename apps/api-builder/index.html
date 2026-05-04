@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Request Builder | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --radius: 10px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', 'Menlo', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 1100px; margin: 0 auto; width: 100%; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    .cors-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--warning);
+      color: #92400e;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cors-warning svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .url-bar {
+      display: flex; gap: 10px; margin-bottom: 16px;
+    }
+    select, input, textarea, button {
+      font-family: inherit; font-size: 14px;
+    }
+    select {
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--bg); color: var(--text); font-weight: 600; min-width: 90px;
+    }
+    input[type="text"] {
+      flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--bg); color: var(--text);
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,148,136,0.15);
+    }
+
+    .btn {
+      padding: 10px 16px; background: var(--accent); color: white; border: none;
+      border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn.secondary:hover { background: var(--bg); }
+    .btn.small { padding: 6px 10px; font-size: 12px; }
+    .btn svg { width: 16px; height: 16px; }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .tab {
+      padding: 8px 14px; border: none; background: none; color: var(--text-muted);
+      font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    .panel { display: none; flex: 1; }
+    .panel.active { display: flex; flex-direction: column; }
+
+    .headers-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; max-height: 200px; }
+    .header-row { display: flex; gap: 8px; align-items: center; }
+    .header-row input { flex: 1; padding: 8px; font-size: 13px; }
+    .remove-header {
+      background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;
+    }
+    .remove-header:hover { color: var(--error); }
+
+    textarea#body-input {
+      flex: 1; min-height: 120px; resize: vertical; font-family: var(--font-mono); font-size: 13px;
+    }
+    .body-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    #json-status { font-size: 12px; font-weight: 600; }
+    #json-status.valid { color: var(--success); }
+    #json-status.invalid { color: var(--error); }
+
+    .response-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .badge {
+      padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .badge.success { background: rgba(16,185,129,0.15); color: var(--success); }
+    .badge.error { background: rgba(239,68,68,0.15); color: var(--error); }
+    .badge.neutral { background: var(--bg); color: var(--text-muted); }
+    .badge svg { width: 14px; height: 14px; }
+
+    .response-body {
+      flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px; font-family: var(--font-mono); font-size: 13px; line-height: 1.5;
+      overflow: auto; min-height: 250px; white-space: pre-wrap; word-break: break-word;
+    }
+
+    .history-panel { margin-top: 24px; }
+    .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+    .history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px; background: var(--bg); border-radius: 6px;
+      cursor: pointer; transition: background 0.2s; font-size: 13px;
+    }
+    .history-item:hover { background: var(--border); }
+    .history-meta { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .history-method { font-weight: 700; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+    .history-method.GET { background: rgba(16,185,129,0.15); color: var(--success); }
+    .history-method.POST { background: rgba(13,148,136,0.15); color: var(--accent); }
+    .history-method.PUT { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .history-method.DELETE { background: rgba(239,68,68,0.15); color: var(--error); }
+    .history-method.PATCH { background: rgba(99,102,241,0.15); color: #6366f1; }
+    .history-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-status { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      .url-bar { flex-direction: column; }
+      select { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to Hub
+      </a>
+      <div class="logo">API<span>Builder</span></div>
+    </header>
+
+    <div class="cors-warning">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+      <span>CORS Restriction: This tool runs in the browser. It can only reach APIs that explicitly allow cross-origin requests. For blocked APIs, use a backend proxy or desktop client.</span>
+    </div>
+
+    <div class="layout">
+      <!-- Request Panel -->
+      <div class="card">
+        <div class="url-bar">
+          <select id="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+            <option value="DELETE">DELETE</option>
+            <option value="HEAD">HEAD</option>
+            <option value="OPTIONS">OPTIONS</option>
+          </select>
+          <input type="text" id="url" placeholder="https://api.example.com/v1/resource">
+          <button class="btn" id="send-btn" onclick="sendRequest()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send
+          </button>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('headers')">Headers</button>
+          <button class="tab" onclick="switchTab('body')">Body</button>
+        </div>
+
+        <div id="headers-panel" class="panel active">
+          <div class="headers-list" id="headers-list">
+            <!-- Dynamic headers -->
+          </div>
+          <button class="btn secondary small" onclick="addHeaderRow()" style="margin-top:10px; align-self:flex-start">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Header
+          </button>
+        </div>
+
+        <div id="body-panel" class="panel">
+          <textarea id="body-input" placeholder='{"key": "value"}'></textarea>
+          <div class="body-actions">
+            <button class="btn secondary small" onclick="formatJson()">Format JSON</button>
+            <span id="json-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Response Panel -->
+      <div class="card">
+        <div class="response-header">
+          <span class="badge neutral" id="status-badge">Ready</span>
+          <span class="badge neutral" id="time-badge">0 ms</span>
+          <div style="flex:1"></div>
+          <button class="btn secondary small" onclick="copyCurl()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy cURL
+          </button>
+        </div>
+        <pre class="response-body" id="response-body">// Response will appear here...</pre>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="card history-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong style="font-size:16px">Request History</strong>
+        <button class="btn secondary small" onclick="clearHistory()">Clear History</button>
+      </div>
+      <div class="history-list" id="history-list">
+        <div style="color:var(--text-muted);font-size:13px;padding:8px">No requests yet</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === State ===
+    let headers = [{ key: 'Content-Type', value: 'application/json' }];
+    let history = JSON.parse(localStorage.getItem('api_history') || '[]');
+    const MAX_HISTORY = 50;
+
+    // === Init ===
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHeaders();
+      renderHistory();
+      
+      // Auto-validate JSON on input
+      document.getElementById('body-input').addEventListener('input', () => {
+        validateJson();
+      });
+    });
+
+    // === Tabs ===
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      
+      if (tab === 'headers') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('headers-panel').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('body-panel').classList.add('active');
+      }
+    };
+
+    // === Headers Management ===
+    window.addHeaderRow = function() {
+      headers.push({ key: '', value: '' });
+      renderHeaders();
+    };
+
+    window.removeHeader = function(index) {
+      headers.splice(index, 1);
+      renderHeaders();
+    };
+
+    window.updateHeader = function(index, field, value) {
+      headers[index][field] = value;
+    };
+
+    function renderHeaders() {
+      const container = document.getElementById('headers-list');
+      if (headers.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px">No headers added</div>';
+        return;
+      }
+      container.innerHTML = headers.map((h, i) => `
+        <div class="header-row">
+          <input type="text" placeholder="Header Key" value="${escapeHtml(h.key)}" 
+                 oninput="updateHeader(${i}, 'key', this.value)">
+          <input type="text" placeholder="Value" value="${escapeHtml(h.value)}" 
+                 oninput="updateHeader(${i}, 'value', this.value)">
+          <button class="remove-header" onclick="removeHeader(${i})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // === JSON Utils ===
+    function validateJson() {
+      const input = document.getElementById('body-input').value.trim();
+      const status = document.getElementById('json-status');
+      if (!input) { status.textContent = ''; status.className = ''; return; }
+      
+      try {
+        JSON.parse(input);
+        status.textContent = 'Valid JSON';
+        status.className = 'valid';
+      } catch (e) {
+        status.textContent = 'Invalid JSON';
+        status.className = 'invalid';
+      }
+    }
+
+    window.formatJson = function() {
+      const input = document.getElementById('body-input');
+      try {
+        const parsed = JSON.parse(input.value);
+        input.value = JSON.stringify(parsed, null, 2);
+        validateJson();
+      } catch (e) {
+        validateJson();
+      }
+    };
+
+    // === Request Logic ===
+    window.sendRequest = async function() {
+      const method = document.getElementById('method').value;
+      const url = document.getElementById('url').value.trim();
+      const sendBtn = document.getElementById('send-btn');
+      const statusBadge = document.getElementById('status-badge');
+      const timeBadge = document.getElementById('time-badge');
+      const responseBody = document.getElementById('response-body');
+
+      if (!url) {
+        alert('Please enter a URL');
+        return;
+      }
+
+      // Prepare headers
+      const headersObj = {};
+      headers.forEach(h => {
+        if (h.key.trim()) headersObj[h.key.trim()] = h.value.trim();
+      });
+
+      // Prepare body
+      let body = null;
+      const bodyInput = document.getElementById('body-input').value.trim();
+      if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && bodyInput) {
+        try {
+          JSON.parse(bodyInput); // Validate before sending
+          body = bodyInput;
+        } catch (e) {
+          alert('Invalid JSON in Body. Please fix it before sending.');
+          return;
+        }
+      }
+
+      // UI Loading State
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Sending...';
+      statusBadge.textContent = 'Pending...';
+      statusBadge.className = 'badge neutral';
+      timeBadge.textContent = '...';
+      responseBody.textContent = 'Waiting for response...';
+
+      const startTime = performance.now();
+      
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+        const response = await fetch(url, {
+          method,
+          headers: headersObj,
+          body,
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
+
+        // Read response
+        const text = await response.text();
+        let formatted = text;
+        try {
+          const json = JSON.parse(text);
+          formatted = JSON.stringify(json, null, 2);
+        } catch (e) {
+          // Not JSON, keep as text
+        }
+
+        // Update UI
+        statusBadge.textContent = `${response.status} ${response.statusText}`;
+        statusBadge.className = `badge ${response.ok ? 'success' : 'error'}`;
+        timeBadge.textContent = `${duration} ms`;
+        responseBody.textContent = formatted;
+
+        // Save to history
+        saveToHistory({ method, url, status: response.status, time: duration, timestamp: Date.now() });
+
+      } catch (err) {
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
+        
+        statusBadge.textContent = 'Error';
+        statusBadge.className = 'badge error';
+        timeBadge.textContent = `${duration} ms`;
+        
+        if (err.name === 'AbortError') {
+          responseBody.textContent = 'Request timed out (30s limit reached).';
+        } else if (err.message.includes('Failed to fetch')) {
+          responseBody.textContent = `Network Error: ${err.message}\n\nLikely causes:\n1. CORS policy blocked the request.\n2. Invalid URL or network disconnect.\n3. Mixed content (HTTP on HTTPS page).`;
+        } else {
+          responseBody.textContent = `Error: ${err.message}`;
+        }
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send';
+      }
+    };
+
+    // === cURL Generation ===
+    window.copyCurl = function() {
+      const method = document.getElementById('method').value;
+      const url = document.getElementById('url').value.trim();
+      const bodyInput = document.getElementById('body-input').value.trim();
+      
+      if (!url) { alert('Enter a URL first'); return; }
+
+      let cmd = `curl -X ${method} '${escapeShell(url)}'`;
+      
+      headers.forEach(h => {
+        if (h.key.trim()) cmd += ` -H '${escapeShell(h.key)}: ${escapeShell(h.value)}'`;
+      });
+
+      if (bodyInput && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+        cmd += ` -d '${escapeShell(bodyInput)}'`;
+      }
+
+      navigator.clipboard.writeText(cmd);
+      alert('cURL command copied to clipboard!');
+    };
+
+    function escapeShell(str) {
+      return str.replace(/'/g, "'\\''");
+    }
+
+    // === History ===
+    function saveToHistory(item) {
+      history.unshift(item);
+      if (history.length > MAX_HISTORY) history.pop();
+      localStorage.setItem('api_history', JSON.stringify(history));
+      renderHistory();
+    }
+
+    window.clearHistory = function() {
+      if (confirm('Clear all request history?')) {
+        history = [];
+        localStorage.removeItem('api_history');
+        renderHistory();
+      }
+    };
+
+    function renderHistory() {
+      const container = document.getElementById('history-list');
+      if (history.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px">No requests yet</div>';
+        return;
+      }
+
+      container.innerHTML = history.map((h, i) => `
+        <div class="history-item" onclick="restoreRequest(${i})">
+          <div class="history-meta">
+            <span class="history-method ${h.method}">${h.method}</span>
+            <span class="history-url">${escapeHtml(h.url)}</span>
+          </div>
+          <div class="history-status">${h.status} • ${h.time}ms</div>
+        </div>
+      `).join('');
+    }
+
+    window.restoreRequest = function(index) {
+      const item = history[index];
+      document.getElementById('method').value = item.method;
+      document.getElementById('url').value = item.url;
+      document.getElementById('body-input').value = '';
+      document.getElementById('headers-list').innerHTML = '';
+      headers = [{ key: 'Content-Type', value: 'application/json' }];
+      renderHeaders();
+      validateJson();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // === Utils ===
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+  <style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
+</body>
+</html>
