@@ -5,5 +5,9 @@
     "prebuild": "node scripts/generate-vercel-config.js",
     "build": "echo '✅ Static build ready for Vercel'",
     "dev": "npm run prebuild && npx serve . -l 3000"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "node-fetch": "^3.3.2"
   }
 }
