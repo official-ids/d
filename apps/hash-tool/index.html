@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hash & Checksum API | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 1100px; margin: 0 auto; width: 100%; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .label {
+      display: block; font-size: 12px; font-weight: 700; color: var(--text-muted);
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    input, select, textarea {
+      width: 100%; padding: 10px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 14px; background: var(--bg);
+      font-family: inherit; color: var(--text); transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+    }
+    textarea { resize: vertical; min-height: 120px; font-family: var(--font-mono); font-size: 13px; }
+
+    .btn {
+      width: 100%; padding: 12px; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.2s; font-size: 14px; margin-top: 16px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); margin-top: 8px; }
+    .btn.secondary:hover { background: var(--bg); }
+    .btn svg { width: 16px; height: 16px; }
+
+    .result-box {
+      background: #0f172a; color: #10b981; padding: 16px; border-radius: 8px;
+      font-family: var(--font-mono); font-size: 14px; word-break: break-all;
+      position: relative; min-height: 60px; display: flex; align-items: center;
+    }
+    .copy-icon {
+      position: absolute; top: 10px; right: 10px; background: #334155;
+      border: none; color: white; padding: 4px 8px; border-radius: 4px;
+      font-size: 11px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s;
+    }
+    .copy-icon:hover { opacity: 1; }
+
+    .api-code {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px; font-family: var(--font-mono); font-size: 12px;
+      margin-top: 16px; overflow-x: auto;
+    }
+    .api-code code { color: var(--text); }
+    .keyword { color: #d97706; }
+    .string { color: #059669; }
+    .prop { color: #2563eb; }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .tab {
+      padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;
+      color: var(--text-muted); transition: all 0.2s;
+    }
+    .tab:hover { background: var(--bg); color: var(--text); }
+    .tab.active { background: rgba(13,148,136,0.1); color: var(--accent); }
+
+    .input-group { display: none; }
+    .input-group.active { display: block; }
+
+    .status-text { font-size: 12px; margin-top: 8px; color: var(--text-muted); text-align: right; }
+
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to Hub
+      </a>
+      <div class="logo">Hash<span>API</span></div>
+    </header>
+
+    <div class="layout">
+      <!-- Input Side -->
+      <div class="card">
+        <h3 style="margin-bottom: 16px; font-size: 16px;">Generate Hash</h3>
+
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('text')">Text Input</div>
+          <div class="tab" onclick="switchTab('file')">File Input</div>
+        </div>
+
+        <!-- Text Mode -->
+        <div id="tab-text" class="input-group active">
+          <label class="label">Input String</label>
+          <textarea id="text-input" placeholder="Type text to hash..."></textarea>
+        </div>
+
+        <!-- File Mode -->
+        <div id="tab-file" class="input-group">
+          <label class="label">Select File</label>
+          <input type="file" id="file-input" style="background: var(--surface);">
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Max 5MB (processed via API)</div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <label class="label">Algorithm</label>
+          <select id="algorithm-select">
+            <option value="sha256">SHA-256 (Recommended)</option>
+            <option value="md5">MD5 (Legacy)</option>
+            <option value="sha1">SHA-1</option>
+            <option value="sha512">SHA-512</option>
+          </select>
+        </div>
+
+        <button class="btn" id="generate-btn" onclick="generateHash()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.66 15.39A10 10 0 0 0 12 2v10h10z"/></svg>
+          Generate Hash
+        </button>
+        <div class="status-text" id="status-text"></div>
+      </div>
+
+      <!-- Output Side -->
+      <div class="card">
+        <h3 style="margin-bottom: 16px; font-size: 16px;">Result</h3>
+        
+        <div class="result-box" id="result-display">
+          <span style="color: #64748b;">Result will appear here...</span>
+          <button class="copy-icon" onclick="copyResult()" style="display: none;">Copy</button>
+        </div>
+
+        <div style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px;">
+          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">API Endpoint</h4>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+            You can use this tool programmatically via REST API.
+          </p>
+          
+          <div class="api-code">
+            <strong>cURL Example:</strong><br>
+            <code>curl -X POST <span class="string">'https://seraviel-labs.vercel.app/apps/hash-tool/api'</span> \<br>
+            -H <span class="string">'Content-Type: application/json'</span> \<br>
+            -d <span class="string">'{"text": "hello", "algorithm": "sha256"}'</span></code>
+          </div>
+
+          <div class="api-code">
+            <strong>Fetch Example:</strong><br>
+            <code><span class="keyword">const</span> res = <span class="keyword">await</span> fetch(<span class="string">'/apps/hash-tool/api'</span>, {<br>
+            &nbsp;&nbsp;method: <span class="string">'POST'</span>,<br>
+            &nbsp;&nbsp;headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },<br>
+            &nbsp;&nbsp;body: JSON.stringify({ text: <span class="string">'hello'</span>, algorithm: <span class="string">'sha256'</span> })<br>
+            });</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Tab Logic ===
+    function switchTab(mode) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.input-group').forEach(g => g.classList.remove('active'));
+      
+      if (mode === 'text') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('tab-text').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('tab-file').classList.add('active');
+      }
+    }
+
+    // === Core Logic ===
+    async function generateHash() {
+      const btn = document.getElementById('generate-btn');
+      const resultBox = document.getElementById('result-display');
+      const statusText = document.getElementById('status-text');
+      const algo = document.getElementById('algorithm-select').value;
+      
+      // Check if Text or File
+      const isFileMode = document.getElementById('tab-file').classList.contains('active');
+      
+      let payload = { algorithm: algo };
+
+      if (isFileMode) {
+        const fileInput = document.getElementById('file-input');
+        if (fileInput.files.length === 0) return alert('Please select a file');
+        
+        const file = fileInput.files[0];
+        statusText.textContent = 'Reading file...';
+        
+        try {
+          const base64 = await fileToBase64(file);
+          payload.fileBase64 = base64;
+        } catch (e) {
+          return alert('Error reading file');
+        }
+      } else {
+        const text = document.getElementById('text-input').value;
+        if (!text) return alert('Please enter text');
+        payload.text = text;
+      }
+
+      // UI Loading
+      btn.disabled = true;
+      btn.innerHTML = 'Generating...';
+      statusText.textContent = 'Calling API...';
+
+      try {
+        const response = await fetch('/apps/hash-tool/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          resultBox.innerHTML = `
+            <span id="hash-value">${data.data.hash}</span>
+            <button class="copy-icon" style="display:block" onclick="copyResult()">Copy</button>
+          `;
+          statusText.textContent = `Success (${data.data.inputLength})`;
+        } else {
+          resultBox.innerHTML = `<span style="color:#ef4444">Error: ${data.error}</span>`;
+          statusText.textContent = 'Failed';
+        }
+
+      } catch (err) {
+        console.error(err);
+        resultBox.innerHTML = `<span style="color:#ef4444">Network Error</span>`;
+        statusText.textContent = 'Connection failed';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.66 15.39A10 10 0 0 0 12 2v10h10z"/></svg>
+          Generate Hash
+        `;
+      }
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    function copyResult() {
+      const text = document.getElementById('hash-value').textContent;
+      navigator.clipboard.writeText(text);
+      const btn = document.querySelector('.copy-icon');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = original, 1500);
+    }
+  </script>
+</body>
+</html>
