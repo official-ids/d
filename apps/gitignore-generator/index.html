@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>.gitignore Generator | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 1100px; margin: 0 auto; width: 100%; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .label {
+      display: block; font-size: 12px; font-weight: 700; color: var(--text-muted);
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .search-box {
+      position: relative; margin-bottom: 16px;
+    }
+    .search-box input {
+      width: 100%; padding: 10px 12px 10px 36px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; background: var(--bg);
+    }
+    .search-box svg {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px; color: var(--text-muted);
+    }
+
+    .template-list {
+      max-height: 500px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .template-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 8px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .template-item:hover { background: var(--bg); border-color: var(--accent); }
+    .template-item.selected {
+      background: rgba(13,148,136,0.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .template-item input { display: none; }
+    .template-icon {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+    }
+    .template-icon svg { width: 18px; height: 18px; }
+
+    .btn {
+      padding: 10px 16px; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; font-size: 14px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn svg { width: 16px; height: 16px; }
+    .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn.secondary:hover { background: var(--bg); }
+    .btn.danger { background: var(--danger); }
+    .btn.danger:hover { background: #dc2626; }
+
+    .btn-group { display: flex; gap: 8px; margin-top: 16px; }
+
+    .preview-box {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px;
+      font-family: var(--font-mono); font-size: 13px;
+      white-space: pre-wrap; word-break: break-word;
+      min-height: 400px; max-height: 70vh; overflow: auto;
+      line-height: 1.6; color: var(--text);
+    }
+
+    .preview-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .stats {
+      font-size: 12px; color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .empty-state {
+      text-align: center; padding: 40px; color: var(--text-muted);
+    }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
+
+    .category-label {
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 8px 0 4px; margin-top: 12px;
+    }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: white; padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s;
+      pointer-events: none; z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to Hub
+      </a>
+      <div class="logo">Git<span>ignore</span> Generator</div>
+    </header>
+
+    <div class="layout">
+      <!-- Templates Panel -->
+      <div class="card">
+        <h3 style="margin-bottom: 16px; font-size: 16px;">Select Templates</h3>
+        
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="search-input" placeholder="Search templates...">
+        </div>
+
+        <div class="template-list" id="template-list">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="btn-group">
+          <button class="btn secondary" onclick="selectAll()" style="flex:1">Select All</button>
+          <button class="btn secondary" onclick="clearAll()" style="flex:1">Clear All</button>
+        </div>
+      </div>
+
+      <!-- Preview Panel -->
+      <div class="card">
+        <div class="preview-header">
+          <h3 style="font-size: 16px;">Preview</h3>
+          <div style="display:flex; gap:8px">
+            <button class="btn secondary" onclick="copyToClipboard()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+            <button class="btn" onclick="downloadFile()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Download
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-box" id="preview">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p>Select templates to generate .gitignore</p>
+          </div>
+        </div>
+
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+  <script>
+    // === Templates Database ===
+    const TEMPLATES = {
+      'Node': {
+        category: 'Languages',
+        content: `# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+/build
+/dist
+
+# Misc
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*`
+      },
+      'React': {
+        category: 'Frontend',
+        content: `# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*`
+      },
+      'Vue': {
+        category: 'Frontend',
+        content: `# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?`
+      },
+      'Angular': {
+        category: 'Frontend',
+        content: `# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# node_modules
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+
+# output
+/dist/
+/www/
+
+# testing
+/coverage/
+
+# misc
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local`
+      },
+      'TypeScript': {
+        category: 'Languages',
+        content: `# Compiled output
+/dist
+/build
+/out
+
+# Dependencies
+/node_modules
+
+# IDE
+.idea/
+.vscode/
+
+# Build info
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history`
+      },
+      'Python': {
+        category: 'Languages',
+        content: `# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local`
+      },
+      'Django': {
+        category: 'Backend',
+        content: `# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Django specific
+*.log
+local_settings.py
+db.sqlite3
+media/
+
+# Static files
+STATIC_ROOT/
+
+# IDE
+.idea/
+.vscode/`
+      },
+      'Flask': {
+        category: 'Backend',
+        content: `# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Flask specific
+instance/
+.webassets-cache
+
+# Database
+*.db
+*.sqlite
+
+# IDE
+.idea/
+.vscode/`
+      },
+      'Docker': {
+        category: 'DevOps',
+        content: `# Docker
+.dockerignore
+
+# Docker compose
+docker-compose.yml
+docker-compose.override.yml
+
+# Docker volumes
+volumes/
+
+# Docker build context
+!Dockerfile
+!.dockerignore`
+      },
+      'Kubernetes': {
+        category: 'DevOps',
+        content: `# Kubernetes configs
+*.kube/config
+
+# Secrets (never commit!)
+*-secret.yaml
+*-secrets.yaml
+
+# Generated manifests
+generated/
+
+# IDE
+.idea/
+.vscode/`
+      },
+      'VSCode': {
+        category: 'IDE',
+        content: `.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+
+# History
+.vscode/.history
+
+# Local settings
+.vscode/*.local`
+      },
+      'IntelliJ': {
+        category: 'IDE',
+        content: `.idea/
+*.iml
+*.iws
+*.ipr
+
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+
+# Datasource local storage
+.idea/**/dataSources/
+.idea/**/sqlDataSources.xml
+
+# Build output
+out/
+target/`
+      },
+      'Windows': {
+        category: 'OS',
+        content: `# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk`
+      },
+      'macOS': {
+        category: 'OS',
+        content: `.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk`
+      },
+      'Linux': {
+        category: 'OS',
+        content: `*~
+.fuse_hidden*
+.Trash-*
+.nfs-*`
+      },
+      'Git': {
+        category: 'Version Control',
+        content: `.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# Large files
+*.psd
+*.ai
+*.sketch`
+      },
+      'GitHub': {
+        category: 'Version Control',
+        content: `.github/
+!github/
+
+# GitHub Actions
+.github/workflows/
+
+# Dependabot
+.github/dependabot.yml`
+      },
+      'Composer': {
+        category: 'Languages',
+        content: `/vendor/
+composer.lock
+composer.phar
+
+# IDE
+.idea/
+.vscode/`
+      },
+      'Laravel': {
+        category: 'Backend',
+        content: `# Laravel specific
+/.env
+/.env.local
+/.env.development
+/.env.testing
+/.env.production
+
+# Storage
+/storage/*.key
+/public/storage
+/storage/logs
+
+# Compiled files
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+
+# IDE
+.idea/
+.vscode/`
+      },
+      'Ruby': {
+        category: 'Languages',
+        content: `.bundle/
+vendor/bundle
+vendor/cache
+vendor/gems
+vendor/ruby
+
+# Gems
+*.gem
+*.gemspec
+Gemfile.lock
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+log/
+*.log`
+      },
+      'Java': {
+        category: 'Languages',
+        content: `# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Virtual machine crash logs
+hs_err_pid*
+
+# IDE
+.idea/
+.vscode/
+target/
+build/`
+      },
+      'Go': {
+        category: 'Languages',
+        content: `# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# IDE
+.idea/
+.vscode/
+
+# Dependencies
+vendor/`
+      },
+      'Rust': {
+        category: 'Languages',
+        content: `# Generated by Cargo
+/target
+
+# IDE
+.idea/
+.vscode/
+
+# Cargo.lock for libraries
+# Cargo.lock
+
+# Build output
+debug/
+release/
+
+# Documentation
+doc/`
+      },
+      'Next.js': {
+        category: 'Frontend',
+        content: `# See https://nextjs.org/docs/messages/next-ignore for more info
+
+# dependencies
+/node_modules
+
+# production
+/build
+/.next
+/out
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+
+# local env files
+.env*.local`
+      },
+      'Nuxt': {
+        category: 'Frontend',
+        content: `# Nuxt specific
+.nuxt
+.dist
+
+# Node modules
+node_modules
+
+# IDE
+.idea/
+.vscode/
+
+# Build
+.build
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*`
+      },
+      'Svelte': {
+        category: 'Frontend',
+        content: `# dependencies
+/node_modules
+
+# production
+/public/build
+
+# IDE
+.idea/
+.vscode/
+
+# misc
+.DS_Store
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*`
+      },
+      'WordPress': {
+        category: 'CMS',
+        content: `# WordPress specific
+wp-config.php
+wp-config-sample.php
+*.log
+debug.log
+
+# Uploads
+/wp-content/uploads/
+
+# IDE
+.idea/
+.vscode/
+
+# Misc
+.DS_Store`
+      },
+      'Unity': {
+        category: 'Game Dev',
+        content: `# Unity specific
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+
+# Visual Studio
+.[Vv][Ss]*
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# MonoDevelop
+*.pidb
+*.userprefs
+
+# IDE
+.idea/
+.vscode/`
+      },
+      'Unreal': {
+        category: 'Game Dev',
+        content: `# Unreal Engine
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# IDE
+.idea/
+.vscode/
+
+# Misc
+*.log
+*.txt`
+      },
+      'Terraform': {
+        category: 'DevOps',
+        content: `# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# Crash logs
+crash.log
+crash.*.log
+
+# IDE
+.idea/
+.vscode/
+
+# Directory for plugins
+.terraform/`
+      },
+      'Ansible': {
+        category: 'DevOps',
+        content: `# Ansible specific
+*.retry
+ansible.cfg
+
+# Vault passwords
+.vault_pass
+vault_pass.txt
+
+# IDE
+.idea/
+.vscode/`
+      },
+      'C': {
+        category: 'Languages',
+        content: `# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# IDE
+.idea/
+.vscode/
+
+# Build
+build/
+out/`
+      },
+      'C++': {
+        category: 'Languages',
+        content: `# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# IDE
+.idea/
+.vscode/
+
+# Build
+build/
+Debug/
+Release/
+x64/
+x86/`
+      },
+      'C#': {
+        category: 'Languages',
+        content: `# Visual Studio
+[Bb]in/
+[Oo]bj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+
+# IDE
+.idea/
+.vscode/`
+      },
+      'Swift': {
+        category: 'Languages',
+        content: `.DS_Store
+.build/
+.swiftpm/
+Packages/
+*.xcodeproj
+*.xcworkspace
+
+# IDE
+.idea/
+.vscode/
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/`
+      },
+      'Kotlin': {
+        category: 'Languages',
+        content: `# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE
+.idea/
+.vscode/
+
+# Build
+build/
+.gradle/`
+      }
+    };
+
+    // === State ===
+    let selectedTemplates = new Set();
+    let searchQuery = '';
+
+    // === DOM Elements ===
+    const els = {
+      templateList: document.getElementById('template-list'),
+      searchInput: document.getElementById('search-input'),
+      preview: document.getElementById('preview'),
+      stats: document.getElementById('stats'),
+      toast: document.getElementById('toast')
+    };
+
+    // === Init ===
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTemplates();
+      
+      els.searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase();
+        renderTemplates();
+      });
+    });
+
+    // === Render ===
+    function renderTemplates() {
+      const categories = {};
+      
+      // Group by category
+      for (const [name, data] of Object.entries(TEMPLATES)) {
+        if (searchQuery && !name.toLowerCase().includes(searchQuery)) continue;
+        
+        if (!categories[data.category]) {
+          categories[data.category] = [];
+        }
+        categories[data.category].push(name);
+      }
+
+      // Render
+      els.templateList.innerHTML = '';
+      
+      for (const [category, names] of Object.entries(categories)) {
+        // Category label
+        const catLabel = document.createElement('div');
+        catLabel.className = 'category-label';
+        catLabel.textContent = category;
+        els.templateList.appendChild(catLabel);
+
+        // Templates
+        names.sort().forEach(name => {
+          const item = document.createElement('div');
+          item.className = `template-item ${selectedTemplates.has(name) ? 'selected' : ''}`;
+          item.innerHTML = `
+            <input type="checkbox" ${selectedTemplates.has(name) ? 'checked' : ''}>
+            <div class="template-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+            <span>${name}</span>
+          `;
+          item.onclick = () => toggleTemplate(name);
+          els.templateList.appendChild(item);
+        });
+      }
+
+      if (Object.keys(categories).length === 0) {
+        els.templateList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted)">No templates found</div>';
+      }
+
+      generateGitignore();
+    }
+
+    // === Actions ===
+    function toggleTemplate(name) {
+      if (selectedTemplates.has(name)) {
+        selectedTemplates.delete(name);
+      } else {
+        selectedTemplates.add(name);
+      }
+      renderTemplates();
+    }
+
+    function selectAll() {
+      const visible = Array.from(els.templateList.querySelectorAll('.template-item'))
+        .filter(item => item.style.display !== 'none');
+      visible.forEach(item => {
+        const name = item.querySelector('span').textContent;
+        selectedTemplates.add(name);
+      });
+      renderTemplates();
+    }
+
+    function clearAll() {
+      selectedTemplates.clear();
+      renderTemplates();
+    }
+
+    function generateGitignore() {
+      if (selectedTemplates.size === 0) {
+        els.preview.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p>Select templates to generate .gitignore</p>
+          </div>
+        `;
+        els.stats.textContent = '';
+        return;
+      }
+
+      let content = '# Auto-generated .gitignore\n';
+      content += `# Generated on ${new Date().toLocaleDateString()}\n\n`;
+
+      const sorted = Array.from(selectedTemplates).sort();
+      sorted.forEach(name => {
+        const template = TEMPLATES[name];
+        content += `# ${name}\n`;
+        content += template.content + '\n\n';
+      });
+
+      els.preview.textContent = content.trim();
+      
+      const lines = content.split('\n').length;
+      els.stats.textContent = `${selectedTemplates.size} template${selectedTemplates.size > 1 ? 's' : ''} • ${lines} lines`;
+    }
+
+    // === Export ===
+    function copyToClipboard() {
+      const text = els.preview.textContent;
+      if (!text || text.includes('Select templates')) return;
+      
+      navigator.clipboard.writeText(text);
+      showToast('Copied to clipboard!');
+    }
+
+    function downloadFile() {
+      const text = els.preview.textContent;
+      if (!text || text.includes('Select templates')) return;
+      
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '.gitignore';
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showToast('Downloaded .gitignore!');
+    }
+
+    function showToast(msg) {
+      els.toast.textContent = msg;
+      els.toast.classList.add('show');
+      setTimeout(() => els.toast.classList.remove('show'), 2000);
+    }
+  </script>
+</body>
+</html>
