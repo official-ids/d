@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Converter | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 900px; margin: 0 auto; width: 100%; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .input-group { margin-bottom: 20px; }
+    .label {
+      display: block; font-size: 13px; font-weight: 700; color: var(--text-muted);
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    
+    .input-row {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    
+    input, select {
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; background: var(--bg); color: var(--text);
+      font-family: var(--font-mono);
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(13,148,136,0.15);
+    }
+    
+    input[type="text"] { flex: 1; min-width: 200px; }
+    input[type="number"] { width: 150px; }
+    
+    .copy-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-muted); padding: 8px 12px; border-radius: 6px;
+      cursor: pointer; font-size: 12px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: var(--bg); color: var(--text); border-color: var(--accent); }
+    .copy-btn svg { width: 14px; height: 14px; }
+
+    .output-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px; margin-top: 24px;
+    }
+    
+    .output-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px;
+    }
+    .output-label {
+      font-size: 12px; font-weight: 700; color: var(--text-muted);
+      margin-bottom: 8px; display: flex; justify-content: space-between;
+    }
+    .output-value {
+      font-family: var(--font-mono); font-size: 14px; word-break: break-all;
+      color: var(--text); line-height: 1.4;
+    }
+    .output-value.error { color: var(--danger); font-style: italic; }
+    
+    .relative-time {
+      margin-top: 8px; font-size: 13px; color: var(--accent);
+      font-weight: 600;
+    }
+
+    .timezone-row {
+      display: flex; gap: 12px; align-items: center; margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .timezone-row select { flex: 1; min-width: 200px; }
+    
+    .btn {
+      padding: 10px 20px; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; font-size: 14px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn svg { width: 16px; height: 16px; }
+
+    .hint {
+      font-size: 12px; color: var(--text-muted); margin-top: 4px;
+    }
+
+    @media (max-width: 600px) {
+      .input-row { flex-direction: column; align-items: stretch; }
+      input[type="number"] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to Hub
+      </a>
+      <div class="logo">Time<span>Converter</span></div>
+    </header>
+
+    <!-- Main Input -->
+    <div class="card">
+      <div class="input-group">
+        <label class="label">Input (Any Format)</label>
+        <div class="input-row">
+          <input type="text" id="main-input" placeholder="Enter date, timestamp, or ISO string...">
+          <button class="btn" onclick="setToNow()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Now
+          </button>
+        </div>
+        <div class="hint">Supports: Unix (sec/ms), ISO 8601, "2024-01-15", "Jan 15, 2024", RFC2822</div>
+      </div>
+
+      <!-- Timezone Selector -->
+      <div class="input-group">
+        <label class="label">Timezone</label>
+        <div class="timezone-row">
+          <select id="timezone-select" onchange="convertAll()">
+            <!-- Populated by JS -->
+          </select>
+          <button class="copy-btn" onclick="copyToClipboard('timezone-select')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy Name
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Unix Inputs -->
+      <div class="input-group">
+        <label class="label">Unix Timestamp</label>
+        <div class="input-row">
+          <input type="number" id="unix-sec" placeholder="Seconds" oninput="fromUnix('sec')">
+          <span style="color:var(--text-muted)">seconds</span>
+          <input type="number" id="unix-ms" placeholder="Milliseconds" oninput="fromUnix('ms')" style="margin-left:8px">
+          <span style="color:var(--text-muted)">milliseconds</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output Grid -->
+    <div class="card">
+      <label class="label" style="margin-bottom:16px">Converted Values</label>
+      
+      <div class="output-grid">
+        <!-- ISO 8601 -->
+        <div class="output-card">
+          <div class="output-label">
+            <span>ISO 8601</span>
+            <button class="copy-btn" onclick="copyOutput('iso')">Copy</button>
+          </div>
+          <div class="output-value" id="iso">—</div>
+        </div>
+
+        <!-- RFC2822 -->
+        <div class="output-card">
+          <div class="output-label">
+            <span>RFC2822</span>
+            <button class="copy-btn" onclick="copyOutput('rfc')">Copy</button>
+          </div>
+          <div class="output-value" id="rfc">—</div>
+        </div>
+
+        <!-- Human Readable -->
+        <div class="output-card">
+          <div class="output-label">
+            <span>Human Readable</span>
+            <button class="copy-btn" onclick="copyOutput('human')">Copy</button>
+          </div>
+          <div class="output-value" id="human">—</div>
+          <div class="relative-time" id="relative">—</div>
+        </div>
+
+        <!-- Unix Seconds -->
+        <div class="output-card">
+          <div class="output-label">
+            <span>Unix (Seconds)</span>
+            <button class="copy-btn" onclick="copyOutput('unix-sec-out')">Copy</button>
+          </div>
+          <div class="output-value" id="unix-sec-out">—</div>
+        </div>
+
+        <!-- Unix Milliseconds -->
+        <div class="output-card">
+          <div class="output-label">
+            <span>Unix (Milliseconds)</span>
+            <button class="copy-btn" onclick="copyOutput('unix-ms-out')">Copy</button>
+          </div>
+          <div class="output-value" id="unix-ms-out">—</div>
+        </div>
+
+        <!-- Day of Week / Info -->
+        <div class="output-card">
+          <div class="output-label">
+            <span>Additional Info</span>
+            <button class="copy-btn" onclick="copyOutput('info')">Copy</button>
+          </div>
+          <div class="output-value" id="info">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="card">
+      <label class="label" style="margin-bottom:12px">Quick Reference</label>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;font-size:13px">
+        <div><strong>Unix Sec:</strong> <code class="hint">1705315200</code></div>
+        <div><strong>Unix Ms:</strong> <code class="hint">1705315200000</code></div>
+        <div><strong>ISO:</strong> <code class="hint">2024-01-15T12:00:00Z</code></div>
+        <div><strong>Local:</strong> <code class="hint">Jan 15, 2024 3:00 PM</code></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Timezone Setup ===
+    const timezones = [
+      'UTC',
+      'Europe/Moscow',
+      'Europe/London',
+      'Europe/Paris',
+      'Europe/Berlin',
+      'America/New_York',
+      'America/Chicago',
+      'America/Denver',
+      'America/Los_Angeles',
+      'Asia/Tokyo',
+      'Asia/Shanghai',
+      'Asia/Dubai',
+      'Asia/Kolkata',
+      'Australia/Sydney',
+      'Pacific/Auckland'
+    ];
+
+    const tzSelect = document.getElementById('timezone-select');
+    timezones.forEach(tz => {
+      const opt = document.createElement('option');
+      opt.value = tz;
+      opt.textContent = tz;
+      if (tz === 'UTC') opt.selected = true;
+      tzSelect.appendChild(opt);
+    });
+
+    // === State ===
+    let currentDate = null;
+    let debounceTimer = null;
+
+    // === Init ===
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set default to now
+      setToNow();
+      
+      // Main input listener with debounce
+      document.getElementById('main-input').addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          parseAndConvert(e.target.value);
+        }, 300);
+      });
+    });
+
+    // === Core Functions ===
+    function setToNow() {
+      currentDate = new Date();
+      document.getElementById('main-input').value = currentDate.toISOString();
+      convertAll();
+    }
+
+    function parseAndConvert(input) {
+      if (!input.trim()) {
+        clearOutputs();
+        return;
+      }
+
+      let parsed = null;
+
+      // Try Unix seconds (10 digits)
+      if (/^\d{10}$/.test(input.trim())) {
+        parsed = new Date(parseInt(input) * 1000);
+      }
+      // Try Unix milliseconds (13 digits)
+      else if (/^\d{13,}$/.test(input.trim())) {
+        parsed = new Date(parseInt(input));
+      }
+      // Try ISO / RFC / natural parsing
+      else {
+        parsed = new Date(input);
+      }
+
+      if (isNaN(parsed.getTime())) {
+        showError('Invalid date format');
+        return;
+      }
+
+      currentDate = parsed;
+      convertAll();
+    }
+
+    function fromUnix(unit) {
+      const secInput = document.getElementById('unix-sec');
+      const msInput = document.getElementById('unix-ms');
+      
+      if (unit === 'sec' && secInput.value) {
+        currentDate = new Date(parseInt(secInput.value) * 1000);
+        msInput.value = currentDate.getTime();
+      } else if (unit === 'ms' && msInput.value) {
+        currentDate = new Date(parseInt(msInput.value));
+        secInput.value = Math.floor(currentDate.getTime() / 1000);
+      }
+      
+      if (currentDate && !isNaN(currentDate.getTime())) {
+        document.getElementById('main-input').value = currentDate.toISOString();
+        convertAll();
+      }
+    }
+
+    function convertAll() {
+      if (!currentDate || isNaN(currentDate.getTime())) return;
+
+      const tz = tzSelect.value;
+
+      // ISO 8601
+      setText('iso', currentDate.toISOString());
+
+      // RFC2822
+      setText('rfc', currentDate.toUTCString().replace('GMT', 'UTC'));
+
+      // Human readable (in selected timezone)
+      const humanOptions = { 
+        timeZone: tz, 
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      };
+      setText('human', currentDate.toLocaleString('en-US', humanOptions));
+
+      // Relative time
+      setText('relative', formatRelative(currentDate));
+
+      // Unix
+      setText('unix-sec-out', Math.floor(currentDate.getTime() / 1000));
+      setText('unix-ms-out', currentDate.getTime());
+
+      // Additional info
+      const infoOptions = { timeZone: tz, weekday: 'long', era: 'short', timeZoneName: 'short' };
+      const dayName = currentDate.toLocaleString('en-US', { timeZone: tz, weekday: 'long' });
+      const weekNum = getWeekNumber(currentDate);
+      const dayOfYear = getDayOfYear(currentDate);
+      setText('info', `${dayName} • Week ${weekNum} • Day ${dayOfYear} of ${currentDate.getFullYear()}`);
+    }
+
+    function clearOutputs() {
+      ['iso', 'rfc', 'human', 'relative', 'unix-sec-out', 'unix-ms-out', 'info'].forEach(id => {
+        setText(id, '—');
+      });
+    }
+
+    function showError(msg) {
+      clearOutputs();
+      document.getElementById('iso').textContent = msg;
+      document.getElementById('iso').classList.add('error');
+    }
+
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.classList.remove('error');
+    }
+
+    // === Utilities ===
+    function formatRelative(date) {
+      const now = new Date();
+      const diff = date - now;
+      const seconds = Math.abs(Math.floor(diff / 1000));
+      const minutes = Math.abs(Math.floor(seconds / 60));
+      const hours = Math.abs(Math.floor(minutes / 60));
+      const days = Math.abs(Math.floor(hours / 24));
+
+      if (seconds < 60) return diff >= 0 ? 'in a few seconds' : 'a few seconds ago';
+      if (minutes < 60) return diff >= 0 ? `in ${minutes} minute${minutes>1?'s':''}` : `${minutes} minute${minutes>1?'s':''} ago`;
+      if (hours < 24) return diff >= 0 ? `in ${hours} hour${hours>1?'s':''}` : `${hours} hour${hours>1?'s':''} ago`;
+      if (days < 7) return diff >= 0 ? `in ${days} day${days>1?'s':''}` : `${days} day${days>1?'s':''} ago`;
+      
+      return date.toLocaleDateString();
+    }
+
+    function getWeekNumber(d) {
+      const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const dayNum = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+      return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function getDayOfYear(date) {
+      const start = new Date(date.getFullYear(), 0, 0);
+      const diff = date - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      return Math.floor(diff / oneDay);
+    }
+
+    // === Copy Functions ===
+    function copyOutput(id) {
+      const text = document.getElementById(id).textContent;
+      if (text && text !== '—') {
+        navigator.clipboard.writeText(text);
+        showToast('Copied!');
+      }
+    }
+
+    function copyToClipboard(elementId) {
+      const el = document.getElementById(elementId);
+      if (el && el.value) {
+        navigator.clipboard.writeText(el.value);
+        showToast('Copied!');
+      }
+    }
+
+    function showToast(msg) {
+      // Simple toast using existing elements or create one
+      let toast = document.getElementById('toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.cssText = `
+          position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+          background:#0f172a;color:white;padding:10px 20px;border-radius:8px;
+          font-size:14px;font-weight:600;opacity:0;transition:all 0.3s;z-index:100;
+        `;
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(20px)';
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
