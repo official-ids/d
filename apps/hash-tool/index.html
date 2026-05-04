@@ -152,16 +152,16 @@
         <div id="tab-file" class="input-group">
           <label class="label">Select File</label>
           <input type="file" id="file-input" style="background: var(--surface);">
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Max 5MB (processed via API)</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Processed locally in browser</div>
         </div>
 
         <div style="margin-top: 16px;">
           <label class="label">Algorithm</label>
           <select id="algorithm-select">
-            <option value="sha256">SHA-256 (Recommended)</option>
-            <option value="md5">MD5 (Legacy)</option>
-            <option value="sha1">SHA-1</option>
-            <option value="sha512">SHA-512</option>
+            <option value="SHA-256">SHA-256 (Recommended)</option>
+            <option value="MD5">MD5 (Legacy)</option>
+            <option value="SHA-1">SHA-1</option>
+            <option value="SHA-512">SHA-512</option>
           </select>
         </div>
 
@@ -182,25 +182,15 @@
         </div>
 
         <div style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px;">
-          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">API Endpoint</h4>
+          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Client-Side API</h4>
           <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-            You can use this tool programmatically via REST API.
+            Use the global <code>HashAPI</code> object to hash data programmatically.
           </p>
           
           <div class="api-code">
-            <strong>cURL Example:</strong><br>
-            <code>curl -X POST <span class="string">'https://seraviel-labs.vercel.app/apps/hash-tool/api'</span> \<br>
-            -H <span class="string">'Content-Type: application/json'</span> \<br>
-            -d <span class="string">'{"text": "hello", "algorithm": "sha256"}'</span></code>
-          </div>
-
-          <div class="api-code">
-            <strong>Fetch Example:</strong><br>
-            <code><span class="keyword">const</span> res = <span class="keyword">await</span> fetch(<span class="string">'/apps/hash-tool/api'</span>, {<br>
-            &nbsp;&nbsp;method: <span class="string">'POST'</span>,<br>
-            &nbsp;&nbsp;headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },<br>
-            &nbsp;&nbsp;body: JSON.stringify({ text: <span class="string">'hello'</span>, algorithm: <span class="string">'sha256'</span> })<br>
-            });</code>
+            <strong>JavaScript Example:</strong><br>
+            <code><span class="keyword">const</span> hash = <span class="keyword">await</span> HashAPI.hashText(<span class="string">'hello'</span>, <span class="string">'SHA-256'</span>);<br>
+            console.log(hash); <span class="comment">// "2cf24dba..."</span></code>
           </div>
         </div>
       </div>
@@ -208,7 +198,64 @@
   </div>
 
   <script>
-    // === Tab Logic ===
+    /**
+     * HashAPI - Client-side hashing library
+     * Uses Web Crypto API. No server required.
+     */
+    const HashAPI = {
+      // Helper: Convert ArrayBuffer to Hex String
+      _bufferToHex: (buffer) => {
+        return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+      },
+
+      // Main: Hash a string
+      hashText: async (text, algorithm = 'SHA-256') => {
+        const msgBuffer = new TextEncoder().encode(text);
+        const hashBuffer = await crypto.subtle.digest(algorithm, msgBuffer);
+        return HashAPI._bufferToHex(hashBuffer);
+      },
+
+      // Main: Hash a File object
+      hashFile: async (file, algorithm = 'SHA-256') => {
+        const arrayBuffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest(algorithm, arrayBuffer);
+        return HashAPI._bufferToHex(hashBuffer);
+      },
+
+      // Mock "Server" Response for compatibility
+      request: async (payload) => {
+        try {
+          const { text, file, algorithm } = payload;
+          let hash;
+          let inputLength;
+
+          if (file) {
+            hash = await HashAPI.hashFile(file, algorithm);
+            inputLength = file.size + ' bytes';
+          } else if (text) {
+            hash = await HashAPI.hashText(text, algorithm);
+            inputLength = text.length;
+          } else {
+            throw new Error('Missing text or file');
+          }
+
+          return {
+            success: true,
+            data: { // ИСПРАВЛЕНО: добавлен ключ 'data'
+              algorithm,
+              inputLength,
+              hash,
+              timestamp: new Date().toISOString()
+            }
+          };
+        } catch (e) {
+          return { success: false, error: e.message };
+        }
+      }
+    };
+
+    // === UI Logic ===
+
     function switchTab(mode) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.input-group').forEach(g => g.classList.remove('active'));
@@ -222,66 +269,49 @@
       }
     }
 
-    // === Core Logic ===
     async function generateHash() {
       const btn = document.getElementById('generate-btn');
       const resultBox = document.getElementById('result-display');
       const statusText = document.getElementById('status-text');
       const algo = document.getElementById('algorithm-select').value;
       
-      // Check if Text or File
       const isFileMode = document.getElementById('tab-file').classList.contains('active');
-      
       let payload = { algorithm: algo };
 
       if (isFileMode) {
         const fileInput = document.getElementById('file-input');
         if (fileInput.files.length === 0) return alert('Please select a file');
-        
-        const file = fileInput.files[0];
-        statusText.textContent = 'Reading file...';
-        
-        try {
-          const base64 = await fileToBase64(file);
-          payload.fileBase64 = base64;
-        } catch (e) {
-          return alert('Error reading file');
-        }
+        payload.file = fileInput.files[0];
+        statusText.textContent = 'Hashing file...';
       } else {
         const text = document.getElementById('text-input').value;
         if (!text) return alert('Please enter text');
         payload.text = text;
+        statusText.textContent = 'Hashing text...';
       }
 
       // UI Loading
       btn.disabled = true;
-      btn.innerHTML = 'Generating...';
-      statusText.textContent = 'Calling API...';
+      btn.innerHTML = 'Processing...';
 
       try {
-        const response = await fetch('/apps/hash-tool/api', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        // Call our local "API"
+        const result = await HashAPI.request(payload);
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
+        if (result.success) {
           resultBox.innerHTML = `
-            <span id="hash-value">${data.data.hash}</span>
+            <span id="hash-value">${result.data.hash}</span>
             <button class="copy-icon" style="display:block" onclick="copyResult()">Copy</button>
           `;
-          statusText.textContent = `Success (${data.data.inputLength})`;
+          statusText.textContent = `Done (${result.data.inputLength})`;
         } else {
-          resultBox.innerHTML = `<span style="color:#ef4444">Error: ${data.error}</span>`;
+          resultBox.innerHTML = `<span style="color:#ef4444">Error: ${result.error}</span>`;
           statusText.textContent = 'Failed';
         }
-
       } catch (err) {
         console.error(err);
-        resultBox.innerHTML = `<span style="color:#ef4444">Network Error</span>`;
-        statusText.textContent = 'Connection failed';
+        resultBox.innerHTML = `<span style="color:#ef4444">Browser Error</span>`;
+        statusText.textContent = 'Error';
       } finally {
         btn.disabled = false;
         btn.innerHTML = `
@@ -291,17 +321,9 @@
       }
     }
 
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
-    }
-
     function copyResult() {
-      const text = document.getElementById('hash-value').textContent;
+      const text = document.getElementById('hash-value')?.textContent;
+      if (!text) return;
       navigator.clipboard.writeText(text);
       const btn = document.querySelector('.copy-icon');
       const original = btn.textContent;
