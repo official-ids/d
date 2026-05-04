@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Package.json Auditor | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 1000px; margin: 0 auto; width: 100%; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+    }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(13,148,136,0.05);
+    }
+    .drop-zone input {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+    }
+
+    .btn {
+      padding: 10px 20px; background: var(--accent); color: white; border: none;
+      border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; font-size: 14px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn.secondary:hover { background: var(--bg); }
+    .btn.danger { background: var(--danger); }
+    .btn.danger:hover { background: #dc2626; }
+    .btn svg { width: 16px; height: 16px; }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--bg); padding: 16px; border-radius: 8px; text-align: center;
+      border: 1px solid var(--border);
+    }
+    .stat-val { font-size: 24px; font-weight: 800; color: var(--text); }
+    .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+    .progress-container {
+      height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+      margin: 20px 0; display: none;
+    }
+    .progress-bar {
+      height: 100%; background: var(--accent); width: 0%; transition: width 0.2s;
+    }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 12px; text-transform: uppercase; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: var(--bg); }
+    
+    .badge {
+      padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;
+      display: inline-block;
+    }
+    .badge.up-to-date { background: rgba(16,185,129,0.15); color: var(--success); }
+    .badge.outdated { background: rgba(239,68,68,0.15); color: var(--danger); }
+    .badge.dev { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+
+    .upgrade-box {
+      background: #0f172a; color: #10b981; padding: 16px; border-radius: 8px;
+      font-family: var(--font-mono); font-size: 13px; margin-top: 16px;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px; background: #334155; color: white;
+      border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
+    }
+    .copy-btn:hover { background: #475569; }
+
+    @media (max-width: 600px) {
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to Hub
+      </a>
+      <div class="logo">Pkg<span>Auditor</span></div>
+    </header>
+
+    <!-- Input Section -->
+    <div class="card">
+      <h3 style="margin-bottom: 16px;">Upload package.json</h3>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept=".json">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;margin-bottom:12px;color:var(--text-muted)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <div style="font-weight:600">Drag & Drop package.json</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:4px">or click to browse</div>
+      </div>
+      
+      <textarea id="json-text" rows="6" placeholder='Or paste package.json content here...' style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-mono);font-size:13px;resize:vertical;margin-bottom:12px"></textarea>
+      
+      <div style="display:flex;gap:12px">
+        <button class="btn" onclick="startAudit()" id="audit-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Analyze Dependencies
+        </button>
+        <button class="btn secondary" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="card" id="loading-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <strong>Checking npm registry...</strong>
+        <span id="progress-text">0%</span>
+      </div>
+      <div class="progress-container" style="display:block">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px">
+        This may take a few seconds depending on the number of packages.
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card" id="results-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3>Audit Results</h3>
+        <button class="btn secondary" onclick="document.getElementById('results-card').style.display='none'">Hide</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-total">0</div>
+          <div class="stat-label">Total Packages</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-outdated" style="color:var(--danger)">0</div>
+          <div class="stat-label">Outdated</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-latest" style="color:var(--success)">0</div>
+          <div class="stat-label">Up to Date</div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Package</th>
+              <th>Type</th>
+              <th>Current</th>
+              <th>Latest</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="upgrade-box" id="upgrade-box">
+        <button class="copy-btn" onclick="copyCommand()">Copy</button>
+        <div id="cmd-text">Command will appear here...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let resultsData = [];
+
+    // Drag and Drop Logic
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files[0]) readFile(e.target.files[0]);
+    });
+
+    function readFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('json-text').value = e.target.result;
+      };
+      reader.readAsText(file);
+    }
+
+    function clearAll() {
+      document.getElementById('json-text').value = '';
+      document.getElementById('results-card').style.display = 'none';
+      document.getElementById('loading-card').style.display = 'none';
+      resultsData = [];
+    }
+
+    async function startAudit() {
+      const text = document.getElementById('json-text').value.trim();
+      if (!text) return alert('Please upload or paste package.json content.');
+
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        return alert('Invalid JSON format.');
+      }
+
+      const deps = json.dependencies || {};
+      const devDeps = json.devDependencies || {};
+      
+      // Combine into a list
+      const packages = [
+        ...Object.entries(deps).map(([name, ver]) => ({ name, current: ver, type: 'dependencies' })),
+        ...Object.entries(devDeps).map(([name, ver]) => ({ name, current: ver, type: 'devDependencies' }))
+      ];
+
+      if (packages.length === 0) return alert('No dependencies found.');
+
+      // UI Setup
+      document.getElementById('loading-card').style.display = 'block';
+      document.getElementById('results-card').style.display = 'none';
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+      
+      resultsData = [];
+      let completed = 0;
+      const total = packages.length;
+
+      // Process in chunks to avoid browser freeze and rate limiting
+      const CHUNK_SIZE = 5; 
+      
+      for (let i = 0; i < packages.length; i += CHUNK_SIZE) {
+        const chunk = packages.slice(i, i + CHUNK_SIZE);
+        
+        // Process chunk concurrently
+        const promises = chunk.map(async (pkg) => {
+          try {
+            const res = await fetch(`https://registry.npmjs.org/${pkg.name}`);
+            if (res.ok) {
+              const data = await res.json();
+              const latest = data['dist-tags'].latest;
+              return { ...pkg, latest: latest, error: null };
+            }
+            return { ...pkg, latest: 'Error', error: true };
+          } catch (e) {
+            return { ...pkg, latest: 'Network Error', error: true };
+          }
+        });
+
+        const results = await Promise.all(promises);
+        resultsData = resultsData.concat(results);
+
+        completed += chunk.length;
+        const percent = Math.round((completed / total) * 100);
+        progressBar.style.width = percent + '%';
+        progressText.textContent = percent + '%';
+      }
+
+      renderResults(resultsData);
+    }
+
+    function renderResults(data) {
+      document.getElementById('loading-card').style.display = 'none';
+      document.getElementById('results-card').style.display = 'block';
+      
+      const tbody = document.getElementById('results-body');
+      tbody.innerHTML = '';
+      
+      let outdatedCount = 0;
+      let latestCount = 0;
+      let upgradeCmd = 'npm install';
+
+      // Sort: Outdated first
+      data.sort((a, b) => {
+        if (a.latest === 'Error') return 1;
+        if (b.latest === 'Error') return -1;
+        // Simple version comparison logic (works for semver x.x.x)
+        return compareVersions(a.latest, b.latest); 
+      });
+
+      data.forEach(pkg => {
+        const isOutdated = compareVersions(pkg.latest, pkg.current) > 0;
+        const isDev = pkg.type === 'devDependencies';
+        
+        if (isOutdated) {
+          outdatedCount++;
+          upgradeCmd += ` ${pkg.name}@latest`;
+        } else {
+          latestCount++;
+        }
+
+        const row = `
+          <tr>
+            <td style="font-weight:600">${pkg.name}</td>
+            <td>${isDev ? '<span class="badge dev">Dev</span>' : 'Prod'}</td>
+            <td style="font-family:var(--font-mono);font-size:12px">${pkg.current}</td>
+            <td style="font-family:var(--font-mono);font-size:12px;font-weight:bold;color:${isOutdated ? 'var(--danger)' : 'var(--success)'}">${pkg.latest}</td>
+            <td>
+              ${pkg.error 
+                ? '<span class="badge" style="background:#eee;color:#666">Fetch Error</span>'
+                : `<span class="badge ${isOutdated ? 'outdated' : 'up-to-date'}">${isOutdated ? 'Outdated' : 'Up to Date'}</span>`
+              }
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+
+      document.getElementById('stat-total').textContent = data.length;
+      document.getElementById('stat-outdated').textContent = outdatedCount;
+      document.getElementById('stat-latest').textContent = latestCount;
+      document.getElementById('cmd-text').textContent = upgradeCmd;
+    }
+
+    // Simple semver comparator (major.minor.patch)
+    function compareVersions(v1, v2) {
+      if (!v1 || !v2) return 0;
+      const v1parts = v1.replace(/[^\d.]/g, '').split('.').map(Number);
+      const v2parts = v2.replace(/[^\d.]/g, '').split('.').map(Number);
+      
+      for (let i = 0; i < 3; i++) {
+        const n1 = v1parts[i] || 0;
+        const n2 = v2parts[i] || 0;
+        if (n1 > n2) return 1;
+        if (n1 < n2) return -1;
+      }
+      return 0;
+    }
+
+    function copyCommand() {
+      const cmd = document.getElementById('cmd-text').textContent;
+      navigator.clipboard.writeText(cmd);
+      const btn = document.querySelector('.copy-btn');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = original, 2000);
+    }
+  </script>
+</body>
+</html>
