@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQLite Browser | SERAVIEL LABS</title>
+  <!-- Подключаем sql.js (SQLite на WebAssembly) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px; background: var(--surface); border-bottom: 2px solid var(--border);
+      height: 60px; flex-shrink: 0;
+    }
+    .logo { font-weight: 800; font-size: 18px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    /* Layout */
+    .main-layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+    }
+    .sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); }
+    .sidebar-title { font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--text-muted); }
+    .table-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .table-item {
+      padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
+      display: flex; align-items: center; gap: 8px; transition: background 0.2s;
+    }
+    .table-item:hover { background: var(--bg); }
+    .table-item.active { background: rgba(13,148,136,0.1); color: var(--accent); font-weight: 600; }
+    .table-item svg { width: 14px; height: 14px; opacity: 0.7; }
+
+    /* Content Area */
+    .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+    /* Toolbar */
+    .toolbar {
+      padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    .btn {
+      padding: 8px 16px; background: var(--accent); color: white; border: none;
+      border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px;
+      display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn.secondary:hover { background: var(--bg); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .sql-input {
+      flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-family: var(--font-mono); font-size: 13px; background: var(--bg);
+    }
+    .sql-input:focus { outline: none; border-color: var(--accent); }
+
+    /* Data Grid (Google Sheets Style) */
+    .grid-container { flex: 1; overflow: auto; padding: 24px; }
+    .data-grid {
+      border-collapse: collapse; width: 100%; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+      font-size: 13px;
+    }
+    .data-grid th {
+      position: sticky; top: 0; background: var(--surface); z-index: 10;
+      padding: 12px 16px; text-align: left; font-weight: 700; color: var(--text-muted);
+      border-bottom: 2px solid var(--border); cursor: pointer; user-select: none;
+    }
+    .data-grid th:hover { background: var(--bg); }
+    .data-grid td {
+      padding: 10px 16px; border-bottom: 1px solid var(--border);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;
+    }
+    .data-grid tr:hover { background: rgba(13,148,136,0.05); }
+    .data-grid tr:nth-child(even) { background: rgba(248,250,252,0.5); }
+
+    /* Upload Overlay */
+    .upload-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 50;
+    }
+    .drop-zone {
+      border: 3px dashed var(--border); border-radius: 16px; padding: 48px;
+      text-align: center; cursor: pointer; transition: all 0.2s; max-width: 500px;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent); background: rgba(13,148,136,0.05);
+    }
+    .drop-zone input { display: none; }
+    .drop-zone svg { width: 64px; height: 64px; color: var(--text-muted); margin-bottom: 16px; }
+    .drop-zone h3 { margin-bottom: 8px; }
+    .drop-zone p { color: var(--text-muted); font-size: 14px; }
+
+    /* Status Bar */
+    .status-bar {
+      padding: 8px 24px; background: var(--surface); border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between;
+    }
+
+    /* Empty State */
+    .empty-state { text-align: center; padding: 48px; color: var(--text-muted); }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; } /* Hide sidebar on mobile for simplicity */
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .sql-input { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Back to Hub
+    </a>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      SQLite<span>Browser</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted)">Client-side • No Uploads</div>
+  </header>
+
+  <div class="main-layout">
+    <!-- Sidebar: Tables -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">TABLES</div>
+        <div id="db-name" style="font-size:12px;font-weight:600;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;display:block">No DB loaded</div>
+      </div>
+      <div class="table-list" id="table-list">
+        <div style="padding:12px;font-size:13px;color:var(--text-muted)">Load a database to see tables</div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <button class="btn secondary" onclick="document.getElementById('file-input').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Open DB
+        </button>
+        <input type="file" id="file-input" accept=".db,.sqlite,.sqlite3">
+        
+        <input type="text" class="sql-input" id="sql-input" value="SELECT * FROM " placeholder="Enter SQL query..." disabled>
+        <button class="btn" id="run-btn" onclick="runQuery()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Run
+        </button>
+        <button class="btn secondary" onclick="exportData('csv')" id="export-csv" disabled>CSV</button>
+        <button class="btn secondary" onclick="exportData('json')" id="export-json" disabled>JSON</button>
+      </div>
+
+      <!-- Grid Area -->
+      <div class="grid-container">
+        <div id="grid-wrapper">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <h3 style="margin-bottom:8px">No Database Loaded</h3>
+            <p>Upload a .sqlite or .db file to start browsing</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span id="status-text">Ready</span>
+        <span id="row-count"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Overlay (Initial State) -->
+  <div class="upload-overlay" id="upload-overlay">
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="drop-input" accept=".db,.sqlite,.sqlite3">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <h3>Drop SQLite file here</h3>
+      <p>Supports .db, .sqlite, .sqlite3 • Processed locally in browser</p>
+      <div style="margin-top:16px;font-size:12px;color:var(--text-muted)">
+        Or <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="document.getElementById('drop-input').click()">browse files</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let db = null;
+    let currentTable = null;
+    let lastResults = null;
+    let sortCol = null;
+    let sortAsc = true;
+
+    // Initialize sql.js
+    const SQL = initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` });
+
+    // File Handling
+    const fileInput = document.getElementById('file-input');
+    const dropInput = document.getElementById('drop-input');
+    const dropZone = document.getElementById('drop-zone');
+    const overlay = document.getElementById('upload-overlay');
+
+    [fileInput, dropInput].forEach(input => {
+      input.addEventListener('change', e => handleFile(e.target.files[0]));
+    });
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+
+    async function handleFile(file) {
+      if (!file) return;
+      setStatus('Loading database...');
+      
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const u8 = new Uint8Array(reader.result);
+          const SQLLib = await SQL;
+          db = new SQLLib.Database(u8);
+          
+          // UI Updates
+          overlay.style.display = 'none';
+          document.getElementById('db-name').textContent = file.name;
+          document.getElementById('sql-input').disabled = false;
+          document.getElementById('run-btn').disabled = false;
+          
+          loadTableList();
+          setStatus('Database loaded successfully');
+        } catch (err) {
+          console.error(err);
+          setStatus('Error: Not a valid SQLite file', true);
+          alert('Failed to load database. Make sure it is a valid SQLite file.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function loadTableList() {
+      if (!db) return;
+      const list = document.getElementById('table-list');
+      list.innerHTML = '';
+      
+      // Get all tables
+      const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+      
+      if (tables.length === 0 || !tables[0].values) {
+        list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-muted)">No tables found</div>';
+        return;
+      }
+
+      tables[0].values.forEach(row => {
+        const name = row[0];
+        const div = document.createElement('div');
+        div.className = 'table-item';
+        div.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> ${name}`;
+        div.onclick = () => selectTable(name);
+        list.appendChild(div);
+      });
+    }
+
+    function selectTable(tableName) {
+      currentTable = tableName;
+      document.querySelectorAll('.table-item').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      
+      document.getElementById('sql-input').value = `SELECT * FROM "${tableName}" LIMIT 100`;
+      runQuery();
+    }
+
+    function runQuery() {
+      if (!db) return;
+      const sql = document.getElementById('sql-input').value;
+      setStatus('Executing query...');
+      
+      try {
+        const start = performance.now();
+        const results = db.exec(sql);
+        const duration = Math.round(performance.now() - start);
+        
+        if (results.length === 0) {
+          renderEmpty("Query executed successfully, but returned no data.");
+          setStatus(`Done in ${duration}ms (No results)`);
+          lastResults = null;
+          disableExports();
+          return;
+        }
+
+        lastResults = results[0];
+        renderGrid(lastResults);
+        setStatus(`Done in ${duration}ms`);
+        document.getElementById('row-count').textContent = `${lastResults.values.length} rows`;
+        enableExports();
+        
+      } catch (err) {
+        renderEmpty(`Error: ${err.message}`);
+        setStatus('Query failed', true);
+        lastResults = null;
+        disableExports();
+      }
+    }
+
+    function renderGrid(data) {
+      const { columns, values } = data;
+      const wrapper = document.getElementById('grid-wrapper');
+      
+      let html = '<table class="data-grid"><thead><tr>';
+      columns.forEach(col => {
+        html += `<th onclick="sortColumn('${col}')">${escapeHtml(col)} ${sortCol === col ? (sortAsc ? '▲' : '▼') : ''}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+      
+      values.forEach(row => {
+        html += '<tr>';
+        row.forEach(cell => {
+          const val = cell === null ? '<span style="color:var(--text-muted);font-style:italic">NULL</span>' : escapeHtml(String(cell));
+          html += `<td title="${escapeHtml(String(cell))}">${val}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      
+      wrapper.innerHTML = html;
+    }
+
+    function renderEmpty(msg) {
+      document.getElementById('grid-wrapper').innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <h3 style="margin-bottom:8px">No Data</h3>
+          <p>${msg}</p>
+        </div>
+      `;
+    }
+
+    function sortColumn(col) {
+      if (!lastResults || sortCol !== col) {
+        sortCol = col;
+        sortAsc = true;
+      } else {
+        sortAsc = !sortAsc;
+      }
+      
+      const idx = lastResults.columns.indexOf(col);
+      lastResults.values.sort((a, b) => {
+        const va = a[idx], vb = b[idx];
+        if (va === vb) return 0;
+        if (va === null) return 1;
+        if (vb === null) return -1;
+        return sortAsc 
+          ? String(va).localeCompare(String(vb)) 
+          : String(vb).localeCompare(String(va));
+      });
+      
+      renderGrid(lastResults);
+    }
+
+    function exportData(format) {
+      if (!lastResults) return;
+      const { columns, values } = lastResults;
+      
+      let content = '';
+      let mime = '';
+      let ext = '';
+      
+      if (format === 'csv') {
+        mime = 'text/csv';
+        ext = 'csv';
+        content += columns.join(',') + '\n';
+        values.forEach(row => {
+          content += row.map(v => {
+            const s = String(v ?? '');
+            return s.includes(',') ? `"${s.replace(/"/g, '""')}"` : s;
+          }).join(',') + '\n';
+        });
+      } else {
+        mime = 'application/json';
+        ext = 'json';
+        const json = values.map(row => {
+          const obj = {};
+          columns.forEach((col, i) => obj[col] = row[i]);
+          return obj;
+        });
+        content = JSON.stringify(json, null, 2);
+      }
+      
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `export_${currentTable || 'query'}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setStatus(`Exported as ${ext.toUpperCase()}`);
+    }
+
+    // UI Helpers
+    function setStatus(msg, isError = false) {
+      const el = document.getElementById('status-text');
+      el.textContent = msg;
+      el.style.color = isError ? 'var(--danger)' : 'var(--text-muted)';
+    }
+    
+    function enableExports() {
+      document.getElementById('export-csv').disabled = false;
+      document.getElementById('export-json').disabled = false;
+    }
+    
+    function disableExports() {
+      document.getElementById('export-csv').disabled = true;
+      document.getElementById('export-json').disabled = true;
+    }
+
+    function escapeHtml(text) {
+      if (text === null || text === undefined) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
