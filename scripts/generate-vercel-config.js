@@ -86,14 +86,9 @@ function generateManifest() {
 const apps = generateManifest();
 const projects = apps.map(a => a.id);
 
-if (projects.length === 0) {
-  console.log('ℹ️ Нет проектов в apps/.');
-  process.exit(0);
-}
-
 const rewrites = [];
 
-// --- 1. API МАРШРУТЫ (Самый высокий приоритет) ---
+// 1. API МАРШРУТЫ (Высший приоритет)
 projects.forEach(project => {
   const apiPath = path.join(APPS_DIR, project, 'api.js');
   if (fs.existsSync(apiPath)) {
@@ -105,19 +100,15 @@ projects.forEach(project => {
   }
 });
 
-// --- 2. ПРОВЕРКА РЕАЛЬНЫХ ФАЙЛОВ (КРИТИЧНО!) ---
-// Это правило говорит Vercel: "Если файл (index.html, 404.html, стили) существует — отдай его сразу"
-rewrites.push({ "handle": "filesystem" });
-
-// --- 3. ВИРТУАЛЬНЫЕ ПУТИ ПРИЛОЖЕНИЙ ---
-// Сработает только если не найден реальный файл (например, переход по /palette)
+// 2. МАРШРУТЫ ПРИЛОЖЕНИЙ
+// Мы просто пробрасываем всё, что внутри папки проекта
 projects.forEach(project => {
-  // Для файлов внутри папок приложений (картинки, стили)
+  // Если запрашивают файл со расширением (картинка, стили, скрипт)
   rewrites.push({
-    source: `/${project}/:file(.*\\..*)`,
-    destination: `/apps/${project}/:file`
+    source: `/${project}/(.*\\..*)`,
+    destination: `/apps/${project}/$1`
   });
-  // Для входа в приложение
+  // Если запрашивают само приложение (отдаем index.html)
   rewrites.push({
     source: `/${project}`,
     destination: `/apps/${project}/index.html`
@@ -128,18 +119,13 @@ projects.forEach(project => {
   });
 });
 
-// --- 4. ОСТАЛЬНЫЕ СТРАНИЦЫ ---
+// 3. СТАТИЧЕСКИЕ СТРАНИЦЫ
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
-rewrites.push({ source: '/', destination: '/index.html' });
 
-// --- 5. ФИНАЛЬНЫЙ CATCH-ALL ДЛЯ 404 ---
-// Если мы дошли сюда, значит пути нет ни в файлах, ни в проектах.
-// Важно: не используй расширение .html здесь, если cleanUrls: true
-rewrites.push({
-  source: '/:path*',
-  destination: '/404.html'
-});
+// !!! ВАЖНО !!!
+// УДАЛИ ЛЮБЫЕ ПРАВИЛА ДЛЯ 404 ОТСЮДА.
+// МЫ БУДЕМ ИСПОЛЬЗОВАТЬ АВТОМАТИКУ VERCEL.
 
 const config = {
   version: 2,
@@ -156,6 +142,6 @@ const config = {
     }
   ]
 };
+
 const outputPath = path.join(ROOT, 'vercel.json');
 fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
-console.log(`✅ vercel.json сгенерирован`);
