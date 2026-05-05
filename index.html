@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -320,19 +322,6 @@
 
 </head>
 
-
-  <script>
-    // Скрыть баннер если пользователь уже закрыл его
-    if (localStorage.getItem('noticeClosed') === 'true') {
-      document.getElementById('siteNotice').style.display = 'none';
-    }
-    // Сохранить выбор при закрытии
-    document.querySelector('.notice-close')?.addEventListener('click', () => {
-      localStorage.setItem('noticeClosed', 'true');
-    });
-  </script>
-</body>
-
 <body>
   <!-- === NOTICE BANNER: Site Closed === -->
   <div class="site-notice" id="siteNotice">
@@ -400,15 +389,6 @@
       <small id="countdown-text">через <span id="years-left">4</span> года</small>
     </div>
   </section>
-  <script>
-    // Простой расчёт лет до 2029
-    (function() {
-      const yearsLeft = 2029 - new Date().getFullYear();
-      const el = document.getElementById('years-left');
-      if (el) el.textContent = Math.max(0, yearsLeft);
-    })();
-  </script>
-
   <!-- === DOWNLOAD ARCHIVE (Quick) === -->
   <section class="download-section">
     <a href="/archive/seraviel-labs-2026.zip" class="btn-download" download>
@@ -428,3 +408,15 @@
       Следующая версия сайта планируется в 2029 году.
     </p>
   </footer>
+
+  <!-- СКРИПТ БАННЕРА (перенесён сюда) -->
+  <script>
+    if (localStorage.getItem('noticeClosed') === 'true') {
+      document.getElementById('siteNotice').style.display = 'none';
+    }
+    document.querySelector('.notice-close')?.addEventListener('click', () => {
+      localStorage.setItem('noticeClosed', 'true');
+    });
+  </script>
+</body>
+</html>
