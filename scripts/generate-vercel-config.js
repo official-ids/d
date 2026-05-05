@@ -93,43 +93,29 @@ if (projects.length === 0) {
 
 const rewrites = [];
 
-// --- ПРИОРИТЕТ 1: API МАРШРУТЫ ---
-// API должны идти первыми, чтобы перехватывать запросы до того, как они уйдут в статику
+// 1. API маршруты (самый высокий приоритет)
 projects.forEach(project => {
   const apiPath = path.join(APPS_DIR, project, 'api.js');
-  
   if (fs.existsSync(apiPath)) {
-    // Маршрут: /project/api
-    rewrites.push({
-      source: `/${project}/api`,
-      destination: `/api/${project}`
-    });
+    rewrites.push({ source: `/${project}/api`, destination: `/api/${project}` });
+    rewrites.push({ source: `/apps/${project}/api`, destination: `/api/${project}` });
     
-    // Дублирующий маршрут: /apps/project/api
-    rewrites.push({
-      source: `/apps/${project}/api`,
-      destination: `/api/${project}`
-    });
-    
-    // Создание файла функции в /api/ (если его нет)
     const apiDir = path.join(ROOT, 'api');
     if (!fs.existsSync(apiDir)) fs.mkdirSync(apiDir, { recursive: true });
-    
-    const apiContent = fs.readFileSync(apiPath, 'utf8');
-    fs.writeFileSync(path.join(apiDir, `${project}.js`), `// Auto-generated\n${apiContent}`);
+    fs.writeFileSync(path.join(apiDir, `${project}.js`), fs.readFileSync(apiPath, 'utf8'));
   }
 });
 
-// --- ПРИОРИТЕТ 2: СТАТИЧЕСКИЕ ФАЙЛЫ ПРИЛОЖЕНИЙ (Assets) ---
-// Это правило позволяет загружать скрипты и стили: /project/script.js -> /apps/project/script.js
+// 2. Статические файлы проектов (скрипты, картинки)
+// Это важно, чтобы внутри /palette/ грузились /palette/style.css
 projects.forEach(project => {
   rewrites.push({
-    source: `/${project}/:asset(.*\\..*)`, // Ищем файлы с точкой (напр. .js, .css, .png)
-    destination: `/apps/${project}/:asset`
+    source: `/${project}/:file(.*\\..*)`,
+    destination: `/apps/${project}/:file`
   });
 });
 
-// --- ПРИОРИТЕТ 3: ТОЧКИ ВХОДА В ПРИЛОЖЕНИЯ (index.html) ---
+// 3. Точки входа в проекты
 projects.forEach(project => {
   rewrites.push({
     source: `/${project}`,
@@ -141,25 +127,19 @@ projects.forEach(project => {
   });
 });
 
-// --- ПРИОРИТЕТ 4: ОБЩИЕ СТРАНИЦЫ ---
+// 4. Глобальные страницы (БЕЗ 404!)
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
-rewrites.push({ source: '/', destination: '/index.html' });
 
-// --- ПРИОРИТЕТ 5: ЯВНЫЙ ПЕРЕХВАТ 404 ---
-// Если ничего выше не сработало, и это не физический файл — отдаем 404.html
-// Мы используем регулярку, которая НЕ трогает системные пути Vercel
-rewrites.push({
-  source: '/:path((?!api|_next|static|favicon).*)',
-  destination: '/404.html'
-});
+// 5. ВАЖНО: Удаляем любые упоминания 404.html из rewrites.
+// Если файла нет в списке выше и его нет физически, 
+// Vercel автоматически отдаст 404.html из корня со статусом 404.
 
-// === Сборка финального конфига ===
 const config = {
   version: 2,
   cleanUrls: true,
   trailingSlash: false,
-  rewrites,
+  rewrites, // Vercel применит их по порядку
   headers: [
     {
       source: '/(.*)',
@@ -167,21 +147,10 @@ const config = {
         { key: 'X-Content-Type-Options', value: 'nosniff' },
         { key: 'X-Frame-Options', value: 'DENY' }
       ]
-    },
-    {
-      source: '/apps/:project/api',
-      headers: [
-        { key: 'Access-Control-Allow-Origin', value: '*' },
-        { key: 'Access-Control-Allow-Methods', value: 'POST, OPTIONS' },
-        { key: 'Access-Control-Allow-Headers', value: 'Content-Type' }
-      ]
     }
   ]
 };
 
 const outputPath = path.join(ROOT, 'vercel.json');
 fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
-
-console.log(`✅ vercel.json сгенерирован успешно!`);
-console.log(`📦 Проектов: ${projects.length}`);
-console.log(`🔗 Маршруты: /info, /list, ${projects.map(p => `/${p}`).join(', ')}`);
+console.log(`✅ vercel.json сгенерирован`);
