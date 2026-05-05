@@ -91,14 +91,14 @@ if (projects.length === 0) {
   process.exit(0);
 }
 
+// ПРАВИЛЬНЫЙ ПОРЯДОК:
 const rewrites = [];
 
-// 1. API маршруты (самый высокий приоритет)
+// 1. API (Самый высокий приоритет)
 projects.forEach(project => {
   const apiPath = path.join(APPS_DIR, project, 'api.js');
   if (fs.existsSync(apiPath)) {
     rewrites.push({ source: `/${project}/api`, destination: `/api/${project}` });
-    rewrites.push({ source: `/apps/${project}/api`, destination: `/api/${project}` });
     
     const apiDir = path.join(ROOT, 'api');
     if (!fs.existsSync(apiDir)) fs.mkdirSync(apiDir, { recursive: true });
@@ -106,17 +106,18 @@ projects.forEach(project => {
   }
 });
 
-// 2. Статические файлы проектов (скрипты, картинки)
-// Это важно, чтобы внутри /palette/ грузились /palette/style.css
+// 2. ФАЙЛОВАЯ СИСТЕМА (Критически важно!)
+// Говорим Vercel: "Если такой файл (index.html, favicon, 404.html) существует реально - отдай его и СТОП"
+rewrites.push({ "handle": "filesystem" });
+
+// 3. ВИРТУАЛЬНЫЕ ПУТИ (Сработают, только если файла нет)
 projects.forEach(project => {
+  // Статика внутри папок приложений (.js, .css, .png...)
   rewrites.push({
     source: `/${project}/:file(.*\\..*)`,
     destination: `/apps/${project}/:file`
   });
-});
-
-// 3. Точки входа в проекты
-projects.forEach(project => {
+  // Точки входа в приложения
   rewrites.push({
     source: `/${project}`,
     destination: `/apps/${project}/index.html`
@@ -127,13 +128,9 @@ projects.forEach(project => {
   });
 });
 
-// 4. Глобальные страницы (БЕЗ 404!)
+// 4. Остальные статические страницы
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
-
-// 5. ВАЖНО: Удаляем любые упоминания 404.html из rewrites.
-// Если файла нет в списке выше и его нет физически, 
-// Vercel автоматически отдаст 404.html из корня со статусом 404.
 
 const config = {
   version: 2,
