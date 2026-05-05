@@ -101,14 +101,13 @@ projects.forEach(project => {
 });
 
 // 2. МАРШРУТЫ ПРИЛОЖЕНИЙ
-// Мы просто пробрасываем всё, что внутри папки проекта
 projects.forEach(project => {
-  // Если запрашивают файл со расширением (картинка, стили, скрипт)
+  // Для файлов (картинки, стили) - используем более надежный синтаксис
   rewrites.push({
-    source: `/${project}/(.*\\..*)`,
-    destination: `/apps/${project}/$1`
+    source: `/${project}/:path((.*\\..*))`,
+    destination: `/apps/${project}/:path`
   });
-  // Если запрашивают само приложение (отдаем index.html)
+  // Для самого приложения
   rewrites.push({
     source: `/${project}`,
     destination: `/apps/${project}/index.html`
@@ -122,16 +121,23 @@ projects.forEach(project => {
 // 3. СТАТИЧЕСКИЕ СТРАНИЦЫ
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
+rewrites.push({ source: '/', destination: '/index.html' });
 
-// !!! ВАЖНО !!!
-// УДАЛИ ЛЮБЫЕ ПРАВИЛА ДЛЯ 404 ОТСЮДА.
-// МЫ БУДЕМ ИСПОЛЬЗОВАТЬ АВТОМАТИКУ VERCEL.
-
+// === ИТОГОВЫЙ КОНФИГ ===
 const config = {
   version: 2,
   cleanUrls: true,
   trailingSlash: false,
-  rewrites,
+  
+  // ОСНОВНЫЕ ПРАВИЛА
+  rewrites: rewrites,
+
+  // ЗАПАСНОЙ ВАРИАНТ (Если ничего не найдено)
+  // Используем /404 БЕЗ .html, так как cleanUrls его уберет
+  fallback: [
+    { "source": "/:path*", "destination": "/404" }
+  ],
+
   headers: [
     {
       source: '/(.*)',
