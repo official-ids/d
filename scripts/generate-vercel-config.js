@@ -148,15 +148,17 @@ rewrites.push({
   destination: '/404.html' 
 });
 
-// === Конфиг (БЕЗ outputDirectory!) ===
+// === Конфиг с явной 404 страницей ===
 const config = {
   version: 2,
   cleanUrls: true,
-  // outputDirectory: ".",  ← УДАЛЕНО: мешает работе Serverless Functions
   trailingSlash: false,
   rewrites,
+  errorPages: {
+    '404': '/404.html',
+    '500': '/404.html'  // или создай отдельную 500.html
+  },
   headers: [
-    // Общие заголовки безопасности
     {
       source: '/(.*)',
       headers: [
@@ -164,7 +166,6 @@ const config = {
         { key: 'X-Frame-Options', value: 'DENY' }
       ]
     },
-    // CORS для API-эндпоинтов
     {
       source: '/apps/:project/api',
       headers: [
