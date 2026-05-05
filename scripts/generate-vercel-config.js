@@ -141,13 +141,6 @@ projects.forEach(project => {
 // 3. Корень сайта
 rewrites.push({ source: '/', destination: '/index.html' });
 
-// 4. Catch-all для 404 — В САМЫЙ КОНЕЦ, с правильным регексом
-// Исключаем: _next, api/, apps/, info, list, 404, и файлы с точкой (картинки, стили, и т.д.)
-rewrites.push({ 
-  source: '/((?!_next|api/|apps/|info|list|404|.*\\.).*)', 
-  destination: '/404.html' 
-});
-
 // === Конфиг с явной 404 страницей ===
 const config = {
   version: 2,
