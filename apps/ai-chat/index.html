@@ -363,7 +363,7 @@
       const dot = document.getElementById('status-dot');
       const text = document.getElementById('status-text');
       if (dot && text) {
-        dot.className = 'status-dot' + (state ? '' : ' connected');
+        dot.className = 'status-dot' + (state ? ' loading' : ' connected');
         text.textContent = state ? 'Thinking...' : 'Ready';
       }
     }
