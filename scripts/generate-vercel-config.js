@@ -144,9 +144,6 @@ const config = {
   outputDirectory: ".",
   trailingSlash: false,
   rewrites,
-  errors: {
-    '404': '/404.html'  // ← Явно указываем файл для 404
-  },
   headers: [
     // Общие заголовки безопасности
     {
