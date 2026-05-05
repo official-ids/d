@@ -158,7 +158,6 @@ rewrites.push({ source: '/', destination: '/index.html' });
 
 const config = {
   version: 2,
-  outputDirectory: ".",
   cleanUrls: true,
   trailingSlash: false,
   rewrites,
