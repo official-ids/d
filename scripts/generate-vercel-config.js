@@ -110,15 +110,18 @@ rewrites.push({ source: '/info', destination: '/info/index.html' }); // ← ДО
 
 // 2. Правила для проектов (сначала API, потом статика)
 projects.forEach(project => {
+  // === ПРОПУСК: ai-chat закоммичен напрямую, не генерируем ===
+  if (project === 'ai-chat') return;
+  
   const apiPath = path.join(APPS_DIR, project, 'api.js');
   
-    // === ПРОВЕРКА: Есть ли API файл? ===
+  // === ПРОВЕРКА: Есть ли API файл? ===
   if (fs.existsSync(apiPath)) {
     // 1. API endpoint (ПЕРВЫМ!)
     rewrites.push({
       source: `/apps/${project}/api`,
       destination: `/api/${project}`
-    }); // ← ДОБАВИЛИ ;
+    });
     
     // 2. Короткий алиас
     rewrites.push({
