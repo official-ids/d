@@ -138,6 +138,8 @@ projects.forEach(project => {
 // Корень сайта — в конце
 rewrites.push({ source: '/', destination: '/index.html' });
 
+rewrites.push({ source: '/:path*', destination: '/404.html' });
+
 const config = {
   version: 2,
   cleanUrls: true,
