@@ -22,7 +22,6 @@ function generateManifest() {
     const pkgPath = path.join(APPS_DIR, project, 'package.json');
     const indexPath = path.join(APPS_DIR, project, 'index.html');
     
-    // Пытаемся извлечь метаданные из package.json или index.html
     let name = project.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     let description = 'Tool by SERAVIEL LABS';
     let icon = '🧩';
@@ -37,7 +36,6 @@ function generateManifest() {
       } catch (e) {}
     }
 
-    // Пытаемся найти <title> в index.html для имени
     if (fs.existsSync(indexPath)) {
       const html = fs.readFileSync(indexPath, 'utf8');
       const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
@@ -47,14 +45,8 @@ function generateManifest() {
           name = title.replace(/\s*\|\s*.*/, '').trim();
         }
       }
-      // Пытаемся найти эмодзи-иконку в <svg> или заголовке
-      const iconMatch = html.match(/<div[^>]*class="[^"]*logo[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
-      if (iconMatch && iconMatch[1].includes('svg')) {
-        // Если есть SVG логотип — оставляем дефолтную иконку
-      }
     }
 
-    // Авто-теги на основе названия папки
     const autoTags = {
       'palette': ['colors', 'design'],
       'qr-generator': ['qr', 'tools'],
@@ -68,8 +60,6 @@ function generateManifest() {
       'favicon-generator': ['favicon', 'seo'],
       'hash-generator': ['crypto', 'security'],
       'url-builder': ['url', 'tools'],
-      'web-terminal': ['terminal', 'shell'],
-      'console': ['terminal', 'backend']
     };
     if (autoTags[project]) tags = [...new Set([...tags, ...autoTags[project]])];
 
@@ -79,7 +69,7 @@ function generateManifest() {
       description,
       icon,
       path: `/apps/${project}`,
-      tags: tags.slice(0, 4) // максимум 4 тега
+      tags: tags.slice(0, 4)
     };
   });
 
@@ -101,41 +91,33 @@ if (projects.length === 0) {
   process.exit(0);
 }
 
-// Формируем rewrites
 const rewrites = [];
 
-// 1. Статические страницы каталога и инфо
+// Статические страницы каталога и инфо
 rewrites.push({ source: '/list', destination: '/list/index.html' });
-rewrites.push({ source: '/info', destination: '/info/index.html' }); // ← ДОБАВИТЬ ЭТУ СТРОКУ
+rewrites.push({ source: '/info', destination: '/info/index.html' });
 
-// 2. Правила для проектов (сначала API, потом статика)
+// Правила для проектов
 projects.forEach(project => {
-  // === ПРОПУСК: ai-chat закоммичен напрямую, не генерируем ===
-  if (project === 'ai-chat') return;
-  
   const apiPath = path.join(APPS_DIR, project, 'api.js');
   
-  // === ПРОВЕРКА: Есть ли API файл? ===
+  // Генерация API-маршрутов (если есть api.js)
   if (fs.existsSync(apiPath)) {
-    // 1. API endpoint (ПЕРВЫМ!)
     rewrites.push({
       source: `/apps/${project}/api`,
       destination: `/api/${project}`
     });
     
-    // 2. Короткий алиас
     rewrites.push({
       source: `/${project}/api`,
       destination: `/api/${project}`
     });
     
-    // 3. Папка /api/
     const apiDir = path.join(ROOT, 'api');
     if (!fs.existsSync(apiDir)) {
       fs.mkdirSync(apiDir, { recursive: true });
     }
     
-    // 4. Копируем функцию
     const apiContent = fs.readFileSync(apiPath, 'utf8');
     const targetPath = path.join(apiDir, `${project}.js`);
     
@@ -145,7 +127,7 @@ projects.forEach(project => {
     console.log(`   🔌 API создан: /api/${project}.js`);
   }
 
-  // === СТАТИЧЕСКИЕ ФАЙЛЫ (после API!) ===
+  // Статические файлы проекта
   rewrites.push(
     { source: `/${project}`, destination: `/apps/${project}/index.html` },
     { source: `/${project}/`, destination: `/apps/${project}/index.html` },
@@ -153,16 +135,17 @@ projects.forEach(project => {
   );
 });
 
-// 3. Корень сайта — в КОНЦЕ
+// Корень сайта — в конце
 rewrites.push({ source: '/', destination: '/index.html' });
 
 const config = {
   version: 2,
   cleanUrls: true,
+  outputDirectory: ".",
   trailingSlash: false,
   rewrites,
   headers: [
-    // Общие заголовки безопасности для всего сайта
+    // Общие заголовки безопасности
     {
       source: '/(.*)',
       headers: [
@@ -170,7 +153,7 @@ const config = {
         { key: 'X-Frame-Options', value: 'DENY' }
       ]
     },
-    // === НОВОЕ: CORS заголовки специально для API ===
+    // CORS для API-эндпоинтов
     {
       source: '/apps/:project/api',
       headers: [
