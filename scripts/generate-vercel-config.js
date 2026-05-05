@@ -146,6 +146,9 @@ projects.forEach(project => {
 // 3. Корень сайта
 rewrites.push({ source: '/', destination: '/index.html' });
 
+// === 4. CATCH-ALL — всё остальное на 404 ===
+rewrites.push({ source: '/:path((?!_next|api|apps|list|info|404|500|.*\\.).*)', destination: '/404.html' });
+
 // === Конфиг с errorPages ===
 const config = {
   version: 2,
