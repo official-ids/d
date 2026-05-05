@@ -88,7 +88,7 @@ const projects = apps.map(a => a.id);
 
 const rewrites = [];
 
-// 1. API МАРШРУТЫ (Высший приоритет)
+// 1. ПРИОРИТЕТ: API (чтобы не перехватились статикой)
 projects.forEach(project => {
   const apiPath = path.join(APPS_DIR, project, 'api.js');
   if (fs.existsSync(apiPath)) {
@@ -100,14 +100,18 @@ projects.forEach(project => {
   }
 });
 
-// 2. МАРШРУТЫ ПРИЛОЖЕНИЙ
+// 2. КРИТИЧЕСКИЙ МОМЕНТ: ПРОВЕРКА РЕАЛЬНЫХ ФАЙЛОВ
+// Если файл существует (например, 404.html, favicon.png, /list/index.html) - отдаем его СРАЗУ
+rewrites.push({ "handle": "filesystem" });
+
+// 3. МАРШРУТЫ ПРИЛОЖЕНИЙ (Виртуальные пути)
 projects.forEach(project => {
-  // Для файлов (картинки, стили) - используем более надежный синтаксис
+  // Файлы внутри папки приложения
   rewrites.push({
-    source: `/${project}/:path((.*\\..*))`,
+    source: `/${project}/:path(.*\\..*)`,
     destination: `/apps/${project}/:path`
   });
-  // Для самого приложения
+  // Вход в приложение
   rewrites.push({
     source: `/${project}`,
     destination: `/apps/${project}/index.html`
@@ -118,26 +122,23 @@ projects.forEach(project => {
   });
 });
 
-// 3. СТАТИЧЕСКИЕ СТРАНИЦЫ
+// 4. СТАТИЧЕСКИЕ СТРАНИЦЫ
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
-rewrites.push({ source: '/', destination: '/index.html' });
 
-// === ИТОГОВЫЙ КОНФИГ ===
+// 5. ЖЕСТКИЙ CATCH-ALL ДЛЯ 404
+// Это правило сработает только если путь не подошел ни под API, 
+// ни под существующий файл, ни под проект.
+rewrites.push({
+  source: '/:path((?!api|apps|list|info|index.html|404.html).*)',
+  destination: '/404.html'
+});
+
 const config = {
   version: 2,
   cleanUrls: true,
   trailingSlash: false,
-  
-  // ОСНОВНЫЕ ПРАВИЛА
-  rewrites: rewrites,
-
-  // ЗАПАСНОЙ ВАРИАНТ (Если ничего не найдено)
-  // Используем /404 БЕЗ .html, так как cleanUrls его уберет
-  fallback: [
-    { "source": "/:path*", "destination": "/404" }
-  ],
-
+  rewrites,
   headers: [
     {
       source: '/(.*)',
