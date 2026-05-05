@@ -93,11 +93,17 @@ if (projects.length === 0) {
 
 const rewrites = [];
 
-// 1. Статические страницы каталога и 404
+// 1. Статические страницы каталога и ошибки
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
+
+// Страница 404
 rewrites.push({ source: '/404', destination: '/404.html' });
 rewrites.push({ source: '/404.html', destination: '/404.html' });
+
+// Страница 500 (ДОБАВИТЬ ВОТ ЭТО)
+rewrites.push({ source: '/500', destination: '/500.html' });
+rewrites.push({ source: '/500.html', destination: '/500.html' });
 
 // 2. Правила для проектов (API + статика)
 projects.forEach(project => {
@@ -130,27 +136,29 @@ projects.forEach(project => {
     console.log(`   🔌 API создан: /api/${project}.js`);
   }
 
-  // Статические файлы проекта
+  // Статические файлы проекта — ТОЛЬКО ТОЧНЫЕ СОВПАДЕНИЯ (без :path*)
   rewrites.push(
     { source: `/${project}`, destination: `/apps/${project}/index.html` },
-    { source: `/${project}/`, destination: `/apps/${project}/index.html` },
-    { source: `/${project}/:path*`, destination: `/apps/${project}/:path*` }
+    { source: `/${project}/`, destination: `/apps/${project}/index.html` }
   );
 });
 
 // 3. Корень сайта
 rewrites.push({ source: '/', destination: '/index.html' });
 
-// === Конфиг с явной 404 страницей ===
+// === Конфиг с errorPages ===
 const config = {
   version: 2,
   cleanUrls: true,
   trailingSlash: false,
   rewrites,
+  
+  // !!! ГЛАВНОЕ: обработка ошибок !!!
   errorPages: {
-    '404': '/404.html',
-    '500': '/404.html'  // или создай отдельную 500.html
+    '404': '/404.html',  // Страница не найдена
+    '500': '/500.html'   // Ошибка сервера (файл 500.html должен быть в корне!)
   },
+  
   headers: [
     {
       source: '/(.*)',
