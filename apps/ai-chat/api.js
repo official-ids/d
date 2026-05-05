@@ -1,32 +1,32 @@
 // apps/ai-chat/api.js
-// Serverless Function для проксирования запросов к Hugging Face API
-// Vercel Node.js 18+ поддерживает глобальный fetch — node-fetch не нужен
+// Serverless Function for proxying requests to Hugging Face API
+// Vercel Node.js 18+ supports global fetch - no node-fetch needed
 
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '2mb', // Лимит на размер запроса
+      sizeLimit: '2mb',
     },
   },
 };
 
 export default async function handler(req, res) {
-  // === CORS Headers ===
+  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // === Preflight Request ===
+  // Preflight Request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // === Method Check ===
+  // Method Check
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // === Parse Request ===
+  // Parse Request
   const { token, model, inputs, parameters } = req.body;
 
   if (!token || !model || !inputs) {
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // === Запрос к Hugging Face API ===
+    // Request to Hugging Face API
     const hfResponse = await fetch(
       `https://api-inference.huggingface.co/models/${model}`,
       {
@@ -58,44 +58,38 @@ export default async function handler(req, res) {
 
     const data = await hfResponse.json();
 
-    // === Обработка ошибок от HF ===
+    // Handle errors from HF
     if (!hfResponse.ok) {
       const errorMsg = data.error || `HF API returned ${hfResponse.status}`;
       return res.status(hfResponse.status).json({ error: errorMsg });
     }
 
-    // === Парсинг ответа ===
+    // Parse response
     let result = '';
 
     if (Array.isArray(data) && data[0]?.generated_text) {
-      // Стандартный формат: [{ generated_text: "..." }]
       result = data[0].generated_text;
     } else if (typeof data === 'string') {
-      // Редко: прямой строковый ответ
       result = data;
     } else if (data?.generated_text) {
-      // Альтернативный формат: { generated_text: "..." }
       result = data.generated_text;
     } else if (data?.[0]?.text) {
-      // Другой вариант: [{ text: "..." }]
       result = data[0].text;
     } else {
-      // Фоллбэк: сериализуем всё, что пришло
       result = JSON.stringify(data);
     }
 
-    // === Успешный ответ ===
+    // Success response
     return res.status(200).json({
       success: true,
       result: result.trim(),
-      generated_text: result.trim(), // для совместимости
+      generated_text: result.trim(),
       model,
     });
 
   } catch (err) {
     console.error('Proxy error:', err);
 
-    // === Обработка сетевых ошибок ===
     let errorMsg = 'Internal server error';
     if (err instanceof TypeError && err.message.includes('fetch')) {
       errorMsg = 'Failed to connect to Hugging Face API';

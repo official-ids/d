@@ -1,3 +1,5 @@
 # Автоматически генерируемые файлы
 node_modules/
 .DS_Store
+.api
+api/ai-chat.js
