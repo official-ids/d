@@ -1,0 +1,76 @@
+# robots.txt for SERAVIEL LABS
+# Архивная версия сайта (не обновляется)
+# Последнее обновление: 2026-05-05
+
+# === Разрешаем индексацию публичных страниц ===
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /list
+Allow: /info
+Allow: /apps/
+Allow: /apps/*/index.html
+
+# === Запрещаем служебные пути ===
+# API и внутренние эндпоинты
+Disallow: /api/
+Disallow: /api-internal/
+Disallow: /*/api
+Disallow: /*/api/
+
+# Системные папки и файлы
+Disallow: /node_modules/
+Disallow: /scripts/
+Disallow: /.git/
+Disallow: /.vercel/
+Disallow: /archive/
+
+# Параметры и динамические запросы
+Disallow: /*?*
+Disallow: /?*
+
+# Файлы конфигурации и чувствительные данные
+Disallow: /package.json
+Disallow: /vercel.json
+Disallow: /*.env*
+Disallow: /*.log
+
+# === Карты сайта ===
+Sitemap: https://seraviel-labs.vercel.app/sitemap.xml
+
+# === Настройки краулинга ===
+# Увеличиваем задержку для статического хостинга
+Crawl-delay: 2
+
+# === Специфичные правила для ботов ===
+# Блокируем агрессивных скрейперов
+User-agent: AhrefsBot
+Crawl-delay: 10
+Disallow: /
+
+User-agent: SemrushBot
+Crawl-delay: 10
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# Разрешаем поисковые системы
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Блокируем ИИ-скрейперы (опционально)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
