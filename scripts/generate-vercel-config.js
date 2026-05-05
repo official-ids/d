@@ -97,14 +97,6 @@ const rewrites = [];
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
 
-// Страница 404
-rewrites.push({ source: '/404', destination: '/404.html' });
-rewrites.push({ source: '/404.html', destination: '/404.html' });
-
-// Страница 500 (ДОБАВИТЬ ВОТ ЭТО)
-rewrites.push({ source: '/500', destination: '/500.html' });
-rewrites.push({ source: '/500.html', destination: '/500.html' });
-
 // 2. Правила для проектов (API + статика)
 projects.forEach(project => {
   const apiPath = path.join(APPS_DIR, project, 'api.js');
@@ -145,12 +137,6 @@ projects.forEach(project => {
 
 // 3. Корень сайта
 rewrites.push({ source: '/', destination: '/index.html' });
-
-// === 4. CATCH-ALL — всё остальное на 404 ===
-rewrites.push({ 
-  source: '/:path*', 
-  destination: '/404.html' 
-});
 
 // === Конфиг с errorPages ===
 const config = {
