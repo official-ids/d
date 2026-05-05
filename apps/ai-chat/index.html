@@ -281,7 +281,7 @@
       setTimeout(() => chat.scrollTop = chat.scrollHeight, 50);
     }
 
-    async function sendMessage() {
+        async function sendMessage() {
       if (isLoading) return;
       
       const input = document.getElementById('user-input');
@@ -310,31 +310,26 @@
       const model = document.getElementById('model-select')?.value || 'HuggingFaceH4/zephyr-7b-beta';
       
       try {
-        // === ПРЯМОЙ ЗАПРОС БЕЗ ПРОКСИ ===
-        const response = await fetch(HF_API + model, {
+        // === ЗАПРОС К ТВОЕМУ API (не напрямую к HF) ===
+        const response = await fetch('/apps/ai-chat/api', {
           method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            token: token,
+            model: model,
             inputs: text,
             parameters: { max_new_tokens: 1024, temperature: 0.7, return_full_text: false }
           })
         });
 
         const data = await response.json();
-        let aiText = '';
-        
-        if (Array.isArray(data) && data[0]?.generated_text) {
-          aiText = data[0].generated_text;
-        } else if (typeof data === 'string') {
-          aiText = data;
-        } else if (data?.error) {
-          throw new Error(data.error);
-        } else {
-          aiText = JSON.stringify(data);
+
+        if (!response.ok) {
+          throw new Error(data.error || `Error ${response.status}`);
         }
+
+        // Твой API возвращает { result: "..." } или { generated_text: "..." }
+        const aiText = data.result || data.generated_text || JSON.stringify(data);
 
         history.push({ role: 'ai', content: aiText.trim(), timestamp: Date.now(), model });
         saveHistory();
@@ -345,7 +340,7 @@
         if (msg.includes('503')) msg = 'Model loading. Wait ~30s.';
         else if (msg.includes('401')) msg = 'Invalid token.';
         else if (msg.includes('429')) msg = 'Rate limit. Wait.';
-        else if (msg.includes('Failed to fetch')) msg = 'CORS error. Use browser extension or deploy to Vercel.';
+        else if (msg.includes('Failed to fetch')) msg = 'API endpoint not found. Run generate-vercel-config.js and deploy.';
         addMessage('error', msg);
       } finally {
         setLoading(false);
