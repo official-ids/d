@@ -36,4 +36,116 @@
   <!-- Performance Hints -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+
+<style>
+    /* === Site Notice Banner === */
+    .site-notice {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: linear-gradient(135deg, #0d9488, #0f766e);
+      color: white;
+      z-index: 10000;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      animation: slideDown 0.3s ease-out;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .notice-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .notice-icon {
+      flex-shrink: 0;
+      width: 24px; height: 24px;
+      opacity: 0.9;
+    }
+    .notice-icon svg { width: 100%; height: 100%; }
+    .notice-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .notice-text strong {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .notice-text span {
+      opacity: 0.95;
+      font-size: 13px;
+    }
+    .notice-close {
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 6px;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      padding: 0;
+    }
+    .notice-close svg { width: 16px; height: 16px; stroke: white; }
+    .notice-close:hover { background: rgba(255,255,255,0.25); }
+
+    @media (max-width: 600px) {
+      .notice-content {
+        padding: 10px 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .notice-text {
+        width: 100%;
+        text-align: center;
+      }
+      .notice-close {
+        margin: 0 auto;
+      }
+    }
+  </style>
+
 </head>
+
+
+  <script>
+    // Скрыть баннер если пользователь уже закрыл его
+    if (localStorage.getItem('noticeClosed') === 'true') {
+      document.getElementById('siteNotice').style.display = 'none';
+    }
+    // Сохранить выбор при закрытии
+    document.querySelector('.notice-close')?.addEventListener('click', () => {
+      localStorage.setItem('noticeClosed', 'true');
+    });
+  </script>
+</body>
+
+<body>
+  <!-- === NOTICE BANNER: Site Closed === -->
+  <div class="site-notice" id="siteNotice">
+    <div class="notice-content">
+      <div class="notice-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <div class="notice-text">
+        <strong>Этот сайт больше не обновляется</strong>
+        <span>Проект завершён, но SERAVIEL LABS продолжает работу. Новый сайт планируется в 2029 году.</span>
+      </div>
+      <button class="notice-close" onclick="document.getElementById('siteNotice').style.display='none'" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ... остальной контент сайта ... -->
