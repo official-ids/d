@@ -135,8 +135,15 @@ projects.forEach(project => {
   );
 });
 
-// Корень сайта — в конце
+// Корень сайта
 rewrites.push({ source: '/', destination: '/index.html' });
+
+// === Явное правило для 404.html ===
+rewrites.push({ source: '/404', destination: '/404.html' });
+rewrites.push({ source: '/404.html', destination: '/404.html' });
+
+// === Catch-all для всех остальных несуществующих путей ===
+rewrites.push({ source: '/((?!_next|api|apps|info|list).*)', destination: '/404.html' });
 
 const config = {
   version: 2,
