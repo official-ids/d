@@ -1,6 +1,4 @@
 // api/ai-chat.js
-// Serverless Function - committed directly to repo
-
 export const config = {
   api: { bodyParser: { sizeLimit: '2mb' } }
 };
@@ -23,6 +21,8 @@ export default async function handler(req, res) {
       return;
     }
 
+    console.log('Calling HF API:', model);
+
     const hfResponse = await fetch(
       `https://api-inference.huggingface.co/models/${model}`,
       {
@@ -38,17 +38,43 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await hfResponse.json();
+    console.log('HF Response Status:', hfResponse.status);
+
+    // === ПРОВЕРКА: Получили ли JSON? ===
+    const contentType = hfResponse.headers.get('content-type');
+    const responseText = await hfResponse.text();
+    
+    console.log('HF Response Content-Type:', contentType);
+    console.log('HF Response Body (first 200 chars):', responseText.slice(0, 200));
+
+    // Если не JSON — выбрасываем ошибку
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error(`HF API returned ${hfResponse.status}: ${responseText.slice(0, 500)}`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error(`Invalid JSON from HF API: ${responseText.slice(0, 500)}`);
+    }
+
     if (!hfResponse.ok) {
       res.status(hfResponse.status).json({ error: data.error || 'HF API error' });
       return;
     }
 
+    // Парсим ответ
     let result = '';
-    if (Array.isArray(data) && data[0]?.generated_text) result = data[0].generated_text;
-    else if (typeof data === 'string') result = data;
-    else if (data?.generated_text) result = data.generated_text;
-    else result = JSON.stringify(data);
+    if (Array.isArray(data) && data[0]?.generated_text) {
+      result = data[0].generated_text;
+    } else if (typeof data === 'string') {
+      result = data;
+    } else if (data?.generated_text) {
+      result = data.generated_text;
+    } else {
+      result = JSON.stringify(data);
+    }
 
     res.status(200).json({ success: true, result: result.trim(), generated_text: result.trim(), model });
 
