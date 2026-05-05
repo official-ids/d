@@ -88,7 +88,7 @@ const projects = apps.map(a => a.id);
 
 const rewrites = [];
 
-// 1. ПРИОРИТЕТ: API (чтобы не перехватились статикой)
+// 1. ПРИОРИТЕТ: API
 projects.forEach(project => {
   const apiPath = path.join(APPS_DIR, project, 'api.js');
   if (fs.existsSync(apiPath)) {
@@ -100,18 +100,17 @@ projects.forEach(project => {
   }
 });
 
-// 2. КРИТИЧЕСКИЙ МОМЕНТ: ПРОВЕРКА РЕАЛЬНЫХ ФАЙЛОВ
-// Если файл существует (например, 404.html, favicon.png, /list/index.html) - отдаем его СРАЗУ
+// 2. ВАЖНО: Останавливаем обработку, если найден реальный файл (404.html, стили и т.д.)
 rewrites.push({ "handle": "filesystem" });
 
-// 3. МАРШРУТЫ ПРИЛОЖЕНИЙ (Виртуальные пути)
+// 3. ВИРТУАЛЬНЫЕ ПУТИ ПРИЛОЖЕНИЙ
 projects.forEach(project => {
-  // Файлы внутри папки приложения
+  // Файлы внутри приложений
   rewrites.push({
     source: `/${project}/:path(.*\\..*)`,
     destination: `/apps/${project}/:path`
   });
-  // Вход в приложение
+  // Главные страницы приложений
   rewrites.push({
     source: `/${project}`,
     destination: `/apps/${project}/index.html`
@@ -122,17 +121,17 @@ projects.forEach(project => {
   });
 });
 
-// 4. СТАТИЧЕСКИЕ СТРАНИЦЫ
+// 4. ГЛАВНЫЕ СТРАНИЦЫ САЙТА
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
 
-// 5. ЖЕСТКИЙ CATCH-ALL ДЛЯ 404
-// Это правило сработает только если путь не подошел ни под API, 
-// ни под существующий файл, ни под проект.
-rewrites.push({
-  source: '/:path((?!api|apps|list|info|index.html|404.html).*)',
-  destination: '/404.html'
-});
+// 5. КОРЕНЬ (СТРОГО "/")
+// Мы используем регулярку ^/$, чтобы правило НЕ цепляло другие пути
+rewrites.push({ source: '/$', destination: '/index.html' });
+
+// !!! ВНИМАНИЕ: МЫ НЕ ДОБАВЛЯЕМ ПРАВИЛО /:path* !!!
+// Если мы его не добавим, Vercel не найдет совпадений для /random-path
+// и автоматически перейдет к поиску файла 404.html.
 
 const config = {
   version: 2,
