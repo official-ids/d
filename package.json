@@ -1,6 +1,6 @@
 {
   "name": "seraviel-hub",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "prebuild": "node scripts/generate-vercel-config.js",
     "build": "echo '✅ Static build ready for Vercel'",
