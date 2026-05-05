@@ -147,7 +147,10 @@ projects.forEach(project => {
 rewrites.push({ source: '/', destination: '/index.html' });
 
 // === 4. CATCH-ALL — всё остальное на 404 ===
-rewrites.push({ source: '/:path((?!_next|api|apps|list|info|404|500|.*\\.).*)', destination: '/404.html' });
+rewrites.push({ 
+  source: '/:path*', 
+  destination: '/404.html' 
+});
 
 // === Конфиг с errorPages ===
 const config = {
@@ -155,13 +158,6 @@ const config = {
   cleanUrls: true,
   trailingSlash: false,
   rewrites,
-  
-  // !!! ГЛАВНОЕ: обработка ошибок !!!
-  errorPages: {
-    '404': '/404.html',  // Страница не найдена
-    '500': '/500.html'   // Ошибка сервера (файл 500.html должен быть в корне!)
-  },
-  
   headers: [
     {
       source: '/(.*)',
