@@ -93,15 +93,17 @@ if (projects.length === 0) {
 
 const rewrites = [];
 
-// Статические страницы каталога и инфо
+// 1. Статические страницы каталога и 404
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
+rewrites.push({ source: '/404', destination: '/404.html' });
+rewrites.push({ source: '/404.html', destination: '/404.html' });
 
-// Правила для проектов
+// 2. Правила для проектов (API + статика)
 projects.forEach(project => {
   const apiPath = path.join(APPS_DIR, project, 'api.js');
   
-  // Генерация API-маршрутов (если есть api.js)
+  // API маршруты (если есть api.js) — ДОБАВЛЯЕМ ПЕРВЫМИ!
   if (fs.existsSync(apiPath)) {
     rewrites.push({
       source: `/apps/${project}/api`,
@@ -113,6 +115,7 @@ projects.forEach(project => {
       destination: `/api/${project}`
     });
     
+    // Генерация файла функции
     const apiDir = path.join(ROOT, 'api');
     if (!fs.existsSync(apiDir)) {
       fs.mkdirSync(apiDir, { recursive: true });
@@ -135,20 +138,21 @@ projects.forEach(project => {
   );
 });
 
-// Корень сайта
+// 3. Корень сайта
 rewrites.push({ source: '/', destination: '/index.html' });
 
-// === Явное правило для 404.html ===
-rewrites.push({ source: '/404', destination: '/404.html' });
-rewrites.push({ source: '/404.html', destination: '/404.html' });
+// 4. Catch-all для 404 — В САМЫЙ КОНЕЦ, с правильным регексом
+// Исключаем: _next, api/, apps/, info, list, 404, и файлы с точкой (картинки, стили, и т.д.)
+rewrites.push({ 
+  source: '/((?!_next|api/|apps/|info|list|404|.*\\.).*)', 
+  destination: '/404.html' 
+});
 
-// === Catch-all для всех остальных несуществующих путей ===
-rewrites.push({ source: '/((?!_next|api|apps|info|list).*)', destination: '/404.html' });
-
+// === Конфиг (БЕЗ outputDirectory!) ===
 const config = {
   version: 2,
   cleanUrls: true,
-  outputDirectory: ".",
+  // outputDirectory: ".",  ← УДАЛЕНО: мешает работе Serverless Functions
   trailingSlash: false,
   rewrites,
   headers: [
