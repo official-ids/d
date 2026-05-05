@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chat Prototype | SERAVIEL LABS</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --danger: #ef4444;
+      --user-msg: #e0f2fe;
+      --ai-msg: #f1f5f9;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .container { max-width: 900px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; }
+
+    header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); flex-shrink: 0;
+    }
+    .logo { font-weight: 800; font-size: 18px; }
+    .logo span { color: var(--accent); }
+    .back-link {
+      color: var(--text-muted); text-decoration: none; font-size: 14px;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .btn-secondary {
+      background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 6px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: var(--border); color: var(--text); }
+
+    /* Settings Bar */
+    .settings-bar {
+      padding: 12px 24px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    .settings-bar input, .settings-bar select {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; background: var(--bg); color: var(--text);
+    }
+    .settings-bar input { flex: 1; min-width: 200px; }
+    .settings-bar select { min-width: 180px; }
+    .settings-bar input:focus, .settings-bar select:focus {
+      outline: none; border-color: var(--accent);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--text-muted); display: inline-block; margin-right: 6px;
+      transition: background 0.3s;
+    }
+    .status-dot.connected { background: #22c55e; }
+    .status-dot.loading { background: #f59e0b; }
+    .status-dot.error { background: var(--danger); }
+
+    /* Chat Area */
+    .chat-area {
+      flex: 1; overflow-y: auto; padding: 24px;
+      display: flex; flex-direction: column; gap: 16px;
+      scroll-behavior: smooth;
+    }
+    .message {
+      max-width: 80%; padding: 12px 16px; border-radius: var(--radius);
+      font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .message.user { align-self: flex-end; background: var(--user-msg); border-bottom-right-radius: 4px; }
+    .message.ai { align-self: flex-start; background: var(--ai-msg); border-bottom-left-radius: 4px; }
+    .message.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; align-self: center; font-size: 13px;}
+    
+    .message .meta {
+      font-size: 11px; color: var(--text-muted); margin-top: 6px;
+      display: flex; justify-content: space-between; gap: 12px;
+    }
+
+    .typing-indicator {
+      align-self: flex-start; background: var(--ai-msg);
+      padding: 12px 16px; border-radius: var(--radius);
+      border-bottom-left-radius: 4px; display: none;
+    }
+    .typing-indicator span {
+      display: inline-block; width: 6px; height: 6px;
+      background: var(--text-muted); border-radius: 50%;
+      margin: 0 2px; animation: bounce 1.4s infinite both;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Input Area */
+    .input-area {
+      padding: 16px 24px; background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex; gap: 12px; align-items: flex-end;
+    }
+    .input-area textarea {
+      flex: 1; padding: 12px; border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 15px; resize: none;
+      max-height: 150px; font-family: inherit; background: var(--bg);
+    }
+    .input-area textarea:focus { outline: none; border-color: var(--accent); }
+    
+    .send-btn {
+      padding: 12px 20px; background: var(--accent); color: white;
+      border: none; border-radius: var(--radius); font-weight: 600; cursor: pointer;
+      transition: background 0.2s, opacity 0.2s; display: flex; align-items: center; gap: 8px;
+    }
+    .send-btn:hover { background: var(--accent-hover); }
+    .send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .empty-state {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: var(--text-muted); text-align: center; margin: auto 0;
+    }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.4; }
+
+    /* Toast Notifications */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 1000;
+    }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 12px 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text);
+      animation: slideIn 0.3s ease-out forwards; transition: opacity 0.3s;
+    }
+    .toast.success svg { stroke: #10b981; }
+    .toast.error svg { stroke: var(--danger); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    @media (max-width: 600px) {
+      .settings-bar { flex-direction: column; align-items: stretch; }
+      .settings-bar input, .settings-bar select { width: 100%; }
+      .message { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="#" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Back to Hub
+      </a>
+      <div class="logo">AI <span>Chat</span></div>
+      <button class="btn-secondary" onclick="clearChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Clear
+      </button>
+    </header>
+
+    <div class="settings-bar">
+      <input type="password" id="hf-token" placeholder="Paste Hugging Face Token (hf_...)">
+      <select id="model-select">
+        <option value="mistralai/Mistral-7B-Instruct-v0.2">Mistral 7B Instruct</option>
+        <option value="HuggingFaceH4/zephyr-7b-beta">Zephyr 7B Beta</option>
+        <option value="google/gemma-2b-it">Gemma 2B IT</option>
+        <option value="microsoft/Phi-3-mini-4k-instruct">Phi-3 Mini</option>
+        <option value="Qwen/Qwen2.5-7B-Instruct">Qwen 2.5 7B</option>
+      </select>
+      <div style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;min-width:100px;">
+        <span class="status-dot connected" id="status-dot"></span>
+        <span id="status-text">Ready</span>
+      </div>
+    </div>
+
+    <div class="chat-area" id="chat-area">
+      <!-- Content injected by JS -->
+    </div>
+
+    <div class="typing-indicator" id="typing-indicator">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div class="input-area">
+      <textarea id="user-input" rows="1" placeholder="Type your message... (Shift+Enter for new line)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send
+      </button>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script>
+    const HF_API = 'https://api-inference.huggingface.co/models/';
+    const STORAGE_KEY = 'ai-chat-history';
+    let history = [];
+    let isLoading = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHistory();
+      
+      const input = document.getElementById('user-input');
+      if (input) {
+        input.addEventListener('input', autoResize);
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+      }
+
+      const saved = localStorage.getItem('hf-token');
+      if (saved && document.getElementById('hf-token')) {
+        document.getElementById('hf-token').value = saved;
+      }
+    });
+
+    function autoResize(e) {
+      e.target.style.height = 'auto';
+      e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+    }
+
+    function loadHistory() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) history = JSON.parse(saved);
+      } catch (e) { history = []; }
+      renderHistory();
+    }
+
+    function saveHistory() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); } catch (e) {}
+    }
+
+    function renderHistory() {
+      const chat = document.getElementById('chat-area');
+      if (!chat) return;
+      
+      if (history.length === 0) {
+        chat.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <p>Enter token, select model, start chatting</p>
+          </div>`;
+        return;
+      }
+      
+      chat.innerHTML = history.map(msg => {
+        const isUser = msg.role === 'user';
+        const isError = msg.role === 'error';
+        const time = new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        return `
+          <div class="message ${isUser ? 'user' : (isError ? 'error' : 'ai')}">
+            <div class="content">${escapeHtml(msg.content)}</div>
+            <div class="meta">
+              <span>${isUser ? 'You' : (isError ? 'Error' : (msg.model || 'AI'))}</span>
+              <span>${time}</span>
+            </div>
+          </div>`;
+      }).join('');
+      
+      setTimeout(() => chat.scrollTop = chat.scrollHeight, 50);
+    }
+
+    async function sendMessage() {
+      if (isLoading) return;
+      
+      const input = document.getElementById('user-input');
+      const text = input?.value.trim();
+      if (!text) return;
+
+      const tokenInput = document.getElementById('hf-token');
+      const token = tokenInput?.value.trim();
+      if (!token) {
+        addMessage('error', 'Enter Hugging Face token');
+        return;
+      }
+      localStorage.setItem('hf-token', token);
+
+      history.push({ role: 'user', content: text, timestamp: Date.now() });
+      saveHistory();
+      renderHistory();
+      
+      input.value = '';
+      input.style.height = 'auto';
+
+      setLoading(true);
+      const typing = document.getElementById('typing-indicator');
+      if (typing) typing.style.display = 'block';
+
+      const model = document.getElementById('model-select')?.value || 'HuggingFaceH4/zephyr-7b-beta';
+      
+      try {
+        // === ПРЯМОЙ ЗАПРОС БЕЗ ПРОКСИ ===
+        const response = await fetch(HF_API + model, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            inputs: text,
+            parameters: { max_new_tokens: 1024, temperature: 0.7, return_full_text: false }
+          })
+        });
+
+        const data = await response.json();
+        let aiText = '';
+        
+        if (Array.isArray(data) && data[0]?.generated_text) {
+          aiText = data[0].generated_text;
+        } else if (typeof data === 'string') {
+          aiText = data;
+        } else if (data?.error) {
+          throw new Error(data.error);
+        } else {
+          aiText = JSON.stringify(data);
+        }
+
+        history.push({ role: 'ai', content: aiText.trim(), timestamp: Date.now(), model });
+        saveHistory();
+        renderHistory();
+
+      } catch (err) {
+        let msg = err.message;
+        if (msg.includes('503')) msg = 'Model loading. Wait ~30s.';
+        else if (msg.includes('401')) msg = 'Invalid token.';
+        else if (msg.includes('429')) msg = 'Rate limit. Wait.';
+        else if (msg.includes('Failed to fetch')) msg = 'CORS error. Use browser extension or deploy to Vercel.';
+        addMessage('error', msg);
+      } finally {
+        setLoading(false);
+        const typing = document.getElementById('typing-indicator');
+        if (typing) typing.style.display = 'none';
+      }
+    }
+
+    function addMessage(role, content, model = null) {
+      history.push({ role, content, timestamp: Date.now(), model });
+      saveHistory();
+      renderHistory();
+    }
+
+    function setLoading(state) {
+      isLoading = state;
+      const btn = document.getElementById('send-btn');
+      if (btn) btn.disabled = state;
+      
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      if (dot && text) {
+        dot.className = 'status-dot' + (state ? '' : ' connected');
+        text.textContent = state ? 'Thinking...' : 'Ready';
+      }
+    }
+
+    function clearChat() {
+      if (!history.length || !confirm('Clear history?')) return;
+      history = [];
+      saveHistory();
+      renderHistory();
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html>
