@@ -91,10 +91,9 @@ if (projects.length === 0) {
   process.exit(0);
 }
 
-// ПРАВИЛЬНЫЙ ПОРЯДОК:
 const rewrites = [];
 
-// 1. API (Самый высокий приоритет)
+// --- 1. API МАРШРУТЫ (Самый высокий приоритет) ---
 projects.forEach(project => {
   const apiPath = path.join(APPS_DIR, project, 'api.js');
   if (fs.existsSync(apiPath)) {
@@ -106,18 +105,19 @@ projects.forEach(project => {
   }
 });
 
-// 2. ФАЙЛОВАЯ СИСТЕМА (Критически важно!)
-// Говорим Vercel: "Если такой файл (index.html, favicon, 404.html) существует реально - отдай его и СТОП"
+// --- 2. ПРОВЕРКА РЕАЛЬНЫХ ФАЙЛОВ (КРИТИЧНО!) ---
+// Это правило говорит Vercel: "Если файл (index.html, 404.html, стили) существует — отдай его сразу"
 rewrites.push({ "handle": "filesystem" });
 
-// 3. ВИРТУАЛЬНЫЕ ПУТИ (Сработают, только если файла нет)
+// --- 3. ВИРТУАЛЬНЫЕ ПУТИ ПРИЛОЖЕНИЙ ---
+// Сработает только если не найден реальный файл (например, переход по /palette)
 projects.forEach(project => {
-  // Статика внутри папок приложений (.js, .css, .png...)
+  // Для файлов внутри папок приложений (картинки, стили)
   rewrites.push({
     source: `/${project}/:file(.*\\..*)`,
     destination: `/apps/${project}/:file`
   });
-  // Точки входа в приложения
+  // Для входа в приложение
   rewrites.push({
     source: `/${project}`,
     destination: `/apps/${project}/index.html`
@@ -128,15 +128,24 @@ projects.forEach(project => {
   });
 });
 
-// 4. Остальные статические страницы
+// --- 4. ОСТАЛЬНЫЕ СТРАНИЦЫ ---
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
+rewrites.push({ source: '/', destination: '/index.html' });
+
+// --- 5. ФИНАЛЬНЫЙ CATCH-ALL ДЛЯ 404 ---
+// Если мы дошли сюда, значит пути нет ни в файлах, ни в проектах.
+// Важно: не используй расширение .html здесь, если cleanUrls: true
+rewrites.push({
+  source: '/:path*',
+  destination: '/404.html'
+});
 
 const config = {
   version: 2,
   cleanUrls: true,
   trailingSlash: false,
-  rewrites, // Vercel применит их по порядку
+  rewrites,
   headers: [
     {
       source: '/(.*)',
@@ -147,7 +156,6 @@ const config = {
     }
   ]
 };
-
 const outputPath = path.join(ROOT, 'vercel.json');
 fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
 console.log(`✅ vercel.json сгенерирован`);
