@@ -75,17 +75,15 @@ function generateManifest() {
 
   const manifestPath = path.join(ROOT, 'apps/manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify({ apps }, null, 2));
-    // === ОБНОВЛЯЕМ index.html: подставляем актуальное число приложений ===
+  
+  // === ОБНОВЛЯЕМ index.html: подставляем актуальное число приложений ===
   const indexPath = path.join(ROOT, 'index.html');
   if (fs.existsSync(indexPath)) {
     let html = fs.readFileSync(indexPath, 'utf8');
-    
-    // Заменяем <span id="app-count">...</span> на реальное число
     html = html.replace(
       /<span id="app-count">\d+<\/span>/,
       `<span id="app-count">${apps.length}</span>`
     );
-    
     fs.writeFileSync(indexPath, html);
     console.log(`   📊 index.html: app count → ${apps.length}`);
   }
@@ -95,11 +93,69 @@ function generateManifest() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 2. Генерация vercel.json с маршрутами
+// 2. Генерация code-structure.json для Code Viewer
 // ─────────────────────────────────────────────────────────────
-const apps = generateManifest();
-const projects = apps.map(a => a.id);
+function generateCodeStructure() {
+  const exclude = [
+    'node_modules', '.git', '.vercel', 'dist', 'build',
+    'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+    'vercel.json', 'code-structure.json'
+  ];
+  const excludeExt = ['.zip', '.tar', '.gz', '.log', '.env'];
+  
+  function scanDir(dir, base = '') {
+    if (!fs.existsSync(dir)) return [];
+    const items = [];
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      if (exclude.includes(entry.name) || entry.name.startsWith('.')) continue;
+      const fullPath = path.join(dir, entry.name);
+      const relPath = path.join(base, entry.name).replace(/\\/g, '/');
+      
+      if (entry.isDirectory()) {
+        const children = scanDir(fullPath, relPath);
+        items.push({ name: entry.name, type: 'folder', path: relPath, children });
+      } else {
+        const ext = path.extname(entry.name).toLowerCase();
+        if (excludeExt.includes(ext)) continue;
+        const stat = fs.statSync(fullPath);
+        
+        let preview = null;
+        if (['.js','.ts','.html','.css','.json','.md','.txt'].includes(ext) && stat.size < 50000) {
+          try {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            preview = content.slice(0, 500);
+          } catch(e) {}
+        }
+        items.push({
+          name: entry.name,
+          type: 'file',
+          path: relPath,
+          size: stat.size,
+          ext: ext.slice(1),
+          preview
+        });
+      }
+    }
+    return items;
+  }
+  
+  const tree = scanDir(ROOT);
+  const outputPath = path.join(ROOT, 'code-structure.json');
+  fs.writeFileSync(outputPath, JSON.stringify({ tree, generated: new Date().toISOString() }, null, 2));
+  console.log(`✅ code-structure.json сгенерирован`);
+}
 
+// ─────────────────────────────────────────────────────────────
+// 3. Генерация vercel.json с маршрутами
+// ─────────────────────────────────────────────────────────────
+
+// === ВЫЗЫВАЕМ ФУНКЦИИ (ОДИН РАЗ!) ===
+const apps = generateManifest();      // ← Генерируем manifest + обновляем index.html
+generateCodeStructure();              // ← Генерируем code-structure.json
+
+const projects = apps.map(a => a.id);
 const rewrites = [];
 
 // 1. ПРИОРИТЕТ: API
@@ -114,17 +170,15 @@ projects.forEach(project => {
   }
 });
 
-// 2. ВАЖНО: Останавливаем обработку, если найден реальный файл (404.html, стили и т.д.)
+// 2. ВАЖНО: Останавливаем обработку, если найден реальный файл
 rewrites.push({ "handle": "filesystem" });
 
 // 3. ВИРТУАЛЬНЫЕ ПУТИ ПРИЛОЖЕНИЙ
 projects.forEach(project => {
-  // Файлы внутри приложений
   rewrites.push({
     source: `/${project}/:path(.*\\..*)`,
     destination: `/apps/${project}/:path`
   });
-  // Главные страницы приложений
   rewrites.push({
     source: `/${project}`,
     destination: `/apps/${project}/index.html`
@@ -138,25 +192,22 @@ projects.forEach(project => {
 // 4. ГЛАВНЫЕ СТРАНИЦЫ САЙТА
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
+rewrites.push({ source: '/code', destination: '/apps/code-viewer/index.html' }); // ← Правило для Code Viewer
 
 // 5. КОРЕНЬ (СТРОГО "/")
-// Мы используем регулярку ^/$, чтобы правило НЕ цепляло другие пути
 rewrites.push({ source: '/$', destination: '/index.html' });
 
-// !!! ВНИМАНИЕ: МЫ НЕ ДОБАВЛЯЕМ ПРАВИЛО /:path* !!!
-// Если мы его не добавим, Vercel не найдет совпадений для /random-path
-// и автоматически перейдет к поиску файла 404.html.
-
+// === КОНФИГ ===
 const config = {
   version: 2,
   cleanUrls: true,
   trailingSlash: false,
-
+  
   errorPages: {
-    '404': '/404.html',  // Показывать 404.html если страница не найдена
-    '500': '/500.html'   // Показывать 500.html если ошибка сервера
+    '404': '/404.html',
+    '500': '/500.html'
   },
-
+  
   rewrites,
   headers: [
     {
@@ -171,3 +222,4 @@ const config = {
 
 const outputPath = path.join(ROOT, 'vercel.json');
 fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
+console.log('✅ vercel.json сгенерирован');

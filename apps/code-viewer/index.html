@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Viewer | SERAVIEL LABS</title>
+  <meta name="description" content="Read-only source code browser. Explore SERAVIEL LABS project structure.">
+  <meta name="keywords" content="code, viewer, source, browser, read-only">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    /* === SERAVIEL LABS Design System === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --code-bg: #1e293b;
+      --code-text: #e2e8f0;
+      --code-keyword: #c084fc;
+      --code-string: #86efac;
+      --code-comment: #94a3b8;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      /* ЗАЩИТА: отключаем выделение текста и контекстное меню */
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+
+    /* === Header === */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header h1 svg { width: 20px; height: 20px; stroke: var(--accent); }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn-icon {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-icon svg { width: 18px; height: 18px; }
+    .btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* === Main Layout === */
+    .container {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* === Sidebar (File Tree) === */
+    .sidebar {
+      width: 280px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .tree-root { list-style: none; padding: 0; margin: 0; }
+    .tree-item { margin: 2px 0; }
+    .tree-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      transition: background 0.2s;
+    }
+    .tree-toggle:hover { background: var(--bg); }
+    .tree-toggle.active { background: rgba(13,148,136,0.1); color: var(--accent); font-weight: 500; }
+    .tree-toggle svg { width: 14px; height: 14px; transition: transform 0.2s; }
+    .tree-toggle.expanded svg { transform: rotate(90deg); }
+    .tree-children {
+      list-style: none;
+      padding-left: 20px;
+      margin: 0;
+      display: none;
+    }
+    .tree-children.expanded { display: block; }
+    .tree-file {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .tree-file:hover { background: var(--bg); color: var(--text); }
+    .tree-file.active { background: rgba(13,148,136,0.1); color: var(--accent); font-weight: 500; }
+    .tree-file svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* === Code Viewer === */
+    .viewer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .viewer-header {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .viewer-header .path {
+      font-family: var(--font-mono);
+      color: var(--text);
+    }
+    .viewer-content {
+      flex: 1;
+      overflow: auto;
+      padding: 24px;
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre;
+      tab-size: 2;
+      /* ЗАЩИТА: отключаем копирование */
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .viewer-content img {
+      max-width: 100%;
+      border-radius: 8px;
+      pointer-events: none; /* ЗАЩИТА: нельзя перетащить */
+      user-select: none;
+    }
+    .viewer-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 24px;
+    }
+    .viewer-empty svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    /* === Syntax Highlighting (Basic) === */
+    .code-keyword { color: var(--code-keyword); }
+    .code-string { color: var(--code-string); }
+    .code-comment { color: var(--code-comment); font-style: italic; }
+    .code-function { color: #60a5fa; }
+    .code-number { color: #fbbf24; }
+
+    /* === Toast Notifications === */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast.warning { border-left-color: var(--warning); }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast-content { flex: 1; }
+    .toast-close {
+      background: none; border: none; padding: 4px;
+      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close svg { width: 16px; height: 16px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
+
+    /* === Responsive === */
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .sidebar { width: 100%; max-height: 40vh; border-right: none; border-bottom: 1px solid var(--border); }
+      .viewer-header { padding: 12px 16px; font-size: 12px; }
+      .viewer-content { padding: 16px; font-size: 12px; }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
+    }
+
+    /* === Overlay for protection (blocks right-click menu visually) === */
+    .protection-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <!-- Защита от копирования -->
+  <div class="protection-overlay"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <h1>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Code Viewer
+    </h1>
+    <div class="header-actions">
+      <button class="btn-icon" id="btnHome" title="На главную">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </button>
+      <button class="btn-icon" id="btnList" title="Каталог">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <div class="container">
+    <!-- Sidebar: File Tree -->
+    <aside class="sidebar">
+      <ul class="tree-root" id="fileTree"></ul>
+    </aside>
+
+    <!-- Viewer: Code/Image -->
+    <main class="viewer">
+      <div class="viewer-header">
+        <span class="path" id="filePath">Выберите файл для просмотра</span>
+        <span id="fileInfo"></span>
+      </div>
+      <div class="viewer-content" id="viewerContent">
+        <div class="viewer-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <div>Выберите файл из дерева слева,<br>чтобы просмотреть его содержимое</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === ЗАЩИТА: Блокируем действия пользователя ===
+    document.addEventListener('contextmenu', (e) => { e.preventDefault(); toast('Копирование отключено', 'warning'); });
+    document.addEventListener('keydown', (e) => {
+      // Блокируем Ctrl+C, Ctrl+U, Ctrl+S, F12, PrintScreen
+      if (e.ctrlKey && ['c','u','s','p'].includes(e.key.toLowerCase())) { e.preventDefault(); toast('Действие запрещено', 'warning'); }
+      if (e.key === 'F12') { e.preventDefault(); toast('DevTools отключён', 'warning'); }
+    });
+    document.addEventListener('copy', (e) => { e.preventDefault(); toast('Копирование отключено', 'warning'); });
+    document.addEventListener('cut', (e) => { e.preventDefault(); });
+    document.addEventListener('dragstart', (e) => { if(e.target.tagName === 'IMG') e.preventDefault(); });
+
+    // === Toast System (compatible with main site) ===
+    function toast(message, type = 'success', duration = 4000) {
+      const globalToast = typeof window.toast === 'function' ? window.toast : null;
+      if (globalToast && globalToast !== toast) { globalToast(message, type, duration); return; }
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+      el.querySelector('.toast-close').onclick = () => removeToast(el);
+      container.appendChild(el);
+      const timer = setTimeout(() => removeToast(el), duration);
+      el.onmouseenter = () => clearTimeout(timer);
+    }
+    function removeToast(el) {
+      el.style.animation = 'toastOut 0.3s ease-out forwards';
+      setTimeout(() => el.remove(), 300);
+    }
+
+    // === File Tree & Viewer Logic ===
+    let fileStructure = null;
+    let currentFile = null;
+
+    // Иконки для типов файлов (SVG paths)
+    const fileIcons = {
+      folder: '<path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>',
+      file: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+      js: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 13h4M10 17h4"/>',
+      html: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h6"/>',
+      css: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13l2 2 4-4"/>',
+      json: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12h8M8 16h8M8 8h2"/>',
+      md: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12h2l2 3 2-3h2"/>',
+      png: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><circle cx="12" cy="13" r="3"/>',
+      default: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'
+    };
+
+    function getIcon(name, type) {
+      const ext = name.split('.').pop().toLowerCase();
+      if (type === 'folder') return fileIcons.folder;
+      return fileIcons[ext] || fileIcons.default;
+    }
+
+    // Рендер дерева файлов
+    function renderTree(items, parentEl, path = '') {
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'tree-item';
+        
+        if (item.type === 'folder') {
+          const toggle = document.createElement('div');
+          toggle.className = 'tree-toggle';
+          toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${fileIcons.folder}</svg> ${item.name}`;
+          
+          const children = document.createElement('ul');
+          children.className = 'tree-children';
+          
+          toggle.onclick = () => {
+            children.classList.toggle('expanded');
+            toggle.classList.toggle('expanded');
+          };
+          
+          li.appendChild(toggle);
+          li.appendChild(children);
+          if (item.children) renderTree(item.children, children, `${path}/${item.name}`);
+        } else {
+          const file = document.createElement('div');
+          file.className = 'tree-file';
+          file.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${getIcon(item.name, item.type)}</svg> ${item.name}`;
+          file.onclick = () => loadFile(item, path);
+          li.appendChild(file);
+        }
+        
+        parentEl.appendChild(li);
+      });
+    }
+
+    // Загрузка файла
+    async function loadFile(item, basePath) {
+      const fullPath = `${basePath}/${item.name}`.replace('//', '/');
+      document.querySelectorAll('.tree-file').forEach(el => el.classList.remove('active'));
+      event.currentTarget?.classList.add('active');
+      
+      document.getElementById('filePath').textContent = fullPath;
+      document.getElementById('fileInfo').textContent = item.size ? `${formatBytes(item.size)}` : '';
+      
+      const viewer = document.getElementById('viewerContent');
+      
+      // Показываем индикатор загрузки
+      viewer.innerHTML = '<div style="padding:24px;color:var(--code-comment)">Загрузка...</div>';
+      
+      try {
+        // Загружаем файл напрямую (он публичный, но защищён от копирования на уровне UI)
+        const res = await fetch(fullPath.startsWith('/') ? fullPath : `/${fullPath}`);
+        if (!res.ok) throw new Error('Not found');
+        
+        const contentType = res.headers.get('content-type') || '';
+        
+        if (contentType.startsWith('image/')) {
+          // Изображение
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          viewer.innerHTML = `<img src="${url}" alt="${item.name}" style="max-width:100%;border-radius:8px">`;
+          toast('Изображение загружено (сохранение отключено)', 'success');
+        } else if (contentType.includes('text') || fullPath.endsWith('.json') || fullPath.endsWith('.html')) {
+          // Текстовый файл
+          const text = await res.text();
+          viewer.textContent = text;
+          // Простая подсветка синтаксиса
+          highlightCode(viewer, fullPath);
+          toast('Файл загружен (копирование отключено)', 'success');
+        } else {
+          // Бинарный файл - показываем инфо
+          viewer.innerHTML = `<div class="viewer-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div>Бинарный файл: ${item.name}<br><small>${formatBytes(item.size || 0)}</small><br>Просмотр недоступен</div></div>`;
+        }
+      } catch (e) {
+        viewer.innerHTML = `<div class="viewer-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Ошибка загрузки файла</div></div>`;
+        toast('Не удалось загрузить файл', 'error');
+      }
+    }
+
+    // Простая подсветка синтаксиса
+    function highlightCode(el, path) {
+      const text = el.textContent;
+      if (path.endsWith('.js') || path.endsWith('.ts')) {
+        el.innerHTML = text
+          .replace(/(const|let|var|function|return|if|else|for|while|class|import|export|async|await)/g, '<span class="code-keyword">$1</span>')
+          .replace(/(['"`].*?['"`])/g, '<span class="code-string">$1</span>')
+          .replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, '<span class="code-comment">$1</span>')
+          .replace(/(\b\d+\.?\d*\b)/g, '<span class="code-number">$1</span>');
+      } else if (path.endsWith('.html')) {
+        el.innerHTML = text
+          .replace(/(&lt;\/?[\w-]+|&lt;[\w-]+\/?&gt;)/g, '<span class="code-keyword">$1</span>')
+          .replace(/([\w-]+)=/g, '<span class="code-function">$1</span>=')
+          .replace(/(["'].*?["'])/g, '<span class="code-string">$1</span>');
+      }
+      // Для других форматов оставляем как есть
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024, sizes = ['B','KB','MB','GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    // === Init ===
+    async function init() {
+      // Загружаем структуру файлов (сгенерированную при сборке)
+      try {
+        const res = await fetch('/code-structure.json');
+        if (res.ok) {
+          fileStructure = await res.json();
+          renderTree(fileStructure.tree, document.getElementById('fileTree'));
+          toast('Дерево файлов загружено', 'success', 3000);
+        } else {
+          // Fallback: показываем заглушку
+          document.getElementById('fileTree').innerHTML = '<li class="tree-item"><div class="tree-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> code-structure.json not found</div></li>';
+        }
+      } catch (e) {
+        console.warn('Code structure not available');
+      }
+      
+      // Кнопки навигации
+      document.getElementById('btnHome').onclick = () => window.location.href = '/';
+      document.getElementById('btnList').onclick = () => window.location.href = '/list';
+    }
+
+    // Запускаем
+    init();
+  </script>
+</body>
+</html>
