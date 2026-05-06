@@ -75,6 +75,20 @@ function generateManifest() {
 
   const manifestPath = path.join(ROOT, 'apps/manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify({ apps }, null, 2));
+    // === ОБНОВЛЯЕМ index.html: подставляем актуальное число приложений ===
+  const indexPath = path.join(ROOT, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    let html = fs.readFileSync(indexPath, 'utf8');
+    
+    // Заменяем <span id="app-count">...</span> на реальное число
+    html = html.replace(
+      /<span id="app-count">\d+<\/span>/,
+      `<span id="app-count">${apps.length}</span>`
+    );
+    
+    fs.writeFileSync(indexPath, html);
+    console.log(`   📊 index.html: app count → ${apps.length}`);
+  }
   console.log(`✅ apps/manifest.json сгенерирован (${apps.length} apps)`);
   
   return apps;

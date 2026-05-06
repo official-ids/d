@@ -41,11 +41,40 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
 
 <style>
+    /* === Base Variables === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
     /* === Site Notice Banner === */
     .site-notice {
       position: fixed;
       top: 0; left: 0; right: 0;
-      background: linear-gradient(135deg, #0d9488, #0f766e);
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
       color: white;
       z-index: 10000;
       box-shadow: 0 2px 12px rgba(0,0,0,0.1);
@@ -68,7 +97,7 @@
     .notice-icon {
       flex-shrink: 0;
       width: 24px; height: 24px;
-      opacity: 0.9;
+      opacity: 0.95;
     }
     .notice-icon svg { width: 100%; height: 100%; }
     .notice-text {
@@ -77,211 +106,6 @@
       flex-direction: column;
       gap: 2px;
     }
-
-        /* === Archive Notice Section === */
-    .archive-section {
-      max-width: 900px;
-      margin: 32px auto;
-      padding: 0 24px;
-    }
-    .archive-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .archive-card h3 {
-      margin: 0 0 12px;
-      font-size: 18px;
-      font-weight: 600;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .archive-card h3 svg {
-      width: 20px;
-      height: 20px;
-      stroke: #0d9488;
-    }
-    .archive-card p {
-      margin: 0 0 16px;
-      color: #475569;
-      line-height: 1.5;
-      font-size: 14px;
-    }
-    .archive-list {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 20px;
-      display: grid;
-      gap: 8px;
-    }
-    .archive-list li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #334155;
-      font-size: 14px;
-    }
-    .archive-list li svg {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-    }
-    .archive-list .check svg { stroke: #22c55e; }
-    .archive-list .cross svg { stroke: #ef4444; }
-    
-    .btn-outline {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border: 2px solid #0d9488;
-      color: #0d9488;
-      background: transparent;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-outline:hover {
-      background: #0d9488;
-      color: white;
-    }
-    .btn-outline svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    /* === Contact Links === */
-    .contact-section {
-      max-width: 900px;
-      margin: 24px auto;
-      padding: 0 24px;
-      text-align: center;
-    }
-    .contact-section p {
-      margin: 0 0 12px;
-      color: #475569;
-      font-size: 14px;
-    }
-    .contact-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      text-decoration: none;
-      color: #0f172a;
-      font-weight: 500;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-    .contact-link:hover {
-      border-color: #0d9488;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(13,148,136,0.1);
-    }
-    .contact-link svg {
-      width: 18px;
-      height: 18px;
-      stroke: #0d9488;
-    }
-
-    /* === Countdown === */
-    .countdown-section {
-      max-width: 900px;
-      margin: 24px auto;
-      padding: 0 24px;
-      text-align: center;
-    }
-    .countdown-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      color: #475569;
-      font-size: 14px;
-    }
-    .countdown-box strong {
-      color: #0d9488;
-      font-size: 20px;
-      font-weight: 700;
-    }
-    .countdown-box small {
-      color: #94a3b8;
-    }
-
-    /* === Download Archive === */
-    .download-section {
-      max-width: 900px;
-      margin: 24px auto;
-      padding: 0 24px;
-      text-align: center;
-    }
-    .btn-download {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 24px;
-      background: #0d9488;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-download:hover {
-      background: #0f766e;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(13,148,136,0.2);
-    }
-    .btn-download svg {
-      width: 18px;
-      height: 18px;
-      stroke: white;
-    }
-    .download-section small {
-      display: block;
-      margin-top: 8px;
-      color: #94a3b8;
-      font-size: 12px;
-    }
-
-    /* === Updated Footer === */
-    .site-footer {
-      text-align: center;
-      padding: 32px 24px 40px;
-      color: #64748b;
-      font-size: 13px;
-      border-top: 1px solid #e2e8f0;
-      margin-top: 40px;
-    }
-    .site-footer time {
-      color: #475569;
-    }
-
-    @media (max-width: 600px) {
-      .archive-card, .contact-section, .countdown-section, .download-section {
-        padding: 20px 16px;
-      }
-      .archive-list li {
-        flex-wrap: wrap;
-      }
-    }
-
     .notice-text strong {
       font-weight: 600;
       font-size: 15px;
@@ -304,7 +128,244 @@
     .notice-close svg { width: 16px; height: 16px; stroke: white; }
     .notice-close:hover { background: rgba(255,255,255,0.25); }
 
+    /* === Archive/Info Section === */
+    .archive-section {
+      max-width: 900px;
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+    .archive-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .archive-card h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .archive-card h3 svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent);
+    }
+    .archive-card p {
+      margin: 0 0 16px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .archive-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+      display: grid;
+      gap: 8px;
+    }
+    .archive-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .archive-list li svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .archive-list .check svg { stroke: var(--success); }
+    .archive-list .cross svg { stroke: var(--danger); }
+    
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-outline svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* === Contact Links === */
+    .contact-section {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .contact-section p {
+      margin: 0 0 12px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .contact-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .contact-link:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(13,148,136,0.1);
+    }
+    .contact-link svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent);
+    }
+
+    /* === Countdown === */
+    .countdown-section {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .countdown-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .countdown-box strong {
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .countdown-box small {
+      color: var(--text-muted);
+    }
+
+    /* === Footer === */
+    .site-footer {
+      text-align: center;
+      padding: 32px 24px 40px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    .site-footer time {
+      color: var(--text);
+    }
+
+    /* === Toast Notifications === */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+    
+    .toast-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+    }
+    .toast.success .toast-icon { stroke: var(--success); }
+    .toast.error .toast-icon { stroke: var(--danger); }
+    .toast.warning .toast-icon { stroke: var(--warning); }
+    
+    .toast-content {
+      flex: 1;
+      line-height: 1.4;
+    }
+    .toast-close {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close svg { width: 16px; height: 16px; }
+
+    @keyframes toastIn {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    @keyframes toastOut {
+      to {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+
+    /* === Responsive === */
     @media (max-width: 600px) {
+      .archive-card, .contact-section, .countdown-section {
+        padding: 20px 16px;
+      }
+      .archive-list li {
+        flex-wrap: wrap;
+      }
       .notice-content {
         padding: 10px 16px;
         flex-wrap: wrap;
@@ -317,106 +378,178 @@
       .notice-close {
         margin: 0 auto;
       }
+      #toast-container {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+      }
+      .toast {
+        min-width: auto;
+        max-width: 100%;
+      }
     }
   </style>
 
 </head>
 
 <body>
-  <!-- === NOTICE BANNER: Site Closed === -->
+  <!-- === NOTICE BANNER: Project Continues === -->
   <div class="site-notice" id="siteNotice">
     <div class="notice-content">
       <div class="notice-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          <circle cx="12" cy="12" r="4"/>
         </svg>
       </div>
       <div class="notice-text">
-        <strong>Этот сайт больше не обновляется</strong>
-        <span>Проект завершён, но SERAVIEL LABS продолжает работу. Новый сайт планируется в 2029 году.</span>
+        <strong>Проект продолжается</strong>
+        <span>SERAVIEL LABS активно развивается. Все инструменты работают, обновления выходят регулярно.</span>
       </div>
-      <button class="notice-close" onclick="document.getElementById('siteNotice').style.display='none'" aria-label="Закрыть">
+      <button class="notice-close" onclick="hideBanner()" aria-label="Закрыть">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
   </div>
 
-    <!-- === ARCHIVE NOTICE: Tools Available === -->
-  <section class="archive-section">
-    <div class="archive-card">
-      <h3>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-        Инструменты доступны
-      </h3>
-      <p>Все приложения работают в режиме «только чтение». Вы можете:</p>
-      <ul class="archive-list">
-        <li class="check">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Использовать генераторы: цвета, хеши, QR, JSON
-        </li>
-        <li class="check">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Открывать Terminal, Palette, Shadow Studio
-        </li>
-        <li class="cross">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          Не ожидать новых функций и обновлений
-        </li>
-      </ul>
-      <a href="/list" class="btn-outline">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        Посмотреть все инструменты
-      </a>
-    </div>
-  </section>
+  <!-- === INFO: Project Status === -->
+<section class="archive-section">
+  <div class="archive-card">
+    <h3>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Все инструменты доступны
+    </h3>
+    <p>
+      <span id="app-count">26</span> веб-утилит для разработчиков и дизайнеров. Работают полностью в браузере, без установки.
+    </p>
+    <ul class="archive-list">
+      <li class="check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Генераторы: цвета, хеши, QR, JSON, favicon
+      </li>
+      <li class="check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Инструменты: Palette, Shadow Studio, Typing Trainer
+      </li>
+      <li class="check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Полностью бесплатно, без рекламы, без регистрации
+      </li>
+    </ul>
+    <a href="/list" class="btn-outline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      Перейти к каталогу
+    </a>
+  </div>
+</section>
 
   <!-- === CONTACT: Where We Are === -->
   <section class="contact-section">
-    <p>SERAVIEL LABS продолжает работу:</p>
+    <p>Следите за обновлениями:</p>
     <a href="https://t.me/@seraviellex" target="_blank" rel="noopener" class="contact-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><path d="M22 2L15 22L11 13L2 9L22 2Z"></path></svg>
       t.me/@seraviellex
     </a>
   </section>
 
-  <!-- === COUNTDOWN: Next Site === -->
+  <!-- === COUNTDOWN: Next Milestone === -->
   <section class="countdown-section">
     <div class="countdown-box">
-      <span>Новый сайт:</span>
-      <strong id="countdown-year">2029</strong>
-      <small id="countdown-text">через <span id="years-left">4</span> года</small>
+      <span>Следующий крупный релиз:</span>
+      <strong id="countdown-year">2026</strong>
+      <small id="countdown-text">через <span id="months-left">8</span> мес.</small>
     </div>
   </section>
-  <!-- === DOWNLOAD ARCHIVE (Quick) === -->
-  <section class="download-section">
-    <a href="/archive/seraviel-labs-2026.zip" class="btn-download" download>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-      Скачать архив сайта
-    </a>
-    <small>ZIP, ~2 MB • Статичная версия от 5 мая 2026 • Работает офлайн</small>
-  </section>
 
-    <footer class="site-footer">
+  <footer class="site-footer">
     <p>
       © 2024–2026 SERAVIEL LABS • 
-      <span style="color:#64748b">Архивная версия</span> • 
+      <span style="color:var(--text)">Проект активно развивается</span> • 
       Последнее обновление: <time datetime="2026-05-05">5 мая 2026</time>
     </p>
-    <p style="font-size:12px;color:#94a3b8;margin-top:6px">
-      Следующая версия сайта планируется в 2029 году.
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px">
+      Все инструменты работают в браузере. Исходный код открыт.
     </p>
   </footer>
 
-  <!-- СКРИПТ БАННЕРА (перенесён сюда) -->
+  <!-- === TOAST CONTAINER === -->
+  <div id="toast-container"></div>
+
+  <!-- === SCRIPTS === -->
   <script>
-    if (localStorage.getItem('noticeClosed') === 'true') {
-      document.getElementById('siteNotice').style.display = 'none';
+    // === Hide Banner ===
+    function hideBanner() {
+      const banner = document.getElementById('siteNotice');
+      if (banner) {
+        banner.style.animation = 'slideDown 0.3s ease-out reverse';
+        setTimeout(() => {
+          banner.style.display = 'none';
+          localStorage.setItem('bannerClosed', 'true');
+        }, 300);
+      }
     }
-    document.querySelector('.notice-close')?.addEventListener('click', () => {
-      localStorage.setItem('noticeClosed', 'true');
-    });
+
+    // Show banner only if not closed before
+    if (localStorage.getItem('bannerClosed') === 'true') {
+      const banner = document.getElementById('siteNotice');
+      if (banner) banner.style.display = 'none';
+    }
+
+    // === Toast Notification System ===
+    function toast(message, type = 'success', duration = 4000) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        ${icons[type] || icons.success}
+        <div class="toast-content">${message}</div>
+        <button class="toast-close" aria-label="Закрыть">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      `;
+
+      // Close button handler
+      const closeBtn = toast.querySelector('.toast-close');
+      closeBtn.addEventListener('click', () => removeToast(toast));
+
+      container.appendChild(toast);
+
+      // Auto remove
+      const timer = setTimeout(() => removeToast(toast), duration);
+
+      // Pause on hover
+      toast.addEventListener('mouseenter', () => clearTimeout(timer));
+    }
+
+    function removeToast(toast) {
+      toast.style.animation = 'toastOut 0.3s ease-out forwards';
+      setTimeout(() => toast.remove(), 300);
+    }
+
+    // === Countdown Logic ===
+    (function() {
+      const targetYear = 2026;
+      const targetMonth = 12; // December
+      const now = new Date();
+      const target = new Date(targetYear, targetMonth - 1, 1);
+      
+      let monthsLeft = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+      monthsLeft = Math.max(0, monthsLeft);
+      
+      const el = document.getElementById('months-left');
+      if (el) el.textContent = monthsLeft;
+    })();
+
+    // === Demo: Show toast on load (remove in production) ===
+     toast('Добро пожаловать в SERAVIEL LABS!', 'success', 5000);
   </script>
 </body>
 </html>
