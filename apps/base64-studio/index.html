@@ -442,30 +442,40 @@
   <div id="toast-container"></div>
 
   <script>
-    // === Toast System (fallback if global not available) ===
-    function toast(message, type = 'success', duration = 4000) {
-      const globalToast = typeof window.toast === 'function' ? window.toast : null;
-      if (globalToast) { globalToast(message, type, duration); return; }
-      
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-      const icons = {
-        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
-        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
-      };
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
-      el.querySelector('.toast-close').onclick = () => removeToast(el);
-      container.appendChild(el);
-      const timer = setTimeout(() => removeToast(el), duration);
-      el.onmouseenter = () => clearTimeout(timer);
-    }
-    function removeToast(el) {
-      el.style.animation = 'toastOut 0.3s ease-out forwards';
-      setTimeout(() => el.remove(), 300);
-    }
+    // === Toast System (FIXED) ===
+function toast(message, type = 'success', duration = 4000) {
+  // Проверяем, есть ли ВНЕШНИЙ toast (с index.html), отличный от ЭТОГО
+  const external = window.toast;
+  if (typeof external === 'function' && external !== toast) {
+    external(message, type, duration);
+    return;
+  }
+
+  // Локальный фолбэк (если приложение открыто отдельно)
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const icons = {
+    success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+    warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+  };
+
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+  
+  el.querySelector('.toast-close').onclick = () => removeToast(el);
+  container.appendChild(el);
+
+  const timer = setTimeout(() => removeToast(el), duration);
+  el.onmouseenter = () => clearTimeout(timer);
+}
+
+function removeToast(el) {
+  el.style.animation = 'toastOut 0.3s ease-out forwards';
+  setTimeout(() => el.remove(), 300);
+}
 
     // === Tab Switching ===
     function switchTab(tab) {
