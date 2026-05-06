@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Source Code | SERAVIEL LABS</title>
-  <meta name="description" content="Read-only source code browser. Explore SERAVIEL LABS project structure.">
-  <meta name="keywords" content="code, viewer, source, browser, read-only">
+  <meta name="description" content="Browse SERAVIEL LABS source code. Open source project on GitHub.">
+  <meta name="keywords" content="code, viewer, source, github, open-source, read-only">
   <meta name="robots" content="noindex, follow">
   <style>
     /* === SERAVIEL LABS Design System === */
@@ -37,11 +37,8 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      /* ЗАЩИТА: отключаем выделение текста и контекстное меню */
       user-select: none;
       -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
     }
 
     /* === Header === */
@@ -64,11 +61,7 @@
       gap: 10px;
     }
     .header h1 svg { width: 20px; height: 20px; stroke: var(--accent); }
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
     .btn-icon {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -82,23 +75,73 @@
     }
     .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
     .btn-icon svg { width: 18px; height: 18px; }
-    .btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* === Main Layout === */
-    .container {
-      display: flex;
-      flex: 1;
-      min-height: calc(100vh - 64px);
-    }
+    .container { display: flex; flex: 1; min-height: calc(100vh - 64px); }
 
-    /* === Sidebar (File Tree) === */
+    /* === Sidebar === */
     .sidebar {
-      width: 280px;
+      width: 300px;
       background: var(--surface);
       border-right: 1px solid var(--border);
       overflow-y: auto;
       padding: 16px;
     }
+    
+    /* GitHub Card */
+    .gh-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .gh-card a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+      padding: 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+    .gh-card a:hover {
+      background: var(--surface);
+      border: 1px solid var(--accent);
+    }
+    .gh-card a svg { width: 20px; height: 20px; stroke: var(--text); }
+    .gh-card .repo-name { font-weight: 600; font-size: 14px; }
+    .gh-card .repo-meta { font-size: 12px; color: var(--text-muted); }
+    
+    .gh-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    
+    .btn-browse {
+      width: 100%;
+      padding: 10px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-browse:hover { background: var(--accent-hover); }
+    .btn-browse svg { width: 16px; height: 16px; }
+
+    /* File Tree */
     .tree-root { list-style: none; padding: 0; margin: 0; }
     .tree-item { margin: 2px 0; }
     .tree-toggle {
@@ -138,7 +181,7 @@
     .tree-file.active { background: rgba(13,148,136,0.1); color: var(--accent); font-weight: 500; }
     .tree-file svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-    /* === Code Viewer === */
+    /* === Viewer === */
     .viewer {
       flex: 1;
       display: flex;
@@ -155,10 +198,7 @@
       font-size: 13px;
       color: var(--text-muted);
     }
-    .viewer-header .path {
-      font-family: var(--font-mono);
-      color: var(--text);
-    }
+    .viewer-header .path { font-family: var(--font-mono); color: var(--text); }
     .viewer-content {
       flex: 1;
       overflow: auto;
@@ -170,41 +210,37 @@
       line-height: 1.6;
       white-space: pre;
       tab-size: 2;
-      /* ЗАЩИТА: отключаем копирование */
       user-select: none;
-      -webkit-user-select: none;
     }
     .viewer-content img {
       max-width: 100%;
       border-radius: 8px;
-      pointer-events: none; /* ЗАЩИТА: нельзя перетащить */
+      pointer-events: none;
       user-select: none;
     }
     .viewer-empty {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100%;
       color: var(--text-muted);
-      font-size: 14px;
       text-align: center;
       padding: 24px;
     }
-    .viewer-empty svg {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
+    .viewer-empty svg { width: 64px; height: 64px; margin-bottom: 24px; opacity: 0.3; }
+    .viewer-empty .title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .viewer-empty .link { color: var(--accent); text-decoration: none; }
+    .viewer-empty .desc { max-width: 500px; font-size: 14px; line-height: 1.6; margin-top: 16px; }
 
-    /* === Syntax Highlighting (Basic) === */
+    /* === Syntax Highlighting === */
     .code-keyword { color: var(--code-keyword); }
     .code-string { color: var(--code-string); }
     .code-comment { color: var(--code-comment); font-style: italic; }
     .code-function { color: #60a5fa; }
     .code-number { color: #fbbf24; }
 
-    /* === Toast Notifications === */
+    /* === Toast === */
     #toast-container {
       position: fixed;
       bottom: 24px;
@@ -231,7 +267,7 @@
       opacity: 0;
       transform: translateX(100%);
     }
-    .toast.warning { border-left-color: var(--warning); }
+    .toast.warning { border-left-color: #f59e0b; }
     .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
     .toast-content { flex: 1; }
     .toast-close {
@@ -248,13 +284,9 @@
     @media (max-width: 768px) {
       .container { flex-direction: column; }
       .sidebar { width: 100%; max-height: 40vh; border-right: none; border-bottom: 1px solid var(--border); }
-      .viewer-header { padding: 12px 16px; font-size: 12px; }
-      .viewer-content { padding: 16px; font-size: 12px; }
       #toast-container { left: 16px; right: 16px; bottom: 16px; }
       .toast { min-width: auto; max-width: 100%; }
     }
-
-    /* === Overlay for protection (blocks right-click menu visually) === */
     .protection-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -264,7 +296,6 @@
   </style>
 </head>
 <body>
-  <!-- Защита от копирования -->
   <div class="protection-overlay"></div>
 
   <!-- Header -->
@@ -285,34 +316,57 @@
 
   <!-- Main -->
   <div class="container">
-    <!-- Sidebar: File Tree -->
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <ul class="tree-root" id="fileTree"></ul>
+      <!-- GitHub Card -->
+      <div class="gh-card">
+        <a href="https://github.com/official-ids/d" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          <div>
+            <div class="repo-name">official-ids/d</div>
+            <div class="repo-meta">GitHub Repository</div>
+          </div>
+        </a>
+        <p>Browse the complete source code of SERAVIEL LABS. All files are available for viewing in read-only mode.</p>
+        <button class="btn-browse" onclick="loadCodeStructure()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Browse Source Code
+        </button>
+      </div>
+      
+      <!-- File Tree (hidden until button click) -->
+      <ul class="tree-root" id="fileTree" style="display: none;"></ul>
     </aside>
 
-    <!-- Viewer: Code/Image -->
+    <!-- Viewer -->
     <main class="viewer">
       <div class="viewer-header">
-        <span class="path" id="filePath">Выберите файл для просмотра</span>
+        <span class="path" id="filePath">Source Code Viewer</span>
         <span id="fileInfo"></span>
       </div>
       <div class="viewer-content" id="viewerContent">
         <div class="viewer-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          <div>Выберите файл из дерева слева,<br>чтобы просмотреть его содержимое</div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          <div class="title">SERAVIEL LABS Source Code</div>
+          <div>
+            Open source project<br>
+            <a href="https://github.com/official-ids/d" target="_blank" rel="noopener" class="link">github.com/official-ids/d</a>
+          </div>
+          <div class="desc">
+            This project is open source and available under the MIT License. 
+            You can browse the complete source code, report issues, or contribute to the project.
+          </div>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- Toast Container -->
   <div id="toast-container"></div>
 
   <script>
-    // === ЗАЩИТА: Блокируем действия пользователя ===
+    // === ЗАЩИТА ===
     document.addEventListener('contextmenu', (e) => { e.preventDefault(); toast('Копирование отключено', 'warning'); });
     document.addEventListener('keydown', (e) => {
-      // Блокируем Ctrl+C, Ctrl+U, Ctrl+S, F12, PrintScreen
       if (e.ctrlKey && ['c','u','s','p'].includes(e.key.toLowerCase())) { e.preventDefault(); toast('Действие запрещено', 'warning'); }
       if (e.key === 'F12') { e.preventDefault(); toast('DevTools отключён', 'warning'); }
     });
@@ -320,7 +374,7 @@
     document.addEventListener('cut', (e) => { e.preventDefault(); });
     document.addEventListener('dragstart', (e) => { if(e.target.tagName === 'IMG') e.preventDefault(); });
 
-    // === Toast System (compatible with main site) ===
+    // === Toast ===
     function toast(message, type = 'success', duration = 4000) {
       const globalToast = typeof window.toast === 'function' ? window.toast : null;
       if (globalToast && globalToast !== toast) { globalToast(message, type, duration); return; }
@@ -344,11 +398,8 @@
       setTimeout(() => el.remove(), 300);
     }
 
-    // === File Tree & Viewer Logic ===
+    // === Logic ===
     let fileStructure = null;
-    let currentFile = null;
-
-    // Иконки для типов файлов (SVG paths)
     const fileIcons = {
       folder: '<path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>',
       file: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
@@ -367,25 +418,17 @@
       return fileIcons[ext] || fileIcons.default;
     }
 
-    // Рендер дерева файлов
     function renderTree(items, parentEl, path = '') {
       items.forEach(item => {
         const li = document.createElement('li');
         li.className = 'tree-item';
-        
         if (item.type === 'folder') {
           const toggle = document.createElement('div');
           toggle.className = 'tree-toggle';
           toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${fileIcons.folder}</svg> ${item.name}`;
-          
           const children = document.createElement('ul');
           children.className = 'tree-children';
-          
-          toggle.onclick = () => {
-            children.classList.toggle('expanded');
-            toggle.classList.toggle('expanded');
-          };
-          
+          toggle.onclick = () => { children.classList.toggle('expanded'); toggle.classList.toggle('expanded'); };
           li.appendChild(toggle);
           li.appendChild(children);
           if (item.children) renderTree(item.children, children, `${path}/${item.name}`);
@@ -396,47 +439,40 @@
           file.onclick = () => loadFile(item, path);
           li.appendChild(file);
         }
-        
         parentEl.appendChild(li);
       });
     }
 
-    // Загрузка файла
     async function loadFile(item, basePath) {
       const fullPath = `${basePath}/${item.name}`.replace('//', '/');
       document.querySelectorAll('.tree-file').forEach(el => el.classList.remove('active'));
       event.currentTarget?.classList.add('active');
-      
       document.getElementById('filePath').textContent = fullPath;
-      document.getElementById('fileInfo').textContent = item.size ? `${formatBytes(item.size)}` : '';
-      
+      document.getElementById('fileInfo').textContent = item.size ? formatBytes(item.size) : '';
       const viewer = document.getElementById('viewerContent');
-      
-      // Показываем индикатор загрузки
       viewer.innerHTML = '<div style="padding:24px;color:var(--code-comment)">Загрузка...</div>';
       
       try {
-        // Загружаем файл напрямую (он публичный, но защищён от копирования на уровне UI)
         const res = await fetch(fullPath.startsWith('/') ? fullPath : `/${fullPath}`);
         if (!res.ok) throw new Error('Not found');
-        
         const contentType = res.headers.get('content-type') || '';
         
         if (contentType.startsWith('image/')) {
-          // Изображение
           const blob = await res.blob();
           const url = URL.createObjectURL(blob);
           viewer.innerHTML = `<img src="${url}" alt="${item.name}" style="max-width:100%;border-radius:8px">`;
-          toast('Изображение загружено (сохранение отключено)', 'success');
-        } else if (contentType.includes('text') || fullPath.endsWith('.json') || fullPath.endsWith('.html')) {
-          // Текстовый файл
+          toast('Изображение загружено', 'success');
+        } else if (
+          contentType.includes('text') || 
+          contentType.includes('application/json') ||
+          contentType.includes('application/xml') ||
+          fullPath.match(/\.(js|ts|jsx|tsx|html|htm|css|scss|json|xml|md|txt|sh|py|java|c|cpp|h|php|sql|yaml|yml|toml|ini|cfg|log|env)$/i)
+        ) {
           const text = await res.text();
           viewer.textContent = text;
-          // Простая подсветка синтаксиса
           highlightCode(viewer, fullPath);
-          toast('Файл загружен (копирование отключено)', 'success');
+          toast('Файл загружен', 'success');
         } else {
-          // Бинарный файл - показываем инфо
           viewer.innerHTML = `<div class="viewer-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div>Бинарный файл: ${item.name}<br><small>${formatBytes(item.size || 0)}</small><br>Просмотр недоступен</div></div>`;
         }
       } catch (e) {
@@ -445,44 +481,30 @@
       }
     }
 
-        // Простая подсветка синтаксиса
     function highlightCode(el, path) {
       const text = el.textContent;
       if (path.endsWith('.js') || path.endsWith('.ts')) {
-        el.innerHTML = text
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
+        el.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
           .replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|async|await)\b/g, '<span class="code-keyword">$1</span>')
           .replace(/(['"`].*?['"`])/g, '<span class="code-string">$1</span>')
           .replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, '<span class="code-comment">$1</span>')
           .replace(/\b(\d+\.?\d*)\b/g, '<span class="code-number">$1</span>');
       } else if (path.endsWith('.html')) {
-        el.innerHTML = text
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
+        el.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
           .replace(/(&lt;\/?[\w-]+|&lt;[\w-]+\/?&gt;)/g, '<span class="code-keyword">$1</span>')
           .replace(/([\w-]+)=/g, '<span class="code-function">$1</span>=')
           .replace(/(["'].*?["'])/g, '<span class="code-string">$1</span>');
       } else if (path.endsWith('.css')) {
-        el.innerHTML = text
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
+        el.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
           .replace(/([{}:;,])/g, '<span class="code-keyword">$1</span>')
           .replace(/([\w-]+):/g, '<span class="code-function">$1</span>:')
           .replace(/(:\s*[^;]+)/g, ':<span class="code-string">$1</span>');
       } else if (path.endsWith('.json')) {
-        el.innerHTML = text
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
+        el.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
           .replace(/"([\w-]+)"\s*:/g, '<span class="code-function">"$1"</span>:')
           .replace(/:\s*"([^"]+)"/g, ': <span class="code-string">"$1"</span>')
           .replace(/:\s*(\d+\.?\d*)/g, ': <span class="code-number">$1</span>');
       }
-      // Для других форматов оставляем как есть (уже закодировано через textContent)
     }
 
     function formatBytes(bytes) {
@@ -492,30 +514,23 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
-    // === Init ===
+    function loadCodeStructure() {
+      document.getElementById('fileTree').style.display = 'block';
+      init();
+    }
+
     async function init() {
-      // Загружаем структуру файлов (сгенерированную при сборке)
       try {
         const res = await fetch('/code-structure.json');
         if (res.ok) {
           fileStructure = await res.json();
           renderTree(fileStructure.tree, document.getElementById('fileTree'));
           toast('Дерево файлов загружено', 'success', 3000);
-        } else {
-          // Fallback: показываем заглушку
-          document.getElementById('fileTree').innerHTML = '<li class="tree-item"><div class="tree-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> code-structure.json not found</div></li>';
         }
-      } catch (e) {
-        console.warn('Code structure not available');
-      }
-      
-      // Кнопки навигации
+      } catch (e) { console.warn('Code structure not available'); }
       document.getElementById('btnHome').onclick = () => window.location.href = '/';
       document.getElementById('btnList').onclick = () => window.location.href = '/list';
     }
-
-    // Запускаем
-    init();
   </script>
 </body>
 </html>
