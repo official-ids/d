@@ -151,6 +151,12 @@ const config = {
   version: 2,
   cleanUrls: true,
   trailingSlash: false,
+
+  errorPages: {
+    '404': '/404.html',  // Показывать 404.html если страница не найдена
+    '500': '/500.html'   // Показывать 500.html если ошибка сервера
+  },
+
   rewrites,
   headers: [
     {

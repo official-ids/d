@@ -3,98 +3,287 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>404 — Not Found</title>
+  <title>404 — Not Found | SERAVIEL LABS</title>
+  <meta name="description" content="Page not found. Return to SERAVIEL LABS tools collection.">
+  <meta name="robots" content="noindex, follow">
   <style>
+    /* === SERAVIEL LABS Design System === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 20px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.06);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      margin: 0;
-      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
-      background: #f5f7fb;
-      color: #1f2937;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
+      padding: 24px;
       text-align: center;
-    }
-
-    .card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 20px;
-      padding: 40px 36px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-      max-width: 520px;
-    }
-
-    h1 {
-      font-size: 72px;
-      margin: 0;
-      font-weight: 600;
-      color: #374151;
-      letter-spacing: -1px;
-    }
-
-    h2 {
-      margin: 10px 0 6px;
-      font-weight: 500;
-      color: #111827;
-    }
-
-    p {
-      color: #6b7280;
-      margin-bottom: 24px;
       line-height: 1.5;
     }
 
+    /* === Card === */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      box-shadow: var(--shadow);
+      max-width: 480px;
+      width: 100%;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === Illustration === */
     .illustration {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 18px;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 24px;
       opacity: 0.9;
     }
+    .illustration svg {
+      width: 100%;
+      height: 100%;
+      stroke: var(--text-muted);
+    }
 
-    a {
-      display: inline-block;
-      padding: 11px 18px;
-      border-radius: 10px;
-      background: #e5e7eb;
-      color: #111827;
+    /* === Typography === */
+    h1 {
+      font-size: 64px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -2px;
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    p {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 28px;
+    }
+
+    /* === Actions === */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
       font-weight: 500;
+      font-size: 14px;
       text-decoration: none;
-      transition: background 0.15s, transform 0.15s;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      max-width: 280px;
     }
 
-    a:hover {
-      background: #d1d5db;
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: 2px solid var(--accent);
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
       transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(13,148,136,0.2);
     }
 
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--bg);
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* === Footer === */
     .footer {
-      margin-top: 18px;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
       font-size: 12px;
-      color: #9ca3af;
+      color: var(--text-muted);
+    }
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .footer a:hover { text-decoration: underline; }
+
+    /* === Toast (for future use) === */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+      margin-top: 10px;
+    }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast-content { flex: 1; text-align: left; }
+    .toast-close {
+      background: none; border: none; padding: 4px;
+      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close svg { width: 16px; height: 16px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+
+        @keyframes toastOut {
+      to {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+
+    /* === Responsive === */
+    @media (max-width: 480px) {
+      .card { padding: 40px 24px; }
+      h1 { font-size: 56px; }
+      .btn { width: 100%; }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
     }
   </style>
 </head>
 <body>
   <div class="card">
+    <!-- SVG Illustration: Sad robot / broken link -->
     <svg class="illustration" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="20" y="18" width="80" height="64" rx="10" stroke="#9ca3af" stroke-width="2"/>
-      <circle cx="45" cy="45" r="6" fill="#9ca3af"/>
-      <circle cx="75" cy="45" r="6" fill="#9ca3af"/>
-      <path d="M40 65C45 60 75 60 80 65" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
-      <rect x="48" y="82" width="24" height="10" rx="4" fill="#d1d5db"/>
+      <rect x="20" y="20" width="80" height="60" rx="12" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4"/>
+      <circle cx="45" cy="45" r="5" fill="currentColor" opacity="0.3"/>
+      <circle cx="75" cy="45" r="5" fill="currentColor" opacity="0.3"/>
+      <path d="M42 68C46 64 74 64 78 68" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M30 10L40 20M90 10L80 20M30 110L40 100M90 110L80 100" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M60 50V70M50 60H70" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
     </svg>
 
     <h1>404</h1>
     <h2>Page not found</h2>
     <p>
-      It looks like there is no such page on Seraviel LABS.<br>
+      It looks like there is no such page on SERAVIEL LABS.<br>
       The link may be outdated or the address may be incorrect.
-      Please check the address and try again.
     </p>
-    <a href="https://seraviel-labs.vercel.app/">Go back to the main page</a>
-    <div class="footer">seraviel-labs.vercel.app</div>
+
+    <div class="actions">
+      <a href="/" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Go to main page
+      </a>
+      <a href="/list" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        Browse all tools
+      </a>
+    </div>
+
+    <div class="footer">
+      <a href="https://seraviel-labs.vercel.app">seraviel-labs.vercel.app</a>
+    </div>
   </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === Toast System (compatible with main site) ===
+    function toast(message, type = 'success', duration = 4000) {
+      const globalToast = typeof window.toast === 'function' ? window.toast : null;
+      if (globalToast && globalToast !== toast) { globalToast(message, type, duration); return; }
+
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+      
+      el.querySelector('.toast-close').onclick = () => removeToast(el);
+      container.appendChild(el);
+
+      const timer = setTimeout(() => removeToast(el), duration);
+      el.onmouseenter = () => clearTimeout(timer);
+    }
+
+    function removeToast(el) {
+      el.style.animation = 'toastOut 0.3s ease-out forwards';
+      setTimeout(() => el.remove(), 300);
+    }
+
+    toast('Page not found', 'warning', 5000);    
+
+  </script>
 </body>
 </html>
