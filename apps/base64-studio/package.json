@@ -1,0 +1,5 @@
+{
+  "name": "base64-studio",
+  "description": "Encode and decode text, images, and files to Base64. Client-side, private, no uploads.",
+  "keywords": ["base64", "encoder", "decoder", "image", "data-uri", "converter", "privacy"]
+}

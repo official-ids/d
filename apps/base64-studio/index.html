@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base64 Studio | SERAVIEL LABS</title>
+  <meta name="description" content="Encode and decode text, images, and files to Base64. Client-side, private, no uploads.">
+  <meta name="keywords" content="base64, encoder, decoder, image to base64, data uri, converter">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .header h1 svg { width: 24px; height: 24px; stroke: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 14px; }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      padding: 4px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab svg { width: 16px; height: 16px; }
+    .tab.active {
+      background: var(--accent);
+      color: white;
+    }
+    .tab:not(.active):hover {
+      background: var(--bg);
+      color: var(--text);
+    }
+    
+    /* Panels */
+    .panel { display: none; }
+    .panel.active { display: block; }
+    
+    /* Text Mode */
+    .mode-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .mode-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mode-card h3 svg { width: 18px; height: 18px; stroke: var(--accent); }
+    
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 13px;
+      resize: vertical;
+      background: var(--bg);
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    textarea:focus {
+      outline: 2px solid var(--accent);
+      border-color: transparent;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--accent); color: white; }
+    .btn svg { width: 16px; height: 16px; }
+    .btn.secondary {
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn.secondary:hover {
+      background: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn.danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .btn.danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+    
+    /* File Mode */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      background: var(--bg);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 20px;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(13,148,136,0.03);
+    }
+    .drop-zone svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .drop-zone p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .drop-zone small {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    #fileInput { display: none; }
+    
+    .preview {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .preview.active { display: block; }
+    .preview-img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .preview-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    
+    /* Output */
+    .output-section {
+      margin-top: 24px;
+    }
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .output-header h4 {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .output-header h4 svg { width: 16px; height: 16px; stroke: var(--accent); }
+    
+    .output-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--text);
+    }
+    
+    /* Toast (fallback if global toast not available) */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast.success .toast-icon { stroke: var(--success); }
+    .toast.error .toast-icon { stroke: var(--danger); }
+    .toast.warning .toast-icon { stroke: var(--warning); }
+    .toast-content { flex: 1; line-height: 1.4; }
+    .toast-close {
+      background: none; border: none; padding: 4px;
+      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close svg { width: 16px; height: 16px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      body { padding: 16px; }
+      .mode-card { padding: 20px 16px; }
+      .tabs { width: 100%; justify-content: center; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19h16M4 5h16M8 9h8M8 13h6"/>
+        </svg>
+        Base64 Studio
+      </h1>
+      <p>Encode and decode text, images, and files. 100% client-side, private, no uploads.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="text" onclick="switchTab('text')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
+        Text
+      </button>
+      <button class="tab" data-tab="file" onclick="switchTab('file')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        File / Image
+      </button>
+    </div>
+
+    <!-- Text Mode -->
+    <div id="text-panel" class="panel active">
+      <div class="mode-card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Text ↔ Base64
+        </h3>
+        <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px">Input</label>
+        <textarea id="textInput" placeholder="Enter text to encode or Base64 to decode..."></textarea>
+        
+        <div class="actions">
+          <button class="btn" onclick="encodeText()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            Encode to Base64
+          </button>
+          <button class="btn secondary" onclick="decodeText()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            Decode from Base64
+          </button>
+          <button class="btn secondary" onclick="clearText()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            Clear
+          </button>
+        </div>
+
+        <div class="output-section">
+          <div class="output-header">
+            <h4>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Result
+            </h4>
+            <button class="btn secondary" onclick="copyOutput()" style="padding:6px 12px;font-size:12px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              Copy
+            </button>
+          </div>
+          <div id="textOutput" class="output-box"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- File Mode -->
+    <div id="file-panel" class="panel">
+      <div class="mode-card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5 5-5-5M12 3v10"/></svg>
+          File / Image → Data URI
+        </h3>
+        
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5 5-5-5M12 3v10"/>
+          </svg>
+          <p>Click or drag & drop a file</p>
+          <small>Supports images, text, PDF (max ~10MB)</small>
+          <input type="file" id="fileInput" accept="image/*,.txt,.pdf,.json">
+        </div>
+
+        <div id="preview" class="preview">
+          <img id="previewImg" class="preview-img" alt="Preview">
+          <div class="preview-info">
+            <span id="fileName">file.png</span>
+            <span id="fileSize">0 KB</span>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="copyDataUri()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              Copy Data URI
+            </button>
+            <button class="btn secondary" onclick="downloadDataUri()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Download .txt
+            </button>
+            <button class="btn danger" onclick="resetFile()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div class="output-section">
+          <div class="output-header">
+            <h4>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Data URI (truncated)
+            </h4>
+            <button class="btn secondary" onclick="copyDataUri()" style="padding:6px 12px;font-size:12px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              Copy
+            </button>
+          </div>
+          <div id="fileOutput" class="output-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === Toast System (fallback if global not available) ===
+    function toast(message, type = 'success', duration = 4000) {
+      const globalToast = typeof window.toast === 'function' ? window.toast : null;
+      if (globalToast) { globalToast(message, type, duration); return; }
+      
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+      el.querySelector('.toast-close').onclick = () => removeToast(el);
+      container.appendChild(el);
+      const timer = setTimeout(() => removeToast(el), duration);
+      el.onmouseenter = () => clearTimeout(timer);
+    }
+    function removeToast(el) {
+      el.style.animation = 'toastOut 0.3s ease-out forwards';
+      setTimeout(() => el.remove(), 300);
+    }
+
+    // === Tab Switching ===
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+      document.getElementById(`${tab}-panel`).classList.add('active');
+    }
+
+    // === Text Mode ===
+    function encodeText() {
+      const input = document.getElementById('textInput').value;
+      if (!input) { toast('Enter text first', 'warning'); return; }
+      try {
+        const encoded = btoa(unescape(encodeURIComponent(input)));
+        document.getElementById('textOutput').textContent = encoded;
+        toast('Encoded successfully', 'success');
+      } catch (e) {
+        toast('Encoding failed: ' + e.message, 'error');
+      }
+    }
+    function decodeText() {
+      const input = document.getElementById('textInput').value.trim();
+      if (!input) { toast('Enter Base64 first', 'warning'); return; }
+      try {
+        const decoded = decodeURIComponent(escape(atob(input)));
+        document.getElementById('textOutput').textContent = decoded;
+        toast('Decoded successfully', 'success');
+      } catch (e) {
+        toast('Invalid Base64', 'error');
+      }
+    }
+    function clearText() {
+      document.getElementById('textInput').value = '';
+      document.getElementById('textOutput').textContent = '';
+      toast('Cleared', 'success');
+    }
+    function copyOutput() {
+      const text = document.getElementById('textOutput').textContent;
+      if (!text) { toast('Nothing to copy', 'warning'); return; }
+      navigator.clipboard.writeText(text).then(() => toast('Copied!', 'success')).catch(() => toast('Copy failed', 'error'));
+    }
+
+    // === File Mode ===
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    let currentDataUri = '';
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+    fileInput.addEventListener('change', (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+    function handleFile(file) {
+      if (file.size > 10 * 1024 * 1024) { toast('File too large (max 10MB)', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentDataUri = e.target.result;
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatBytes(file.size);
+        if (file.type.startsWith('image/')) {
+          const img = document.getElementById('previewImg');
+          img.src = currentDataUri;
+          img.style.display = 'block';
+        } else {
+          document.getElementById('previewImg').style.display = 'none';
+        }
+        document.getElementById('preview').classList.add('active');
+        document.getElementById('fileOutput').textContent = currentDataUri.slice(0, 500) + (currentDataUri.length > 500 ? '...' : '');
+        toast('File loaded', 'success');
+      };
+      reader.onerror = () => toast('Failed to read file', 'error');
+      reader.readAsDataURL(file);
+    }
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024, sizes = ['B','KB','MB','GB'];
+      const i = Math.floor(Math.log(bytes)/Math.log(k));
+      return parseFloat((bytes/Math.pow(k,i)).toFixed(2))+' '+sizes[i];
+    }
+    function copyDataUri() {
+      if (!currentDataUri) { toast('Load a file first', 'warning'); return; }
+      navigator.clipboard.writeText(currentDataUri).then(() => toast('Data URI copied!', 'success')).catch(() => toast('Copy failed', 'error'));
+    }
+    function downloadDataUri() {
+      if (!currentDataUri) { toast('Load a file first', 'warning'); return; }
+      const blob = new Blob([currentDataUri], {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'data-uri.txt';
+      a.click(); URL.revokeObjectURL(url);
+      toast('Downloaded', 'success');
+    }
+    function resetFile() {
+      currentDataUri = '';
+      fileInput.value = '';
+      document.getElementById('preview').classList.remove('active');
+      document.getElementById('fileOutput').textContent = '';
+      toast('Reset', 'success');
+    }
+
+    // === Init ===
+    toast('Base64 Studio ready', 'success', 3000);
+  </script>
+</body>
+</html>
