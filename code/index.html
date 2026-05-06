@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Code Viewer | SERAVIEL LABS</title>
+  <title>Source Code | SERAVIEL LABS</title>
   <meta name="description" content="Read-only source code browser. Explore SERAVIEL LABS project structure.">
   <meta name="keywords" content="code, viewer, source, browser, read-only">
   <meta name="robots" content="noindex, follow">
@@ -271,7 +271,7 @@
   <header class="header">
     <h1>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Code Viewer
+      Source Code
     </h1>
     <div class="header-actions">
       <button class="btn-icon" id="btnHome" title="На главную">
@@ -445,22 +445,44 @@
       }
     }
 
-    // Простая подсветка синтаксиса
+        // Простая подсветка синтаксиса
     function highlightCode(el, path) {
       const text = el.textContent;
       if (path.endsWith('.js') || path.endsWith('.ts')) {
         el.innerHTML = text
-          .replace(/(const|let|var|function|return|if|else|for|while|class|import|export|async|await)/g, '<span class="code-keyword">$1</span>')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|async|await)\b/g, '<span class="code-keyword">$1</span>')
           .replace(/(['"`].*?['"`])/g, '<span class="code-string">$1</span>')
           .replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, '<span class="code-comment">$1</span>')
-          .replace(/(\b\d+\.?\d*\b)/g, '<span class="code-number">$1</span>');
+          .replace(/\b(\d+\.?\d*)\b/g, '<span class="code-number">$1</span>');
       } else if (path.endsWith('.html')) {
         el.innerHTML = text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
           .replace(/(&lt;\/?[\w-]+|&lt;[\w-]+\/?&gt;)/g, '<span class="code-keyword">$1</span>')
           .replace(/([\w-]+)=/g, '<span class="code-function">$1</span>=')
           .replace(/(["'].*?["'])/g, '<span class="code-string">$1</span>');
+      } else if (path.endsWith('.css')) {
+        el.innerHTML = text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/([{}:;,])/g, '<span class="code-keyword">$1</span>')
+          .replace(/([\w-]+):/g, '<span class="code-function">$1</span>:')
+          .replace(/(:\s*[^;]+)/g, ':<span class="code-string">$1</span>');
+      } else if (path.endsWith('.json')) {
+        el.innerHTML = text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"([\w-]+)"\s*:/g, '<span class="code-function">"$1"</span>:')
+          .replace(/:\s*"([^"]+)"/g, ': <span class="code-string">"$1"</span>')
+          .replace(/:\s*(\d+\.?\d*)/g, ': <span class="code-number">$1</span>');
       }
-      // Для других форматов оставляем как есть
+      // Для других форматов оставляем как есть (уже закодировано через textContent)
     }
 
     function formatBytes(bytes) {

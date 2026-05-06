@@ -192,7 +192,7 @@ projects.forEach(project => {
 // 4. ГЛАВНЫЕ СТРАНИЦЫ САЙТА
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
-rewrites.push({ source: '/code', destination: '/apps/code-viewer/index.html' }); // ← Правило для Code Viewer
+rewrites.push({ source: '/code', destination: '/code/index.html' }); // ← Правило для Code Viewer
 
 // 5. КОРЕНЬ (СТРОГО "/")
 rewrites.push({ source: '/$', destination: '/index.html' });
