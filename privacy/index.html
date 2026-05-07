@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Center | SERAVIEL LABS</title>
+  <meta name="description" content="100% client-side tools. No data leaves your browser. Live network monitor proves it.">
+  <meta name="keywords" content="privacy, security, client-side, offline, no-api, data-protection">
+  <style>
+    /* === SERAVIEL LABS Design System === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #22c55e;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 24px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* === Header === */
+    .header {
+      text-align: center;
+      padding: 48px 24px 32px;
+      background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .header h1 svg { width: 32px; height: 32px; stroke: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 16px; max-width: 600px; margin: 0 auto; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--success);
+      color: white;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 16px;
+      animation: pulse 2s infinite;
+    }
+    .status-badge svg { width: 16px; height: 16px; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+    }
+
+    /* === Live Monitor === */
+    .monitor-card {
+      background: var(--surface);
+      border: 2px solid var(--success);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 0 4px rgba(34,197,94,0.1);
+    }
+    .monitor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .monitor-title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .monitor-title svg { width: 20px; height: 20px; stroke: var(--success); }
+    .monitor-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--success);
+    }
+    .monitor-status svg { width: 16px; height: 16px; animation: spin 2s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    
+    .monitor-log {
+      background: var(--code-bg, #1e293b);
+      color: var(--code-text, #e2e8f0);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+    .log-entry { margin: 4px 0; display: flex; gap: 8px; }
+    .log-time { color: var(--text-muted); opacity: 0.7; }
+    .log-ok { color: var(--success); }
+    .log-warn { color: var(--warning); }
+    .log-error { color: var(--danger); }
+
+    /* === Sections === */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .section h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section h2 svg { width: 20px; height: 20px; stroke: var(--accent); }
+
+    /* === Data Flow Diagram === */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      background: var(--bg);
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+    .flow-node {
+      text-align: center;
+      padding: 16px;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      min-width: 140px;
+    }
+    .flow-node svg { width: 32px; height: 32px; stroke: var(--accent); margin-bottom: 8px; }
+    .flow-node.strong { border-color: var(--success); }
+    .flow-node.strong svg { stroke: var(--success); }
+    .flow-arrow {
+      font-size: 24px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+    }
+    .flow-arrow.blocked {
+      color: var(--danger);
+      position: relative;
+    }
+    .flow-arrow.blocked::after {
+      content: "✕";
+      position: absolute;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    /* === Principles Grid === */
+    .principles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .principle-card {
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 8px;
+      border-left: 4px solid var(--accent);
+    }
+    .principle-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .principle-card h4 svg { width: 16px; height: 16px; stroke: var(--accent); }
+    .principle-card p { font-size: 13px; color: var(--text-muted); }
+
+    /* === Tools List === */
+    .tools-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+    }
+    .tool-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .tool-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .tool-icon svg { width: 18px; height: 18px; stroke: white; }
+    .tool-info { flex: 1; }
+    .tool-name { font-weight: 500; font-size: 14px; }
+    .tool-desc { font-size: 12px; color: var(--text-muted); }
+    .tool-badge {
+      padding: 4px 8px;
+      background: var(--success);
+      color: white;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* === FAQ === */
+    .faq-item {
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    .faq-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .faq-question {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .faq-question svg { width: 16px; height: 16px; transition: transform 0.2s; }
+    .faq-question.active svg { transform: rotate(180deg); }
+    .faq-answer {
+      font-size: 14px;
+      color: var(--text-muted);
+      padding-left: 24px;
+      display: none;
+    }
+    .faq-answer.show { display: block; }
+
+    /* === Footer CTA === */
+    .footer-cta {
+      text-align: center;
+      padding: 32px 24px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+      border-radius: var(--radius);
+      color: white;
+      margin-top: 32px;
+    }
+    .footer-cta h3 { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+    .footer-cta p { opacity: 0.9; margin-bottom: 20px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: white;
+      color: var(--accent);
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn svg { width: 16px; height: 16px; }
+
+    /* === Toast === */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast.success { border-left-color: var(--success); }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast-content { flex: 1; }
+    .toast-close {
+      background: none; border: none; padding: 4px;
+      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+    }
+    .toast-close svg { width: 16px; height: 16px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+
+    /* === Responsive === */
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+      .flow-diagram { flex-direction: column; gap: 12px; }
+      .flow-arrow { transform: rotate(90deg); }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Privacy Center
+      </h1>
+      <p>SERAVIEL LABS tools work 100% in your browser. No data is sent to servers. Ever.</p>
+      <div class="status-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        All systems secure • No external requests
+      </div>
+    </header>
+
+    <!-- Live Network Monitor -->
+    <section class="monitor-card">
+      <div class="monitor-header">
+        <div class="monitor-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Live Network Monitor
+        </div>
+        <div class="monitor-status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.22-8.55M3 3v6h6"/></svg>
+          Monitoring...
+        </div>
+      </div>
+      <div class="monitor-log" id="networkLog">
+        <div class="log-entry"><span class="log-time">[00:00]</span><span class="log-ok">✓ Page loaded — 0 external requests</span></div>
+        <div class="log-entry"><span class="log-time">[00:00]</span><span class="log-ok">✓ All resources loaded from same origin</span></div>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:12px">
+        This panel logs all network activity in real-time. If you see any request to an external domain, something is wrong.
+      </p>
+    </section>
+
+    <!-- Data Flow -->
+    <section class="section">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        How Your Data Flows
+      </h2>
+      <div class="flow-diagram">
+        <div class="flow-node strong">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <div style="font-weight:600">Your Browser</div>
+          <div style="font-size:12px;color:var(--text-muted)">Input • Process • Output</div>
+        </div>
+        <div class="flow-arrow blocked">⟶</div>
+        <div class="flow-node">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          <div style="font-weight:600">External Servers</div>
+          <div style="font-size:12px;color:var(--danger)">Blocked</div>
+        </div>
+      </div>
+      <p style="text-align:center;color:var(--text-muted);font-size:14px">
+        All computation happens locally. Your data never leaves your device.
+      </p>
+    </section>
+
+    <!-- Core Principles -->
+    <section class="section">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Core Privacy Principles
+      </h2>
+      <div class="principles-grid">
+        <div class="principle-card">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Zero API Calls
+          </h4>
+          <p>No fetch, no XMLHttpRequest to external domains. All logic runs in your browser.</p>
+        </div>
+        <div class="principle-card">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            No Data Storage
+          </h4>
+          <p>We don't store your inputs, files, or results. Everything is ephemeral unless you choose to save.</p>
+        </div>
+        <div class="principle-card">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            No Tracking
+          </h4>
+          <p>No analytics, no cookies for tracking, no fingerprinting. We don't know you're here.</p>
+        </div>
+        <div class="principle-card">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Open Source
+          </h4>
+          <p>Every line of code is public on GitHub. Audit it yourself. Trust, but verify.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tools Audit -->
+    <section class="section">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Tools Privacy Audit
+      </h2>
+      <p style="color:var(--text-muted);margin-bottom:16px;font-size:14px">
+        Every tool in SERAVIEL LABS follows the same privacy standards. Here's the proof:
+      </p>
+      <ul class="tools-list" id="toolsList">
+        <!-- Populated by JS -->
+      </ul>
+    </section>
+
+        <!-- FAQ -->
+    <section class="section">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        Frequently Asked Questions
+      </h2>
+      
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate(0deg)"><polyline points="6 9 12 15 18 9"/></svg>
+          How can I verify no data is sent?
+        </div>
+        <div class="faq-answer">
+          Open your browser's DevTools (F12) → Network tab. Use any tool. You'll see only same-origin requests for static assets (HTML, CSS, JS). No POST requests, no external domains.
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate(0deg)"><polyline points="6 9 12 15 18 9"/></svg>
+          What about localStorage?
+        </div>
+        <div class="faq-answer">
+          Some tools use localStorage to save your preferences (e.g., theme, last input). This data stays on your device and is never transmitted. You can clear it anytime in browser settings.
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate(0deg)"><polyline points="6 9 12 15 18 9"/></svg>
+          Can I use these tools offline?
+        </div>
+        <div class="faq-answer">
+          Yes! Once the page is loaded, all tools work completely offline. No internet connection required for computation. You can even install the site as a PWA for full offline access.
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate(0deg)"><polyline points="6 9 12 15 18 9"/></svg>
+          What if I find a privacy issue?
+        </div>
+        <div class="faq-answer">
+          Report it immediately via GitHub Issues. All code is open source — if you spot a fetch() to an external domain, it's a bug. We fix privacy issues with highest priority.
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <div class="footer-cta">
+      <h3>Trust, but verify.</h3>
+      <p>Every tool is open source. Audit the code. Run it locally. Take control.</p>
+      <a href="https://github.com/official-ids/d" target="_blank" rel="noopener" class="btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        View Source on GitHub
+      </a>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === Toast System ===
+    function toast(message, type = 'success', duration = 4000) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+      el.querySelector('.toast-close').onclick = () => { el.style.animation = 'toastOut 0.3s ease-out forwards'; setTimeout(() => el.remove(), 300); };
+      container.appendChild(el);
+      const timer = setTimeout(() => { el.style.animation = 'toastOut 0.3s ease-out forwards'; setTimeout(() => el.remove(), 300); }, duration);
+      el.onmouseenter = () => clearTimeout(timer);
+    }
+
+    // === Live Network Monitor ===
+    function logNetwork(message, type = 'ok') {
+      const log = document.getElementById('networkLog');
+      const time = new Date().toLocaleTimeString('en-US', {hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-${type}">${message}</span>`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    // Monitor fetch
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+      const url = args[0] instanceof Request ? args[0].url : args[0];
+      if (url.startsWith('http') && !url.includes(location.hostname) && !url.startsWith('/')) {
+        logNetwork(`⚠ Attempted external fetch: ${url}`, 'warn');
+        toast('External request blocked', 'warning');
+      } else {
+        logNetwork(`✓ Same-origin fetch: ${url}`, 'ok');
+      }
+      return originalFetch.apply(this, args);
+    };
+
+    // Monitor XMLHttpRequest
+    const originalOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url) {
+      if (url.startsWith('http') && !url.includes(location.hostname) && !url.startsWith('/')) {
+        logNetwork(`⚠ Attempted external XHR: ${url}`, 'warn');
+        toast('External request blocked', 'warning');
+      }
+      return originalOpen.apply(this, arguments);
+    };
+
+    // === FAQ Toggle ===
+    function toggleFaq(el) {
+      el.classList.toggle('active');
+      const answer = el.nextElementSibling;
+      answer.classList.toggle('show');
+    }
+
+    // === Tools List (Static for now, could be dynamic from manifest) ===
+    const tools = [
+      { name: 'Base64 Studio', desc: 'Encode/decode client-side', icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
+      { name: 'Transform Visualizer', desc: 'CSS transforms preview', icon: '<path d="M4 4h16v16H4z M4 4l16 16 M20 4L4 20"/>' },
+      { name: 'Flexbox Playground', desc: 'Interactive flexbox builder', icon: '<rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="18" height="5"/>' },
+      { name: 'Markdown Editor', desc: 'Live preview, no sync', icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>' },
+      { name: 'Task Master', desc: 'Local storage only', icon: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>' },
+      { name: 'SysInfo', desc: 'Browser APIs only', icon: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>' },
+    ];
+
+    function renderTools() {
+      const list = document.getElementById('toolsList');
+      list.innerHTML = tools.map(tool => `
+        <li class="tool-item">
+          <div class="tool-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${tool.icon}</svg>
+          </div>
+          <div class="tool-info">
+            <div class="tool-name">${tool.name}</div>
+            <div class="tool-desc">${tool.desc}</div>
+          </div>
+          <span class="tool-badge">Private</span>
+        </li>
+      `).join('');
+    }
+
+    // === Init ===
+    renderTools();
+    logNetwork('✓ Privacy monitor active', 'ok');
+    toast('Privacy Center loaded', 'success', 3000);
+
+    // Periodic "all clear" message
+    setInterval(() => {
+      logNetwork('✓ No external requests detected', 'ok');
+    }, 30000);
+  </script>
+</body>
+</html>

@@ -162,6 +162,7 @@ function generateSitemap(apps) {
     { loc: '/code', changefreq: 'yearly', priority: 0.8 },
     { loc: '/info', changefreq: 'yearly', priority: 0.8 },
     { loc: '/info-style', changefreq: 'yearly', priority: 0.8 },
+    { loc: '/privacy', changefreq: 'yearly', priority: 0.9 },
     { loc: '/404', changefreq: 'yearly', priority: 0.1 }
   ];
   
@@ -241,6 +242,7 @@ projects.forEach(project => {
 rewrites.push({ source: '/list', destination: '/list/index.html' });
 rewrites.push({ source: '/info', destination: '/info/index.html' });
 rewrites.push({ source: '/info/style', destination: '/info/style/index.html' });
+rewrites.push({ source: '/privacy', destination: '/privacy/index.html' });
 rewrites.push({ source: '/code', destination: '/code/index.html' }); // ← Правило для Code Viewer
 
 // 5. КОРЕНЬ (СТРОГО "/")
