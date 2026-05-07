@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Editor | SERAVIEL LABS</title>
+  <meta name="description" content="Split-pane Markdown editor with live preview and HTML export.">
+  <meta name="keywords" content="markdown, editor, preview, html, export">
+  <style>
+    /* === SERAVIEL LABS Design System === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --code-bg: #1e293b;
+      --code-text: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .header h1 svg { width: 24px; height: 24px; stroke: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 14px; }
+    
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .toolbar-btn {
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+    .toolbar-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .toolbar-btn svg { width: 16px; height: 16px; }
+    .toolbar-divider {
+      width: 1px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+    
+    /* Editor Layout */
+    .editor-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+      min-height: 500px;
+    }
+    
+    /* Panels */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+    }
+    .panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .panel-header svg { width: 16px; height: 16px; stroke: var(--accent); }
+    
+    /* Editor Input */
+    .editor-input {
+      flex: 1;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      border: none;
+      resize: none;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .editor-input::placeholder { color: var(--text-muted); }
+    
+    /* Preview Output */
+    .preview-output {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .preview-output h1, .preview-output h2, .preview-output h3 {
+      margin: 16px 0 8px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .preview-output h1 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .preview-output h2 { font-size: 20px; }
+    .preview-output h3 { font-size: 16px; }
+    .preview-output p { margin: 8px 0; }
+    .preview-output ul, .preview-output ol { margin: 8px 0; padding-left: 24px; }
+    .preview-output li { margin: 4px 0; }
+    .preview-output a { color: var(--accent); text-decoration: none; }
+    .preview-output a:hover { text-decoration: underline; }
+    .preview-output code {
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+    }
+    .preview-output pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .preview-output pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    .preview-output blockquote {
+      border-left: 4px solid var(--accent);
+      padding-left: 16px;
+      margin: 12px 0;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .preview-output hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+    .preview-output img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    .preview-output table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+    .preview-output th, .preview-output td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .preview-output th { background: var(--bg); font-weight: 600; }
+    
+    /* Stats Bar */
+    .stats-bar {
+      display: flex;
+      gap: 24px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .stat { display: flex; align-items: center; gap: 6px; }
+    .stat svg { width: 16px; height: 16px; stroke: var(--accent); }
+    .stat-value { font-weight: 600; color: var(--text); }
+    
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--accent); color: white; }
+    .btn svg { width: 16px; height: 16px; }
+    .btn.secondary {
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn.secondary:hover {
+      background: var(--bg);
+      border-color: var(--accent);
+    }
+    
+    /* Toast */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast.success { border-left-color: #22c55e; }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast-content { flex: 1; }
+    .toast-close {
+      background: none; border: none; padding: 4px;
+      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close svg { width: 16px; height: 16px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+      .editor-layout { grid-template-columns: 1fr; min-height: auto; }
+      .panel { min-height: 300px; }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Markdown Editor
+      </h1>
+      <p>Write Markdown with live preview. Export to HTML. 100% client-side.</p>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <button class="toolbar-btn" onclick="insertMarkdown('# ', ' Header')" title="Heading">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h8M4 18V6M12 18V6M20 18h-4V6h4"/></svg>
+        H1
+      </button>
+      <button class="toolbar-btn" onclick="insertMarkdown('## ', ' Header')" title="Subheading">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h8M4 18V6M12 18V6M17 18h4M21 14l-4 4 4 4"/></svg>
+        H2
+      </button>
+      <div class="toolbar-divider"></div>
+      <button class="toolbar-btn" onclick="insertMarkdown('**', '**', 'bold')" title="Bold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z"/><path d="M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z"/></svg>
+        Bold
+      </button>
+      <button class="toolbar-btn" onclick="insertMarkdown('*', '*', 'italic')" title="Italic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+        Italic
+      </button>
+      <button class="toolbar-btn" onclick="insertMarkdown('`', '`', 'code')" title="Inline Code">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Code
+      </button>
+      <div class="toolbar-divider"></div>
+      <button class="toolbar-btn" onclick="insertMarkdown('- ', '', 'list item')" title="Bullet List">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        List
+      </button>
+      <button class="toolbar-btn" onclick="insertMarkdown('[', '](url)', 'link text')" title="Link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        Link
+      </button>
+      <button class="toolbar-btn" onclick="insertMarkdown('![', '](url)', 'alt text')" title="Image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Image
+      </button>
+      <div class="toolbar-divider"></div>
+      <button class="toolbar-btn" onclick="clearEditor()" title="Clear">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Clear
+      </button>
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-layout">
+      <!-- Input -->
+      <div class="panel">
+        <div class="panel-header">
+          <span style="display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Markdown
+          </span>
+        </div>
+        <textarea class="editor-input" id="markdownInput" placeholder="# Start writing...&#10;&#10;## Features&#10;- Live preview&#10;- **Bold** and *italic*&#10;- `inline code`&#10;- [Links](https://example.com)&#10;&#10;```js&#10;console.log('Hello');&#10;```"></textarea>
+      </div>
+      
+      <!-- Preview -->
+      <div class="panel">
+        <div class="panel-header">
+          <span style="display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview
+          </span>
+        </div>
+        <div class="preview-output" id="previewOutput"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Words: <span class="stat-value" id="wordCount">0</span>
+      </div>
+      <div class="stat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Characters: <span class="stat-value" id="charCount">0</span>
+      </div>
+      <div class="stat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Read time: <span class="stat-value" id="readTime">0 min</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn secondary" onclick="copyHtml()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy HTML
+      </button>
+      <button class="btn" onclick="exportHtml()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Export HTML
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === Toast System ===
+    function toast(message, type = 'success', duration = 4000) {
+      const globalToast = typeof window.toast === 'function' ? window.toast : null;
+      if (globalToast && globalToast !== toast) { globalToast(message, type, duration); return; }
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+      el.querySelector('.toast-close').onclick = () => removeToast(el);
+      container.appendChild(el);
+      const timer = setTimeout(() => removeToast(el), duration);
+      el.onmouseenter = () => clearTimeout(timer);
+    }
+    function removeToast(el) {
+      el.style.animation = 'toastOut 0.3s ease-out forwards';
+      setTimeout(() => el.remove(), 300);
+    }
+
+    // === Markdown Parser (Basic GFM) ===
+    function parseMarkdown(md) {
+      let html = md;
+      
+      // Escape HTML first
+      html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
+      // Code blocks (must be before other rules)
+      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => 
+        `<pre><code class="language-${lang}">${code.trim()}</code></pre>`);
+      
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      
+      // Headers
+      html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+      html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+      html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+      
+      // Bold and Italic
+      html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      html = html.replace(/___(.*?)___/g, '<strong><em>$1</em></strong>');
+      html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
+      html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+      
+      // Strikethrough
+      html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
+      
+      // Blockquotes
+      html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+      html = html.replace(/<\/blockquote>\n<blockquote>/g, '\n');
+      
+      // Links and Images
+      html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+      
+      // Horizontal rule
+      html = html.replace(/^---$/gim, '<hr>');
+      
+      // Unordered lists
+      html = html.replace(/^\s*[\-\*]\s+(.*$)/gim, '<li>$1</li>');
+      html = html.replace(/(<li>.*<\/li>)\n(?=<li>)/g, '$1');
+      html = html.replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>');
+      
+      // Ordered lists
+      html = html.replace(/^\s*\d+\.\s+(.*$)/gim, '<li>$1</li>');
+      html = html.replace(/(<li>.*<\/li>)\n(?=<li>)/g, '$1');
+      html = html.replace(/(<li>.*<\/li>)+/g, '<ol>$&</ol>');
+      
+      // Tables (basic)
+      html = html.replace(/^\|(.+)\|$/gm, (m, row) => {
+        const cells = row.split('|').map(c => c.trim()).filter(c => c);
+        if (cells.every(c => /^[-:]+$/.test(c))) return ''; // separator row
+        const tag = row.match(/^\|[-:]/) ? 'th' : 'td';
+        return `<tr>${cells.map(c => `<${tag}>${c}</${tag}>`).join('')}</tr>`;
+      });
+      html = html.replace(/(<tr>.*<\/tr>)+/g, '<table>$&</table>');
+      
+      // Paragraphs (simple)
+      html = html.split(/\n\n+/).map(block => {
+        if (block.match(/^<(h[1-6]|ul|ol|li|pre|table|tr|td|th|blockquote|hr)/)) return block;
+        return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+      }).join('\n');
+      
+      return html;
+    }
+
+    // === Editor Functions ===
+    const input = document.getElementById('markdownInput');
+    const preview = document.getElementById('previewOutput');
+    const wordCount = document.getElementById('wordCount');
+    const charCount = document.getElementById('charCount');
+    const readTime = document.getElementById('readTime');
+
+    function updatePreview() {
+      const md = input.value;
+      preview.innerHTML = parseMarkdown(md);
+      updateStats(md);
+      saveToStorage(md);
+    }
+
+    function updateStats(md) {
+      const text = md.replace(/[#*_`\[\]()>-]/g, ' ').trim();
+      const words = text ? text.split(/\s+/).filter(w => w).length : 0;
+      const chars = md.length;
+      const minutes = Math.ceil(words / 200);
+      
+      wordCount.textContent = words;
+      charCount.textContent = chars;
+      readTime.textContent = minutes > 0 ? `${minutes} min` : '< 1 min';
+    }
+
+    function insertMarkdown(prefix, suffix, placeholder = '') {
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const text = input.value;
+      const selected = text.substring(start, end) || placeholder;
+      const newText = text.substring(0, start) + prefix + selected + suffix + text.substring(end);
+      
+      input.value = newText;
+      input.focus();
+      input.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+      updatePreview();
+    }
+
+    function clearEditor() {
+      if (input.value.trim() === '') return;
+      if (confirm('Clear all content?')) {
+        input.value = '';
+        updatePreview();
+        toast('Editor cleared', 'success');
+      }
+    }
+
+    function copyHtml() {
+      const html = preview.innerHTML;
+      if (!html.trim()) { toast('Nothing to copy', 'warning'); return; }
+      navigator.clipboard.writeText(html).then(() => {
+        toast('HTML copied to clipboard', 'success');
+      }).catch(() => {
+        toast('Copy failed', 'error');
+      });
+    }
+
+    function exportHtml() {
+      const html = preview.innerHTML;
+      if (!html.trim()) { toast('Nothing to export', 'warning'); return; }
+      
+      const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exported Document</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 24px; color: #0f172a; }
+    h1, h2, h3 { margin: 1.5em 0 0.5em; }
+    h1 { border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5em; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    a { color: #0d9488; }
+    blockquote { border-left: 4px solid #0d9488; padding-left: 16px; margin: 1em 0; color: #64748b; }
+    img { max-width: 100%; border-radius: 8px; }
+    table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
+    th { background: #f8fafc; }
+  </style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+      
+      const blob = new Blob([fullHtml], {type: 'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `document-${Date.now()}.html`;
+      a.click(); URL.revokeObjectURL(url);
+      toast('Exported as HTML', 'success');
+    }
+
+    // LocalStorage auto-save
+    function saveToStorage(content) {
+      localStorage.setItem('seraviel_markdown', content);
+    }
+    function loadFromStorage() {
+      const saved = localStorage.getItem('seraviel_markdown');
+      if (saved) {
+        input.value = saved;
+        updatePreview();
+        toast('Content restored', 'success', 2000);
+      }
+    }
+
+    // Debounce for performance
+    let debounceTimer;
+    input.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(updatePreview, 50);
+    });
+
+    // Keyboard shortcuts
+    input.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'b') { e.preventDefault(); insertMarkdown('**', '**', 'bold'); }
+      if (e.ctrlKey && e.key === 'i') { e.preventDefault(); insertMarkdown('*', '*', 'italic'); }
+    });
+
+    // Init
+    loadFromStorage();
+    toast('Markdown Editor ready', 'success', 3000);
+  </script>
+</body>
+</html>

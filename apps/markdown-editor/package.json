@@ -1,0 +1,5 @@
+{
+  "name": "markdown-editor",
+  "description": "Split-pane Markdown editor with live preview, statistics, and HTML export. 100% client-side, no API.",
+  "keywords": ["markdown", "editor", "preview", "html", "export", "writing", "docs"]
+}
