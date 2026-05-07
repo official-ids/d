@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transform Visualizer | SERAVIEL LABS</title>
+  <meta name="description" content="Interactive CSS transform editor with live 3D preview. Generate translate, rotate, scale, skew transforms.">
+  <meta name="keywords" content="css, transform, 3d, rotate, scale, translate, visualizer">
+  <style>
+    /* === SERAVIEL LABS Design System === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .header h1 svg { width: 24px; height: 24px; stroke: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 14px; }
+    
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    /* Controls Panel */
+    .controls {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .control-group {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .control-group:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .control-group h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .control-group h3 svg { width: 16px; height: 16px; stroke: var(--accent); }
+    
+    .control-row {
+      margin-bottom: 12px;
+    }
+    .control-row label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .control-row input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .control-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .control-row input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--accent-hover);
+    }
+    .control-row .value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    /* Preview Panel */
+    .preview-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .preview-header h3 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .toggle-3d {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .toggle-3d input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+    
+    /* 3D Scene */
+    .scene {
+      flex: 1;
+      min-height: 300px;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1000px;
+      overflow: hidden;
+      position: relative;
+    }
+    .scene.grid {
+      background-image: 
+        linear-gradient(rgba(13,148,136,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(13,148,136,0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    
+    /* Transform Object */
+    .transform-object {
+      width: 120px;
+      height: 120px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+    }
+    .transform-object.cube {
+      transform-style: preserve-3d;
+    }
+    .face {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+      border: 2px solid rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: white;
+      font-weight: 600;
+      opacity: 0.9;
+      backface-visibility: visible;
+    }
+    .face.front  { transform: translateZ(60px); }
+    .face.back   { transform: rotateY(180deg) translateZ(60px); }
+    .face.right  { transform: rotateY(90deg) translateZ(60px); }
+    .face.left   { transform: rotateY(-90deg) translateZ(60px); }
+    .face.top    { transform: rotateX(90deg) translateZ(60px); }
+    .face.bottom { transform: rotateX(-90deg) translateZ(60px); }
+    
+    .transform-object.plane .face {
+      width: 120px;
+      height: 120px;
+      transform: none;
+    }
+    
+    /* Code Output */
+    .code-output {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text);
+      position: relative;
+      overflow-x: auto;
+    }
+    .code-output code {
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    
+    /* Presets */
+    .presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .preset-btn {
+      padding: 6px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-btn:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--accent); color: white; }
+    .btn svg { width: 16px; height: 16px; }
+    .btn.secondary {
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn.secondary:hover {
+      background: var(--bg);
+      border-color: var(--accent);
+    }
+    
+    /* Toast */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast.success { border-left-color: #22c55e; }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast-content { flex: 1; }
+    .toast-close {
+      background: none; border: none; padding: 4px;
+      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close svg { width: 16px; height: 16px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+      .layout { grid-template-columns: 1fr; }
+      .controls { max-height: none; }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z M4 4l16 16 M20 4L4 20"/></svg>
+        Transform Visualizer
+      </h1>
+      <p>Interactive CSS transform editor with live 2D/3D preview.</p>
+    </div>
+
+    <div class="layout">
+      <!-- Controls -->
+      <div class="controls">
+        <!-- Translate -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+            Translate
+          </h3>
+          <div class="control-row">
+            <label>X <span class="value" id="val-translateX">0px</span></label>
+            <input type="range" id="translateX" min="-200" max="200" value="0">
+          </div>
+          <div class="control-row">
+            <label>Y <span class="value" id="val-translateY">0px</span></label>
+            <input type="range" id="translateY" min="-200" max="200" value="0">
+          </div>
+          <div class="control-row">
+            <label>Z <span class="value" id="val-translateZ">0px</span></label>
+            <input type="range" id="translateZ" min="-200" max="200" value="0">
+          </div>
+        </div>
+
+        <!-- Rotate -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.22-8.55M3 3v6h6"/></svg>
+            Rotate
+          </h3>
+          <div class="control-row">
+            <label>X <span class="value" id="val-rotateX">0deg</span></label>
+            <input type="range" id="rotateX" min="-180" max="180" value="0">
+          </div>
+          <div class="control-row">
+            <label>Y <span class="value" id="val-rotateY">0deg</span></label>
+            <input type="range" id="rotateY" min="-180" max="180" value="0">
+          </div>
+          <div class="control-row">
+            <label>Z <span class="value" id="val-rotateZ">0deg</span></label>
+            <input type="range" id="rotateZ" min="-180" max="180" value="0">
+          </div>
+        </div>
+
+        <!-- Scale -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            Scale
+          </h3>
+          <div class="control-row">
+            <label>X <span class="value" id="val-scaleX">1</span></label>
+            <input type="range" id="scaleX" min="0" max="3" step="0.1" value="1">
+          </div>
+          <div class="control-row">
+            <label>Y <span class="value" id="val-scaleY">1</span></label>
+            <input type="range" id="scaleY" min="0" max="3" step="0.1" value="1">
+          </div>
+          <div class="control-row">
+            <label>Z <span class="value" id="val-scaleZ">1</span></label>
+            <input type="range" id="scaleZ" min="0" max="3" step="0.1" value="1">
+          </div>
+        </div>
+
+        <!-- Skew -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20L20 4M4 4l16 16"/></svg>
+            Skew
+          </h3>
+          <div class="control-row">
+            <label>X <span class="value" id="val-skewX">0deg</span></label>
+            <input type="range" id="skewX" min="-45" max="45" value="0">
+          </div>
+          <div class="control-row">
+            <label>Y <span class="value" id="val-skewY">0deg</span></label>
+            <input type="range" id="skewY" min="-45" max="45" value="0">
+          </div>
+        </div>
+
+        <!-- Perspective -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M12 2v20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+            Perspective
+          </h3>
+          <div class="control-row">
+            <label>Value <span class="value" id="val-perspective">1000px</span></label>
+            <input type="range" id="perspective" min="100" max="2000" step="100" value="1000">
+          </div>
+        </div>
+
+        <!-- Presets -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            Presets
+          </h3>
+          <div class="presets">
+            <button class="preset-btn" data-preset="flipX">Flip X</button>
+            <button class="preset-btn" data-preset="flipY">Flip Y</button>
+            <button class="preset-btn" data-preset="rotate3d">Rotate 3D</button>
+            <button class="preset-btn" data-preset="zoom">Zoom</button>
+            <button class="preset-btn" data-preset="reset">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="preview-panel">
+        <div class="preview-header">
+          <h3>Preview</h3>
+          <label class="toggle-3d">
+            <input type="checkbox" id="showCube" checked>
+            Show Cube
+          </label>
+        </div>
+        
+        <div class="scene grid" id="scene">
+          <div class="transform-object cube" id="transformObject">
+            <div class="face front">Front</div>
+            <div class="face back">Back</div>
+            <div class="face right">Right</div>
+            <div class="face left">Left</div>
+            <div class="face top">Top</div>
+            <div class="face bottom">Bottom</div>
+          </div>
+        </div>
+
+        <div class="code-output">
+          <button class="copy-btn" onclick="copyCode()">Copy</button>
+          <code id="codeOutput">transform: translateX(0px) translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scaleX(1) scaleY(1) scaleZ(1) skewX(0deg) skewY(0deg);</code>
+        </div>
+
+        <div class="actions">
+          <button class="btn" onclick="resetTransform()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Reset All
+          </button>
+          <button class="btn secondary" onclick="copyCode()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy CSS
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === Toast System ===
+    function toast(message, type = 'success', duration = 4000) {
+      const globalToast = typeof window.toast === 'function' ? window.toast : null;
+      if (globalToast && globalToast !== toast) { globalToast(message, type, duration); return; }
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+      el.querySelector('.toast-close').onclick = () => removeToast(el);
+      container.appendChild(el);
+      const timer = setTimeout(() => removeToast(el), duration);
+      el.onmouseenter = () => clearTimeout(timer);
+    }
+    function removeToast(el) {
+      el.style.animation = 'toastOut 0.3s ease-out forwards';
+      setTimeout(() => el.remove(), 300);
+    }
+
+    // === Transform Logic ===
+    const inputs = {
+      translateX: { el: document.getElementById('translateX'), val: document.getElementById('val-translateX'), unit: 'px' },
+      translateY: { el: document.getElementById('translateY'), val: document.getElementById('val-translateY'), unit: 'px' },
+      translateZ: { el: document.getElementById('translateZ'), val: document.getElementById('val-translateZ'), unit: 'px' },
+      rotateX: { el: document.getElementById('rotateX'), val: document.getElementById('val-rotateX'), unit: 'deg' },
+      rotateY: { el: document.getElementById('rotateY'), val: document.getElementById('val-rotateY'), unit: 'deg' },
+      rotateZ: { el: document.getElementById('rotateZ'), val: document.getElementById('val-rotateZ'), unit: 'deg' },
+      scaleX: { el: document.getElementById('scaleX'), val: document.getElementById('val-scaleX'), unit: '' },
+      scaleY: { el: document.getElementById('scaleY'), val: document.getElementById('val-scaleY'), unit: '' },
+      scaleZ: { el: document.getElementById('scaleZ'), val: document.getElementById('val-scaleZ'), unit: '' },
+      skewX: { el: document.getElementById('skewX'), val: document.getElementById('val-skewX'), unit: 'deg' },
+      skewY: { el: document.getElementById('skewY'), val: document.getElementById('val-skewY'), unit: 'deg' },
+      perspective: { el: document.getElementById('perspective'), val: document.getElementById('val-perspective'), unit: 'px' }
+    };
+
+    const transformObject = document.getElementById('transformObject');
+    const scene = document.getElementById('scene');
+    const codeOutput = document.getElementById('codeOutput');
+    const showCubeCheckbox = document.getElementById('showCube');
+
+    function updateTransform() {
+      const transforms = [];
+      let cssParts = [];
+
+      // Translate
+      const tx = inputs.translateX.el.value;
+      const ty = inputs.translateY.el.value;
+      const tz = inputs.translateZ.el.value;
+      if (tx != 0 || ty != 0 || tz != 0) {
+        transforms.push(`translate3d(${tx}px, ${ty}px, ${tz}px)`);
+        cssParts.push(`translateX(${tx}px)`, `translateY(${ty}px)`, `translateZ(${tz}px)`);
+      }
+
+      // Rotate
+      const rx = inputs.rotateX.el.value;
+      const ry = inputs.rotateY.el.value;
+      const rz = inputs.rotateZ.el.value;
+      if (rx != 0 || ry != 0 || rz != 0) {
+        transforms.push(`rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`);
+        cssParts.push(`rotateX(${rx}deg)`, `rotateY(${ry}deg)`, `rotateZ(${rz}deg)`);
+      }
+
+      // Scale
+      const sx = inputs.scaleX.el.value;
+      const sy = inputs.scaleY.el.value;
+      const sz = inputs.scaleZ.el.value;
+      if (sx != 1 || sy != 1 || sz != 1) {
+        transforms.push(`scale3d(${sx}, ${sy}, ${sz})`);
+        cssParts.push(`scaleX(${sx})`, `scaleY(${sy})`, `scaleZ(${sz})`);
+      }
+
+      // Skew
+      const skx = inputs.skewX.el.value;
+      const sky = inputs.skewY.el.value;
+      if (skx != 0 || sky != 0) {
+        transforms.push(`skew(${skx}deg, ${sky}deg)`);
+        cssParts.push(`skewX(${skx}deg)`, `skewY(${sky}deg)`);
+      }
+
+      // Apply transform
+      transformObject.style.transform = transforms.join(' ') || 'none';
+      
+      // Apply perspective to scene
+      const pers = inputs.perspective.el.value;
+      scene.style.perspective = `${pers}px`;
+
+      // Update value displays
+      Object.entries(inputs).forEach(([key, {el, val, unit}]) => {
+        val.textContent = `${el.value}${unit}`;
+      });
+
+      // Update code output
+      if (cssParts.length === 0) {
+        codeOutput.textContent = 'transform: none;';
+      } else {
+        codeOutput.textContent = `transform: ${cssParts.join(' ')};`;
+      }
+    }
+
+    // Add event listeners
+    Object.values(inputs).forEach(({el}) => {
+      el.addEventListener('input', updateTransform);
+    });
+
+    // Toggle cube/plane
+    showCubeCheckbox.addEventListener('change', () => {
+      if (showCubeCheckbox.checked) {
+        transformObject.classList.add('cube');
+        transformObject.classList.remove('plane');
+      } else {
+        transformObject.classList.remove('cube');
+        transformObject.classList.add('plane');
+      }
+    });
+
+    // Presets
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.dataset.preset;
+        applyPreset(preset);
+      });
+    });
+
+    function applyPreset(name) {
+      const presets = {
+        flipX: { rotateY: 180 },
+        flipY: { rotateX: 180 },
+        rotate3d: { rotateX: 45, rotateY: 45, rotateZ: 0 },
+        zoom: { scaleX: 1.5, scaleY: 1.5, scaleZ: 1.5 },
+        reset: {}
+      };
+
+      const preset = presets[name];
+      if (!preset) return;
+
+      // Reset all
+      Object.entries(inputs).forEach(([key, {el}]) => {
+        if (key.startsWith('scale')) el.value = 1;
+        else el.value = 0;
+      });
+
+      // Apply preset values
+      Object.entries(preset).forEach(([key, value]) => {
+        if (inputs[key]) inputs[key].el.value = value;
+      });
+
+      updateTransform();
+      toast(`Preset "${name}" applied`, 'success');
+    }
+
+    function resetTransform() {
+      Object.entries(inputs).forEach(([key, {el}]) => {
+        if (key.startsWith('scale')) el.value = 1;
+        else if (key === 'perspective') el.value = 1000;
+        else el.value = 0;
+      });
+      updateTransform();
+      toast('Transform reset', 'success');
+    }
+
+    function copyCode() {
+      const code = codeOutput.textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        toast('CSS copied to clipboard', 'success');
+      }).catch(() => {
+        toast('Copy failed', 'error');
+      });
+    }
+
+    // Initialize
+    updateTransform();
+    toast('Transform Visualizer ready', 'success', 3000);
+  </script>
+</body>
+</html>

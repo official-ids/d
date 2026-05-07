@@ -1,0 +1,5 @@
+{
+  "name": "transform-visualizer",
+  "description": "Interactive CSS transform editor. Visualize and generate 2D/3D transforms with live preview.",
+  "keywords": ["css", "transform", "3d", "rotate", "scale", "translate", "visualizer", "generator"]
+}
