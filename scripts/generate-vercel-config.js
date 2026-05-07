@@ -147,13 +147,60 @@ function generateCodeStructure() {
   console.log(`✅ code-structure.json сгенерирован`);
 }
 
+
+   // ─────────────────────────────────────────────────────────────
+// 3. Генерация sitemap.xml для поисковиков
 // ─────────────────────────────────────────────────────────────
-// 3. Генерация vercel.json с маршрутами
+function generateSitemap(apps) {
+  const baseUrl = 'https://seraviel-labs.vercel.app';
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Статические страницы
+  const staticPages = [
+    { loc: '/', changefreq: 'monthly', priority: 1.0 },
+    { loc: '/list', changefreq: 'monthly', priority: 0.9 },
+    { loc: '/code', changefreq: 'yearly', priority: 0.8 },
+    { loc: '/info', changefreq: 'yearly', priority: 0.8 },
+    { loc: '/404', changefreq: 'yearly', priority: 0.1 }
+  ];
+  
+  // Страницы приложений
+  const appPages = apps.map(app => ({
+    loc: app.path,
+    changefreq: 'yearly',
+    priority: 0.7
+  }));
+  
+  // Сборка XML
+  const urls = [...staticPages, ...appPages];
+  const xmlParts = urls.map(url => `
+  <url>
+    <loc>${baseUrl}${url.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority}</priority>
+  </url>`);
+  
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${xmlParts.join('')}
+</urlset>`;
+  
+  const outputPath = path.join(ROOT, 'sitemap.xml');
+  fs.writeFileSync(outputPath, sitemap);
+  console.log(`✅ sitemap.xml сгенерирован (${urls.length} URLs)`);
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// 4. Генерация vercel.json с маршрутами
 // ─────────────────────────────────────────────────────────────
 
 // === ВЫЗЫВАЕМ ФУНКЦИИ (ОДИН РАЗ!) ===
 const apps = generateManifest();      // ← Генерируем manifest + обновляем index.html
-generateCodeStructure();              // ← Генерируем code-structure.json
+generateCodeStructure();    // ← Генерируем code-structure.json
+generateSitemap(apps);      // ← Генерируем sitemap.xml
 
 const projects = apps.map(a => a.id);
 const rewrites = [];
