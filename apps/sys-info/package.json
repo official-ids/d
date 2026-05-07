@@ -1,0 +1,5 @@
+{
+  "name": "sys-info",
+  "description": "Complete system information viewer. Hardware, OS, network, display — all client-side, no API.",
+  "keywords": ["system", "info", "hardware", "device", "browser", "diagnostics", "specs"]
+}

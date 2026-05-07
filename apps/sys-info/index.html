@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SysInfo | SERAVIEL LABS</title>
+  <meta name="description" content="View complete system information: hardware, OS, network, display. Client-side, no API.">
+  <meta name="keywords" content="system, info, hardware, device, browser, diagnostics">
+  <style>
+    /* === SERAVIEL LABS Design System === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .header h1 svg { width: 24px; height: 24px; stroke: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 14px; }
+    
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--accent); color: white; }
+    .btn svg { width: 16px; height: 16px; }
+    .btn.secondary {
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn.secondary:hover {
+      background: var(--bg);
+      border-color: var(--accent);
+    }
+    
+    /* Cards Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card h3 svg { width: 18px; height: 18px; stroke: var(--accent); }
+    
+    /* Info Rows */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-muted); }
+    .info-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-all;
+    }
+    .info-value.copyable {
+      cursor: pointer;
+      color: var(--accent);
+    }
+    .info-value.copyable:hover { text-decoration: underline; }
+    
+    /* API Section */
+    .api-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .api-section h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .api-section code {
+      display: block;
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    
+    /* Toast */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast.success { border-left-color: #22c55e; }
+    .toast.warning { border-left-color: #f59e0b; }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast-content { flex: 1; }
+    .toast-close {
+      background: none; border: none; padding: 4px;
+      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close svg { width: 16px; height: 16px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      body { padding: 16px; }
+      .grid { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
+        SysInfo
+      </h1>
+      <p>Complete system information — client-side, no API, 100% private.</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn" onclick="refreshData()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.22-8.55M3 3v6h6"/></svg>
+        Refresh
+      </button>
+      <button class="btn secondary" onclick="copyAll()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy All
+      </button>
+      <button class="btn secondary" onclick="exportJSON()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Export JSON
+      </button>
+    </div>
+
+    <!-- Info Grid -->
+    <div class="grid">
+      <!-- Browser -->
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          Browser
+        </h3>
+        <div class="info-row"><span class="info-label">User Agent</span><span class="info-value copyable" data-key="userAgent"></span></div>
+        <div class="info-row"><span class="info-label">Platform</span><span class="info-value copyable" data-key="platform"></span></div>
+        <div class="info-row"><span class="info-label">Language</span><span class="info-value copyable" data-key="language"></span></div>
+        <div class="info-row"><span class="info-label">Cookies</span><span class="info-value" data-key="cookies"></span></div>
+        <div class="info-row"><span class="info-label">Do Not Track</span><span class="info-value" data-key="doNotTrack"></span></div>
+      </div>
+
+      <!-- Device -->
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+          Device
+        </h3>
+        <div class="info-row"><span class="info-label">CPU Cores</span><span class="info-value" data-key="hardwareConcurrency"></span></div>
+        <div class="info-row"><span class="info-label">Device Memory</span><span class="info-value" data-key="deviceMemory"></span></div>
+        <div class="info-row"><span class="info-label">Max Touch Points</span><span class="info-value" data-key="maxTouchPoints"></span></div>
+        <div class="info-row"><span class="info-label">Vendor</span><span class="info-value copyable" data-key="vendor"></span></div>
+        <div class="info-row"><span class="info-label">Product</span><span class="info-value copyable" data-key="product"></span></div>
+      </div>
+
+      <!-- Display -->
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Display
+        </h3>
+        <div class="info-row"><span class="info-label">Resolution</span><span class="info-value" data-key="screenResolution"></span></div>
+        <div class="info-row"><span class="info-label">Available</span><span class="info-value" data-key="screenAvail"></span></div>
+        <div class="info-row"><span class="info-label">Color Depth</span><span class="info-value" data-key="colorDepth"></span></div>
+        <div class="info-row"><span class="info-label">Pixel Ratio</span><span class="info-value" data-key="pixelRatio"></span></div>
+        <div class="info-row"><span class="info-label">Orientation</span><span class="info-value" data-key="orientation"></span></div>
+      </div>
+
+      <!-- Network -->
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+          Network
+        </h3>
+        <div class="info-row"><span class="info-label">Online</span><span class="info-value" data-key="onLine"></span></div>
+        <div class="info-row"><span class="info-label">Connection Type</span><span class="info-value" data-key="connectionType"></span></div>
+        <div class="info-row"><span class="info-label">Effective Type</span><span class="info-value" data-key="effectiveType"></span></div>
+        <div class="info-row"><span class="info-label">Downlink</span><span class="info-value" data-key="downlink"></span></div>
+        <div class="info-row"><span class="info-label">RTT</span><span class="info-value" data-key="rtt"></span></div>
+      </div>
+
+      <!-- Storage -->
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></svg>
+          Storage
+        </h3>
+        <div class="info-row"><span class="info-label">LocalStorage</span><span class="info-value" data-key="localStorage"></span></div>
+        <div class="info-row"><span class="info-label">SessionStorage</span><span class="info-value" data-key="sessionStorage"></span></div>
+        <div class="info-row"><span class="info-label">IndexedDB</span><span class="info-value" data-key="indexedDB"></span></div>
+        <div class="info-row"><span class="info-label">Service Worker</span><span class="info-value" data-key="serviceWorker"></span></div>
+        <div class="info-row"><span class="info-label">Est. Quota</span><span class="info-value" data-key="storageQuota"></span></div>
+      </div>
+
+      <!-- Performance -->
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          Performance
+        </h3>
+        <div class="info-row"><span class="info-label">JS Heap Used</span><span class="info-value" data-key="jsHeapUsed"></span></div>
+        <div class="info-row"><span class="info-label">JS Heap Total</span><span class="info-value" data-key="jsHeapTotal"></span></div>
+        <div class="info-row"><span class="info-label">Navigation Start</span><span class="info-value" data-key="navStart"></span></div>
+        <div class="info-row"><span class="info-label">DOM Load</span><span class="info-value" data-key="domLoad"></span></div>
+        <div class="info-row"><span class="info-label">Page Load</span><span class="info-value" data-key="pageLoad"></span></div>
+      </div>
+    </div>
+
+    <!-- API Section -->
+    <div class="api-section">
+      <h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/><line x1="14" y1="4" x2="14" y2="20"/></svg>
+        Programmatic Access
+      </h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+        Access all data via JavaScript console:
+      </p>
+      <code>await window.sysInfo.getData()</code>
+      <code>// Returns: { browser: {...}, device: {...}, display: {...}, ... }</code>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:12px">
+        All data is collected client-side. No external requests. 100% private.
+      </p>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === Toast System ===
+    function toast(message, type = 'success', duration = 4000) {
+      const globalToast = typeof window.toast === 'function' ? window.toast : null;
+      if (globalToast && globalToast !== toast) { globalToast(message, type, duration); return; }
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+      el.querySelector('.toast-close').onclick = () => removeToast(el);
+      container.appendChild(el);
+      const timer = setTimeout(() => removeToast(el), duration);
+      el.onmouseenter = () => clearTimeout(timer);
+    }
+    function removeToast(el) {
+      el.style.animation = 'toastOut 0.3s ease-out forwards';
+      setTimeout(() => el.remove(), 300);
+    }
+
+    // === SysInfo Core ===
+    const sysInfo = {
+      data: {},
+      
+      async collect() {
+        const nav = navigator;
+        const screen = window.screen;
+        const perf = performance;
+        const mem = nav.deviceMemory || 'N/A';
+        const conn = nav.connection || {};
+        
+        // Storage estimate
+        let storageQuota = 'N/A';
+        if (nav.storage?.estimate) {
+          try {
+            const est = await nav.storage.estimate();
+            storageQuota = est.quota ? this.formatBytes(est.quota) : 'N/A';
+          } catch(e) {}
+        }
+        
+        // Performance timing
+        const timing = perf.timing || {};
+        const navStart = timing.navigationStart ? new Date(timing.navigationStart).toISOString() : 'N/A';
+        const domLoad = timing.domContentLoadedEventEnd && timing.navigationStart 
+          ? `${timing.domContentLoadedEventEnd - timing.navigationStart}ms` : 'N/A';
+        const pageLoad = timing.loadEventEnd && timing.navigationStart
+          ? `${timing.loadEventEnd - timing.navigationStart}ms` : 'N/A';
+        
+        // JS Heap (Chrome only)
+        let jsHeapUsed = 'N/A', jsHeapTotal = 'N/A';
+        if (perf.memory) {
+          jsHeapUsed = this.formatBytes(perf.memory.usedJSHeapSize);
+          jsHeapTotal = this.formatBytes(perf.memory.totalJSHeapSize);
+        }
+        
+        this.data = {
+          browser: {
+            userAgent: nav.userAgent,
+            platform: nav.platform,
+            language: nav.language,
+            languages: nav.languages?.join(', '),
+            cookies: nav.cookieEnabled ? 'Enabled' : 'Disabled',
+            doNotTrack: nav.doNotTrack === '1' ? 'Enabled' : 'Disabled'
+          },
+          device: {
+            hardwareConcurrency: nav.hardwareConcurrency || 'N/A',
+            deviceMemory: mem !== 'N/A' ? `${mem} GB` : 'N/A',
+            maxTouchPoints: nav.maxTouchPoints || 0,
+            vendor: nav.vendor,
+            product: nav.product,
+            oscpu: nav.oscpu || 'N/A'
+          },
+          display: {
+            screenResolution: `${screen.width}×${screen.height}`,
+            screenAvail: `${screen.availWidth}×${screen.availHeight}`,
+            colorDepth: `${screen.colorDepth}-bit`,
+            pixelRatio: window.devicePixelRatio,
+            orientation: screen.orientation?.type || 'N/A'
+          },
+          network: {
+            onLine: nav.onLine ? 'Yes' : 'No',
+            connectionType: conn.type || 'N/A',
+            effectiveType: conn.effectiveType || 'N/A',
+            downlink: conn.downlink ? `${conn.downlink} Mbps` : 'N/A',
+            rtt: conn.rtt ? `${conn.rtt}ms` : 'N/A'
+          },
+          storage: {
+            localStorage: typeof localStorage !== 'undefined' ? 'Available' : 'Disabled',
+            sessionStorage: typeof sessionStorage !== 'undefined' ? 'Available' : 'Disabled',
+            indexedDB: 'indexedDB' in window ? 'Available' : 'Disabled',
+            serviceWorker: 'serviceWorker' in nav ? 'Available' : 'Disabled',
+            storageQuota
+          },
+          performance: {
+            jsHeapUsed,
+            jsHeapTotal,
+            navStart,
+            domLoad,
+            pageLoad
+          }
+        };
+        return this.data;
+      },
+      
+      formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024, sizes = ['B','KB','MB','GB','TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      },
+      
+      async getData() {
+        if (Object.keys(this.data).length === 0) await this.collect();
+        return JSON.parse(JSON.stringify(this.data)); // Deep copy
+      }
+    };
+    
+    // Expose globally
+    window.sysInfo = sysInfo;
+    
+    // === UI Functions ===
+    function renderData(data) {
+      // Flatten for easy access
+      const flat = {};
+      Object.entries(data).forEach(([cat, vals]) => {
+        Object.entries(vals).forEach(([k, v]) => { flat[k] = v; });
+      });
+      
+      // Fill DOM
+      document.querySelectorAll('[data-key]').forEach(el => {
+        const key = el.dataset.key;
+        el.textContent = flat[key] ?? 'N/A';
+      });
+    }
+    
+    async function refreshData() {
+      toast('Collecting system info...', 'success', 2000);
+      const data = await sysInfo.collect();
+      renderData(data);
+      toast('Data refreshed', 'success');
+    }
+    
+    function copyAll() {
+      const text = JSON.stringify(sysInfo.data, null, 2);
+      navigator.clipboard.writeText(text).then(() => {
+        toast('All data copied to clipboard', 'success');
+      }).catch(() => {
+        toast('Copy failed', 'error');
+      });
+    }
+    
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(sysInfo.data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `sysinfo-${Date.now()}.json`;
+      a.click(); URL.revokeObjectURL(url);
+      toast('Exported as JSON', 'success');
+    }
+    
+    // Copy individual values
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('copyable')) {
+        const text = e.target.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          toast('Copied!', 'success', 2000);
+        });
+      }
+    });
+    
+    // === Init ===
+    async function init() {
+      await refreshData();
+      // Make values clickable
+      document.querySelectorAll('.info-value.copyable').forEach(el => {
+        el.title = 'Click to copy';
+      });
+      toast('SysInfo ready', 'success', 3000);
+    }
+    
+    init();
+  </script>
+</body>
+</html>
