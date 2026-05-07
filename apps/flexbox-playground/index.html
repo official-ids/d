@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flexbox Playground | SERAVIEL LABS</title>
+  <meta name="description" content="Interactive CSS Flexbox visualizer. Adjust container and item properties with live preview.">
+  <meta name="keywords" content="css, flexbox, playground, visualizer, layout, generator">
+  <style>
+    /* === SERAVIEL LABS Design System === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .header h1 svg { width: 24px; height: 24px; stroke: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 14px; }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 24px;
+    }
+
+    /* Controls Panel */
+    .controls {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      max-height: 700px;
+      overflow-y: auto;
+    }
+    .control-group {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .control-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .control-group h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .control-group h3 svg { width: 16px; height: 16px; stroke: var(--accent); }
+
+    .control-row { margin-bottom: 12px; }
+    .control-row label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .control-row select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .control-row input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .control-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+    .control-row .value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Item Actions */
+    .item-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-icon {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-icon.danger:hover { border-color: #ef4444; color: #ef4444; }
+    .btn-icon svg { width: 18px; height: 18px; }
+
+    /* Preview Panel */
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .preview-window {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      min-height: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .preview-header h3 { font-size: 16px; font-weight: 600; }
+    
+    .preview-area {
+      flex: 1;
+      background: #f1f5f9;
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      display: flex; /* Fallback */
+      transition: all 0.3s ease;
+      padding: 8px;
+      overflow: auto;
+      position: relative;
+    }
+    
+    /* The Flex Items */
+    .flex-item {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+      color: white;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+      min-height: 60px;
+      margin: 4px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      user-select: none;
+    }
+    .flex-item:nth-child(2) { filter: hue-rotate(40deg); }
+    .flex-item:nth-child(3) { filter: hue-rotate(80deg); }
+    .flex-item:nth-child(4) { filter: hue-rotate(120deg); }
+    .flex-item:nth-child(5) { filter: hue-rotate(160deg); }
+    .flex-item.selected { outline: 3px solid #f59e0b; outline-offset: 2px; }
+
+    /* Code Output */
+    .code-output {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .code-output h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .code-block {
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 6px 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .copy-btn:hover { background: var(--accent-hover); }
+
+    /* Toast */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 20000;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 280px;
+      max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast.success { border-left-color: #22c55e; }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast-content { flex: 1; }
+    .toast-close {
+      background: none; border: none; padding: 4px;
+      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close svg { width: 16px; height: 16px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+      .layout { grid-template-columns: 1fr; }
+      .controls { max-height: none; }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="18" height="5"/></svg>
+        Flexbox Playground
+      </h1>
+      <p>Interactive CSS Flexbox visualizer with live preview and code export.</p>
+    </div>
+
+    <div class="layout">
+      <!-- Controls -->
+      <aside class="controls">
+        <!-- Container Props -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            Container Properties
+          </h3>
+          
+          <div class="control-row">
+            <label>flex-direction</label>
+            <select id="flexDirection">
+              <option value="row">row</option>
+              <option value="row-reverse">row-reverse</option>
+              <option value="column">column</option>
+              <option value="column-reverse">column-reverse</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <label>justify-content</label>
+            <select id="justifyContent">
+              <option value="flex-start">flex-start</option>
+              <option value="flex-end">flex-end</option>
+              <option value="center">center</option>
+              <option value="space-between">space-between</option>
+              <option value="space-around">space-around</option>
+              <option value="space-evenly">space-evenly</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <label>align-items</label>
+            <select id="alignItems">
+              <option value="stretch">stretch</option>
+              <option value="flex-start">flex-start</option>
+              <option value="flex-end">flex-end</option>
+              <option value="center">center</option>
+              <option value="baseline">baseline</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <label>flex-wrap</label>
+            <select id="flexWrap">
+              <option value="nowrap">nowrap</option>
+              <option value="wrap">wrap</option>
+              <option value="wrap-reverse">wrap-reverse</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <label>gap <span class="value" id="val-gap">8px</span></label>
+            <input type="range" id="gap" min="0" max="50" value="8">
+          </div>
+        </div>
+
+        <!-- Item Props -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg>
+            Item Properties (All)
+          </h3>
+          
+          <div class="control-row">
+            <label>flex-grow <span class="value" id="val-grow">0</span></label>
+            <input type="range" id="flexGrow" min="0" max="5" step="1" value="0">
+          </div>
+
+          <div class="control-row">
+            <label>flex-shrink <span class="value" id="val-shrink">1</span></label>
+            <input type="range" id="flexShrink" min="0" max="5" step="1" value="1">
+          </div>
+
+          <div class="control-row">
+            <label>flex-basis <span class="value" id="val-basis">auto</span></label>
+            <input type="range" id="flexBasis" min="0" max="300" step="10" value="0">
+          </div>
+
+          <div class="control-row">
+            <label>align-self</label>
+            <select id="alignSelf">
+              <option value="auto">auto</option>
+              <option value="flex-start">flex-start</option>
+              <option value="flex-end">flex-end</option>
+              <option value="center">center</option>
+              <option value="stretch">stretch</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="control-group">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Items Control
+          </h3>
+          <div class="item-actions">
+            <button class="btn-icon" onclick="addItem()" title="Add Item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button class="btn-icon danger" onclick="removeItem()" title="Remove Last Item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Preview -->
+      <main class="preview-panel">
+        <div class="preview-window">
+          <div class="preview-header">
+            <h3>Live Preview</h3>
+          </div>
+          <div class="preview-area" id="previewContainer">
+            <div class="flex-item">1</div>
+            <div class="flex-item">2</div>
+            <div class="flex-item">3</div>
+          </div>
+        </div>
+
+        <div class="code-output">
+          <button class="copy-btn" onclick="copyCode()">Copy CSS</button>
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;stroke:var(--accent)"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+            Generated CSS
+          </h3>
+          <div class="code-block" id="codeOutput">
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.item {
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  align-self: auto;
+}
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === Toast System ===
+    function toast(message, type = 'success', duration = 4000) {
+      const globalToast = typeof window.toast === 'function' ? window.toast : null;
+      if (globalToast && globalToast !== toast) { globalToast(message, type, duration); return; }
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const icons = {
+        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+      };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+      el.querySelector('.toast-close').onclick = () => removeToast(el);
+      container.appendChild(el);
+      const timer = setTimeout(() => removeToast(el), duration);
+      el.onmouseenter = () => clearTimeout(timer);
+    }
+    function removeToast(el) {
+      el.style.animation = 'toastOut 0.3s ease-out forwards';
+      setTimeout(() => el.remove(), 300);
+    }
+
+    // === Logic ===
+    const previewContainer = document.getElementById('previewContainer');
+    const codeOutput = document.getElementById('codeOutput');
+    
+    // Inputs Map
+    const inputs = {
+      flexDirection: document.getElementById('flexDirection'),
+      justifyContent: document.getElementById('justifyContent'),
+      alignItems: document.getElementById('alignItems'),
+      flexWrap: document.getElementById('flexWrap'),
+      gap: document.getElementById('gap'),
+      flexGrow: document.getElementById('flexGrow'),
+      flexShrink: document.getElementById('flexShrink'),
+      flexBasis: document.getElementById('flexBasis'),
+      alignSelf: document.getElementById('alignSelf')
+    };
+
+    // Value Displays
+    const displays = {
+      gap: document.getElementById('val-gap'),
+      grow: document.getElementById('val-grow'),
+      shrink: document.getElementById('val-shrink'),
+      basis: document.getElementById('val-basis')
+    };
+
+    function updatePreview() {
+      // Update Container Style
+      previewContainer.style.display = 'flex';
+      previewContainer.style.flexDirection = inputs.flexDirection.value;
+      previewContainer.style.justifyContent = inputs.justifyContent.value;
+      previewContainer.style.alignItems = inputs.alignItems.value;
+      previewContainer.style.flexWrap = inputs.flexWrap.value;
+      previewContainer.style.gap = `${inputs.gap.value}px`;
+
+      // Update Items Style
+      const items = document.querySelectorAll('.flex-item');
+      items.forEach(item => {
+        item.style.flexGrow = inputs.flexGrow.value;
+        item.style.flexShrink = inputs.flexShrink.value;
+        item.style.flexBasis = inputs.flexBasis.value === '0' ? 'auto' : `${inputs.flexBasis.value}px`;
+        item.style.alignSelf = inputs.alignSelf.value;
+      });
+
+      // Update Displays
+      displays.gap.textContent = `${inputs.gap.value}px`;
+      displays.grow.textContent = inputs.flexGrow.value;
+      displays.shrink.textContent = inputs.flexShrink.value;
+      displays.basis.textContent = inputs.flexBasis.value === '0' ? 'auto' : `${inputs.flexBasis.value}px`;
+
+      // Update Code
+      const code = `.container {
+  display: flex;
+  flex-direction: ${inputs.flexDirection.value};
+  justify-content: ${inputs.justifyContent.value};
+  align-items: ${inputs.alignItems.value};
+  flex-wrap: ${inputs.flexWrap.value};
+  gap: ${inputs.gap.value}px;
+}
+
+.item {
+  flex-grow: ${inputs.flexGrow.value};
+  flex-shrink: ${inputs.flexShrink.value};
+  flex-basis: ${inputs.flexBasis.value === '0' ? 'auto' : inputs.flexBasis.value + 'px'};
+  align-self: ${inputs.alignSelf.value};
+}`;
+      codeOutput.textContent = code;
+    }
+
+    // Event Listeners
+    Object.values(inputs).forEach(input => {
+      input.addEventListener('input', updatePreview);
+    });
+
+    // Item Management
+    let itemCount = 3;
+    function addItem() {
+      if (itemCount >= 8) {
+        toast('Maximum 8 items', 'warning');
+        return;
+      }
+      itemCount++;
+      const item = document.createElement('div');
+      item.className = 'flex-item';
+      item.textContent = itemCount;
+      previewContainer.appendChild(item);
+      updatePreview();
+      toast('Item added', 'success');
+    }
+
+    function removeItem() {
+      const items = document.querySelectorAll('.flex-item');
+      if (items.length > 1) {
+        items[items.length - 1].remove();
+        itemCount--;
+        updatePreview();
+        toast('Item removed', 'success');
+      } else {
+        toast('Need at least 1 item', 'warning');
+      }
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(codeOutput.textContent).then(() => {
+        toast('CSS copied to clipboard', 'success');
+      }).catch(() => {
+        toast('Copy failed', 'error');
+      });
+    }
+
+    // Init
+    updatePreview();
+    toast('Flexbox Playground ready', 'success', 3000);
+  </script>
+</body>
+</html>

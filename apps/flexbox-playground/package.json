@@ -1,0 +1,5 @@
+{
+  "name": "flexbox-playground",
+  "description": "Interactive CSS Flexbox visualizer. Adjust container and item properties with live preview and code export.",
+  "keywords": ["css", "flexbox", "playground", "visualizer", "layout", "generator", "flex"]
+}
