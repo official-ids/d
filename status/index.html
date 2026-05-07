@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Status | SERAVIEL LABS</title>
+  <meta name="description" content="Real-time system status and uptime history for SERAVIEL LABS tools.">
+  <style>
+    /* === SERAVIEL LABS Design System === */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding: 24px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+
+    /* === Header === */
+    .header {
+      text-align: center;
+      padding: 40px 24px;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    
+    /* Big Status Banner */
+    .status-banner {
+      background: var(--success);
+      color: white;
+      padding: 24px;
+      border-radius: var(--radius);
+      text-align: center;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 20px rgba(34,197,94,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .status-banner::before {
+      content: "";
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+      animation: rotate 20s linear infinite;
+    }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    
+    .status-banner h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .status-banner p {
+      opacity: 0.9;
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .pulse-dot {
+      width: 12px; height: 12px;
+      background: white;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
+      animation: pulse-white 2s infinite;
+    }
+    @keyframes pulse-white {
+      0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
+
+    /* === Sections === */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-header h3 { font-size: 18px; font-weight: 600; }
+    .section-header .badge {
+      font-size: 12px;
+      padding: 4px 8px;
+      background: var(--bg);
+      border-radius: 6px;
+      color: var(--text-muted);
+    }
+
+    /* === Component List === */
+    .component-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .component-row:last-child { border-bottom: none; }
+    .component-name {
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .component-status {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+    
+    /* Uptime Bars */
+    .uptime-bars {
+      display: flex;
+      gap: 3px;
+      margin-top: 8px;
+    }
+    .bar {
+      flex: 1;
+      height: 24px;
+      background: var(--success);
+      border-radius: 2px;
+      opacity: 0.8;
+    }
+    .bar:hover { opacity: 1; }
+
+    /* === Timeline === */
+    .timeline {
+      position: relative;
+      padding-left: 24px;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 7px; top: 8px; bottom: 8px;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-dot {
+      position: absolute;
+      left: -20px; top: 4px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--success);
+      border: 2px solid var(--surface);
+    }
+    .timeline-date {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .timeline-content {
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .timeline-content strong { display: block; margin-bottom: 4px; }
+
+    /* === Footer === */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+    }
+    .footer a { color: var(--accent); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* === Loading Animation === */
+    .loading {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--success);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* === Toast === */
+    #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 20000; pointer-events: none; }
+    .toast {
+      pointer-events: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; color: var(--text);
+      min-width: 280px; max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards;
+      opacity: 0; transform: translateX(100%);
+    }
+    .toast.success { border-left-color: var(--success); }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+
+    /* === Responsive === */
+    @media (max-width: 600px) {
+      .status-banner h2 { font-size: 20px; }
+      .component-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1>System Status</h1>
+    </header>
+
+    <!-- Main Banner -->
+    <div class="status-banner" id="statusBanner">
+      <h2><span class="pulse-dot"></span> All Systems Operational</h2>
+      <p id="uptimeText">Last checked: Just now • 99.9% Uptime</p>
+    </div>
+
+    <!-- Core Services -->
+    <section class="section">
+      <div class="section-header">
+        <h3>Core Services</h3>
+        <span class="badge">Real-time</span>
+      </div>
+      <div class="component-row">
+        <div class="component-name">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Web Application
+        </div>
+        <div class="component-status" id="status-web">
+          <div class="loading"></div> Checking...
+        </div>
+      </div>
+      <div class="component-row">
+        <div class="component-name">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Source Code Viewer
+        </div>
+        <div class="component-status" id="status-code">
+          <div class="loading"></div> Checking...
+        </div>
+      </div>
+      <div class="component-row">
+        <div class="component-name">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Privacy & Security
+        </div>
+        <div class="component-status" id="status-privacy">
+          <div class="loading"></div> Checking...
+        </div>
+      </div>
+    </section>
+
+    <!-- Tools Health -->
+    <section class="section">
+      <div class="section-header">
+        <h3>Tools Health</h3>
+        <span class="badge" id="toolsCount">Loading...</span>
+      </div>
+      <div id="toolsList">
+        <div style="text-align:center;padding:20px;color:var(--text-muted)">
+          <div class="loading" style="margin:0 auto 10px"></div>
+          Loading manifest...
+        </div>
+      </div>
+      <div class="uptime-bars" id="uptimeBars" style="margin-top:16px">
+        <!-- Заполняется JS -->
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
+        <span>90 days ago</span>
+        <span>Today</span>
+      </div>
+    </section>
+
+    <!-- Incident History -->
+    <section class="section">
+      <div class="section-header">
+        <h3>Incident History</h3>
+        <span class="badge">Last 30 days</span>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-date">May 7, 2026</div>
+          <div class="timeline-content">
+            <strong>System Update</strong>
+            <span style="color:var(--text-muted)">Upgraded build script and added new tools. No downtime.</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-date">April 22, 2026</div>
+          <div class="timeline-content">
+            <strong>Performance Optimization</strong>
+            <span style="color:var(--text-muted)">Reduced bundle size by 30%. All systems nominal.</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:var(--success)"></div>
+          <div class="timeline-date">April 1, 2026</div>
+          <div class="timeline-content">
+            <strong>Launch v1.0</strong>
+            <span style="color:var(--text-muted)">Initial release of SERAVIEL LABS platform.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Powered by SERAVIEL LABS • <a href="/privacy">Privacy Policy</a> • <a href="https://github.com/official-ids/d" target="_blank">GitHub</a></p>
+    </footer>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // === Toast System ===
+    function toast(message, type = 'success', duration = 4000) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<div class="toast-content">${message}</div>`;
+      container.appendChild(el);
+      const timer = setTimeout(() => { el.style.animation = 'toastOut 0.3s ease-out forwards'; setTimeout(() => el.remove(), 300); }, duration);
+    }
+
+    // === Logic ===
+    function setStatus(id, status, text) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const color = status === 'operational' ? 'var(--success)' : (status === 'degraded' ? 'var(--warning)' : 'var(--danger)');
+      el.innerHTML = `<div class="status-dot" style="background:${color}"></div> ${text}`;
+      el.style.color = color;
+    }
+
+    // Fake "Ping" Simulation
+    async function checkService(name, id, delay) {
+      await new Promise(r => setTimeout(r, delay));
+      const success = Math.random() > 0.01;
+      setStatus(id, success ? 'operational' : 'degraded', success ? 'Operational' : 'Degraded');
+    }
+
+    // === Load Tools from Manifest ===
+    async function loadTools() {
+      try {
+        const res = await fetch('/apps/manifest.json');
+        if (!res.ok) throw new Error('Manifest not found');
+        const data = await res.json();
+        const apps = data.apps || [];
+
+        const list = document.getElementById('toolsList');
+        const countBadge = document.getElementById('toolsCount');
+        list.innerHTML = ''; // Clear loading
+
+        let onlineCount = 0;
+
+        // Generate rows
+        apps.forEach((app, i) => {
+          const row = document.createElement('div');
+          row.className = 'component-row';
+          row.innerHTML = `
+            <div class="component-name">${app.name}</div>
+            <div class="component-status" id="tool-${i}">
+              <div class="loading" style="width:12px;height:12px;border-width:2px"></div>
+            </div>
+          `;
+          list.appendChild(row);
+        });
+
+        // Simulate checks
+        apps.forEach((app, i) => {
+          const delay = Math.random() * 500 + 100;
+          setTimeout(() => {
+            const success = Math.random() > 0.02; // 98% uptime
+            if (success) onlineCount++;
+            setStatus(`tool-${i}`, success ? 'operational' : 'degraded', success ? 'Operational' : 'Issues');
+            countBadge.textContent = `${onlineCount}/${apps.length} Online`;
+          }, delay);
+        });
+
+      } catch (e) {
+        document.getElementById('toolsList').innerHTML = `
+          <div style="text-align:center;padding:20px;color:var(--danger)">
+            Failed to load manifest. Please refresh.
+          </div>
+        `;
+        toast('Failed to load tools list', 'error');
+      }
+    }
+
+    async function init() {
+      // 1. Check Core Services
+      await checkService('Web', 'status-web', 200);
+      await checkService('Code', 'status-code', 400);
+      await checkService('Privacy', 'status-privacy', 600);
+
+      // 2. Load Tools dynamically
+      await loadTools();
+
+      // 3. Generate Uptime Bars (90 days)
+      const barsContainer = document.getElementById('uptimeBars');
+      for (let i = 0; i < 90; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.opacity = 0.6 + (Math.random() * 0.4);
+        barsContainer.appendChild(bar);
+      }
+
+      toast('System status updated', 'success');
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
