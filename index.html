@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="manifest" href="/manifest.json">
+  <!-- Для iOS (Apple) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
   <!-- SEO & Description -->
   <title>SERAVIEL LABS</title>
@@ -534,6 +539,16 @@
       toast.style.animation = 'toastOut 0.3s ease-out forwards';
       setTimeout(() => toast.remove(), 300);
     }
+
+
+    // Регистрация Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered:', reg))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
 
     // === Countdown Logic ===
     (function() {
