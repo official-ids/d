@@ -1,0 +1,5 @@
+{
+  "name": "json-to-code-converter",
+  "description": "Instantly convert JSON to TypeScript interfaces, Go structs, Rust structs, and Swift models. 100% Client-side.",
+  "keywords": ["json", "typescript", "golang", "rust", "swift", "converter", "generator", "dev-tools"]
+}

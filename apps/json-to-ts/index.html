@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON to Code | SERAVIEL LABS</title>
+  <meta name="description" content="Convert JSON to TypeScript, Go, Rust, and Swift instantly.">
+  
+  <!-- === SYSTEM ASSETS === -->
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+
+  <style>
+    /* === SERAVIEL LABS Design System (Dark Mode Default) === */
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-hover: #1c2129;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-muted: #8b949e;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --success: #2ea043;
+      --error: #f85149;
+      --warning: #d29922;
+      --radius: 8px;
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* === Header === */
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .brand svg { width: 24px; height: 24px; stroke: var(--accent); }
+    .actions { display: flex; gap: 12px; }
+
+    /* === Toolbar === */
+    .toolbar {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    select, input[type="text"] {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-family: var(--font);
+      transition: border-color 0.2s;
+    }
+    select:focus, input[type="text"]:focus { border-color: var(--accent); }
+    select { cursor: pointer; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--surface-hover); border-color: var(--text-muted); }
+    .btn svg { width: 16px; height: 16px; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+    .btn.primary:hover { background: var(--accent-hover); }
+
+    /* === Editor Area === */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+    }
+    .pane:last-child { border-right: none; }
+    .pane-header {
+      padding: 8px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    textarea {
+      flex: 1;
+      width: 100%;
+      padding: 16px;
+      background: var(--bg);
+      color: var(--text);
+      border: none;
+      resize: none;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.5;
+      tab-size: 2;
+    }
+    textarea::placeholder { color: var(--border); }
+    textarea:focus { background: #0b0e13; }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* === Responsive === */
+    @media (max-width: 768px) {
+      .editor-container { flex-direction: column; }
+      .pane { border-right: none; border-bottom: 1px solid var(--border); height: 50%; }
+      .toolbar { gap: 8px; }
+      .actions { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <a href="/" class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-4M12 8h.01"/></svg>
+      JSON to Code
+    </a>
+    <div class="actions">
+      <a href="/list" class="btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        Back to Catalog
+      </a>
+    </div>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="control-group">
+      <label for="langSelect">Output Language:</label>
+      <select id="langSelect">
+        <option value="typescript">TypeScript</option>
+        <option value="golang">Go (Structs)</option>
+        <option value="rust">Rust (Structs)</option>
+        <option value="swift">Swift (Codable)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="rootName">Root Name:</label>
+      <input type="text" id="rootName" value="Root" placeholder="Interface name" style="width: 120px;">
+    </div>
+
+    <div class="control-group">
+      <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
+        <input type="checkbox" id="optOptional"> Optional Fields (?)
+      </label>
+    </div>
+
+    <div style="flex: 1;"></div>
+
+    <button class="btn" id="btnFormat" title="Format JSON">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
+      Format
+    </button>
+    <button class="btn" id="btnCopy" title="Copy Code">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      Copy
+    </button>
+    <button class="btn" id="btnClear" title="Clear">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Clear
+    </button>
+  </div>
+
+  <!-- Editor -->
+  <div class="editor-container">
+    <div class="pane">
+      <div class="pane-header">Input (JSON)</div>
+      <textarea id="inputJson" placeholder='Paste JSON here...
+{
+  "user": {
+    "id": 1,
+    "name": "Alice",
+    "active": true
+  }
+}' spellcheck="false"></textarea>
+    </div>
+    <div class="pane">
+      <div class="pane-header">
+        <span id="outputLabel">Output (TypeScript)</span>
+      </div>
+      <textarea id="outputCode" readonly spellcheck="false" placeholder="// Generated code will appear here..."></textarea>
+    </div>
+  </div>
+
+  <script>
+    // === DOM Elements ===
+    const elInput = document.getElementById('inputJson');
+    const elOutput = document.getElementById('outputCode');
+    const elLang = document.getElementById('langSelect');
+    const elRootName = document.getElementById('rootName');
+    const elOptOptional = document.getElementById('optOptional');
+    const elOutputLabel = document.getElementById('outputLabel');
+    
+    const btnFormat = document.getElementById('btnFormat');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnClear = document.getElementById('btnClear');
+
+    // === State ===
+    let debounceTimer;
+
+    // === Helpers ===
+    const toPascal = str => str.charAt(0).toUpperCase() + str.slice(1);
+    const toCamel = str => str.charAt(0).toLowerCase() + str.slice(1);
+
+    function getTypeScriptType(val, key, optional) {
+      const suffix = optional ? '?' : '';
+      if (val === null) return `any${suffix}`;
+      if (Array.isArray(val)) {
+        if (val.length === 0) return `any[]${suffix}`;
+        const itemType = getTypeScriptType(val[0], '', false); // Infer from first item
+        return `${itemType}[]${suffix}`;
+      }
+      if (typeof val === 'object') return `${toPascal(key)}${suffix}`;
+      if (typeof val === 'string') return `string${suffix}`;
+      if (typeof val === 'number') return `number${suffix}`;
+      if (typeof val === 'boolean') return `boolean${suffix}`;
+      return `unknown${suffix}`;
+    }
+
+    function getGoType(val) {
+      if (val === null) return 'interface{}';
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '[]interface{}';
+        return `[]${getGoType(val[0])}`;
+      }
+      if (typeof val === 'object') return 'map[string]interface{}'; // Simplified for nested
+      if (typeof val === 'string') return 'string';
+      if (typeof val === 'number') {
+        return Number.isInteger(val) ? 'int64' : 'float64';
+      }
+      if (typeof val === 'boolean') return 'bool';
+      return 'interface{}';
+    }
+
+    function getRustType(val) {
+      if (val === null) return 'Option<String>'; // Fallback
+      if (Array.isArray(val)) {
+        if (val.length === 0) return 'Vec<String>';
+        return `Vec<${getRustType(val[0])}>`;
+      }
+      if (typeof val === 'object') return 'serde_json::Value'; // Simplified
+      if (typeof val === 'string') return 'String';
+      if (typeof val === 'number') return Number.isInteger(val) ? 'i64' : 'f64';
+      if (typeof val === 'boolean') return 'bool';
+      return 'String';
+    }
+
+    function getSwiftType(val) {
+      if (val === null) return 'Any?';
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '[Any]';
+        return `[${getSwiftType(val[0])}]`;
+      }
+      if (typeof val === 'object') return 'Codable'; // Simplified
+      if (typeof val === 'string') return 'String';
+      if (typeof val === 'number') return Number.isInteger(val) ? 'Int' : 'Double';
+      if (typeof val === 'boolean') return 'Bool';
+      return 'Any';
+    }
+
+    // === Generators ===
+    function generateTS(json, rootName, optional) {
+      let output = `export interface ${toPascal(rootName)} {\n`;
+      const keys = Object.keys(json);
+      keys.forEach((key, idx) => {
+        const val = json[key];
+        const type = getTypeScriptType(val, key, optional);
+        output += `  ${toCamel(key)}: ${type};\n`;
+      });
+      output += `}\n`;
+      return output;
+    }
+
+    function generateGo(json, rootName) {
+      let output = `type ${toPascal(rootName)} struct {\n`;
+      const keys = Object.keys(json);
+      keys.forEach(key => {
+        const val = json[key];
+        const type = getGoType(val);
+        output += `\t${toPascal(key)} ${type} \`json:"${key}"\`\n`;
+      });
+      output += `}\n`;
+      return output;
+    }
+
+    function generateRust(json, rootName) {
+      let output = `pub struct ${toPascal(rootName)} {\n`;
+      const keys = Object.keys(json);
+      keys.forEach(key => {
+        const val = json[key];
+        const type = getRustType(val);
+        output += `    pub ${key}: ${type},\n`;
+      });
+      output += `}\n`;
+      return output;
+    }
+
+    function generateSwift(json, rootName) {
+      let output = `struct ${toPascal(rootName)}: Codable {\n`;
+      const keys = Object.keys(json);
+      keys.forEach(key => {
+        const val = json[key];
+        const type = getSwiftType(val);
+        output += `    let ${key}: ${type}\n`;
+      });
+      output += `}\n`;
+      return output;
+    }
+
+    // === Logic ===
+    function process() {
+      const raw = elInput.value.trim();
+      if (!raw) {
+        elOutput.value = '';
+        return;
+      }
+
+      try {
+        const json = JSON.parse(raw);
+        if (typeof json !== 'object' || Array.isArray(json)) {
+           // Root must be object for interface generation usually, but let's handle gracefully
+           elOutput.value = `// Error: Root JSON must be an object { ... }, not ${Array.isArray(json) ? 'an array' : typeof json}`;
+           return;
+        }
+
+        const lang = elLang.value;
+        const root = elRootName.value || 'Root';
+        const optional = elOptOptional.checked;
+        
+        let result = '';
+        switch (lang) {
+          case 'typescript': result = generateTS(json, root, optional); break;
+          case 'golang': result = generateGo(json, root); break;
+          case 'rust': result = generateRust(json, root); break;
+          case 'swift': result = generateSwift(json, root); break;
+        }
+        elOutput.value = result;
+      } catch (e) {
+        // Don't overwrite good code if parsing fails momentarily while typing
+        // Just flash error or ignore until valid
+      }
+    }
+
+    function onInput() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        try {
+          process();
+        } catch (err) {
+          // Silently fail on partial typing
+        }
+      }, 300);
+    }
+
+    // === Event Listeners ===
+    elInput.addEventListener('input', onInput);
+    elLang.addEventListener('change', () => {
+      elOutputLabel.textContent = `Output (${elLang.options[elLang.selectedIndex].text})`;
+      process();
+    });
+    elRootName.addEventListener('input', process);
+    elOptOptional.addEventListener('change', process);
+
+    btnFormat.addEventListener('click', () => {
+      try {
+        const val = JSON.parse(elInput.value);
+        elInput.value = JSON.stringify(val, null, 2);
+        toast.success('JSON formatted successfully');
+      } catch (e) {
+        toast.error('Invalid JSON: cannot format', 'error');
+      }
+    });
+
+    btnCopy.addEventListener('click', () => {
+      if (!elOutput.value) {
+        toast.warning('Nothing to copy', 'warning');
+        return;
+      }
+      navigator.clipboard.writeText(elOutput.value).then(() => {
+        toast.success('Code copied to clipboard');
+      });
+    });
+
+    btnClear.addEventListener('click', () => {
+      elInput.value = '';
+      elOutput.value = '';
+      toast.info('Editor cleared');
+    });
+
+    // === Init Toast Config ===
+    if (window.toast && window.toast.config) {
+      window.toast.config({
+        position: 'bottom-right',
+        duration: 3000
+      });
+    }
+  </script>
+</body>
+</html>
