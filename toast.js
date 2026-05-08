@@ -1,11 +1,12 @@
 /**
- * SERAVIEL LABS Toast System v2.0
+ * SERAVIEL LABS Toast System v2.1
  * 0 API • SVG Icons • Queue • Progress • Promises • Accessible
+ * Fixed: Optional chaining assignment bug, safe DOM access, robust global export
  */
-(function() {
+(function(global) {
   'use strict';
 
-  const DEFAULTS = {
+  var DEFAULTS = {
     duration: 4000,
     position: 'top-right',
     theme: 'light',
@@ -19,23 +20,24 @@
     autoDismiss: true
   };
 
-  let config = { ...DEFAULTS };
-  const queue = [];
-  const active = new Map();
-  let containers = {};
-  let idCounter = 0;
+  var config = Object.assign({}, DEFAULTS);
+  var queue = [];
+  var active = new Map();
+  var containers = {};
+  var idCounter = 0;
 
-  const ICONS = {
+  var ICONS = {
     success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
     error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
     warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-    loading: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.22-8.55"/></svg>'
+    loading: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.22-8.55"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
   };
 
   function getContainer(pos) {
     if (!containers[pos]) {
-      const el = document.createElement('div');
+      var el = document.createElement('div');
       el.className = 'toast-container';
       el.dataset.pos = pos;
       document.body.appendChild(el);
@@ -46,11 +48,12 @@
 
   function playSound(type) {
     if (!config.sound) return;
-    // Простой WebAudio beep для 0-dependency
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      var ctx = new AudioCtx();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.frequency.value = type === 'error' ? 300 : type === 'warning' ? 400 : 600;
@@ -62,52 +65,71 @@
   }
 
   function createToastEl(opts) {
-    const el = document.createElement('div');
+    var el = document.createElement('div');
     el.className = 'toast';
     el.dataset.type = opts.type || 'info';
     el.dataset.theme = opts.theme || config.theme;
-    el.id = `toast-${opts.id}`;
+    el.id = 'toast-' + opts.id;
     el.setAttribute('role', 'alert');
     el.setAttribute('aria-live', 'polite');
 
-    const iconHtml = opts.icon !== false ? (opts.icon || ICONS[opts.type] || ICONS.info) : '';
-    const progressHtml = config.showProgress && opts.autoDismiss ? `<div class="toast__progress"><div class="toast__progress-bar" style="transition-duration:${opts.duration}ms"></div></div>` : '';
-    const closeHtml = opts.closeable !== false ? `<button class="toast__close" aria-label="Close">${ICONS.close || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'}</button>` : '';
+    var iconHtml = opts.icon !== false ? (opts.icon || ICONS[opts.type] || ICONS.info) : '';
+    var progressHtml = (config.showProgress && opts.autoDismiss) 
+      ? '<div class="toast__progress"><div class="toast__progress-bar" style="transition-duration:' + opts.duration + 'ms"></div></div>' 
+      : '';
+    var closeHtml = opts.closeable !== false 
+      ? '<button class="toast__close" aria-label="Close">' + ICONS.close + '</button>' 
+      : '';
     
-    let actionsHtml = '';
-    if (opts.actions?.length) {
-      actionsHtml = `<div class="toast__actions">${opts.actions.map(a => `<button class="toast__btn" data-act="${a.id || a.label}">${a.label}</button>`).join('')}</div>`;
+    var actionsHtml = '';
+    if (opts.actions && opts.actions.length) {
+      actionsHtml = '<div class="toast__actions">' + opts.actions.map(function(a) {
+        return '<button class="toast__btn" data-act="' + (a.id || a.label) + '">' + a.label + '</button>';
+      }).join('') + '</div>';
     }
 
-    el.innerHTML = `
-      ${iconHtml ? `<div class="toast__icon">${iconHtml}</div>` : ''}
-      <div class="toast__content">
-        ${opts.title ? `<span class="toast__title">${opts.title}</span>` : ''}
-        <span class="toast__message">${opts.message || ''}</span>
-        ${actionsHtml}
-      </div>
-      ${closeHtml}
-      ${progressHtml}
-    `;
+    el.innerHTML = 
+      (iconHtml ? '<div class="toast__icon">' + iconHtml + '</div>' : '') +
+      '<div class="toast__content">' +
+        (opts.title ? '<span class="toast__title">' + opts.title + '</span>' : '') +
+        '<span class="toast__message">' + (opts.message || '') + '</span>' +
+        actionsHtml +
+      '</div>' +
+      closeHtml +
+      progressHtml;
 
     if (opts.onShow) el._onShow = opts.onShow;
     if (opts.onHide) el._onHide = opts.onHide;
     if (opts.onAction) el._onAction = opts.onAction;
 
-    el.querySelector('.toast__close')?.addEventListener('click', () => dismiss(opts.id));
-    el.querySelectorAll('.toast__btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+    var closeBtn = el.querySelector('.toast__close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() { dismiss(opts.id); });
+    }
+
+    var actionBtns = el.querySelectorAll('.toast__btn');
+    for (var i = 0; i < actionBtns.length; i++) {
+      actionBtns[i].addEventListener('click', function(e) {
+        var btn = e.currentTarget;
         if (el._onAction) el._onAction(btn.dataset.act);
         if (opts.autoDismiss !== false) dismiss(opts.id);
       });
-    });
+    }
 
     if (config.pauseOnHover && opts.autoDismiss) {
-      let pauseStart = 0;
-      el.addEventListener('mouseenter', () => { pauseStart = Date.now(); el.querySelector('.toast__progress-bar')?.style.animationPlayState = 'paused'; });
-      el.addEventListener('mouseleave', () => { 
-        const paused = Date.now() - pauseStart; 
-        if (paused > 0) { opts.duration += paused; el.querySelector('.toast__progress-bar')?.style.transitionDuration = `${opts.duration}ms`; }
+      var pauseStart = 0;
+      el.addEventListener('mouseenter', function() { 
+        pauseStart = Date.now(); 
+        var bar = el.querySelector('.toast__progress-bar');
+        if (bar) bar.style.animationPlayState = 'paused'; 
+      });
+      el.addEventListener('mouseleave', function() { 
+        var paused = Date.now() - pauseStart; 
+        if (paused > 0) { 
+          opts.duration += paused; 
+          var bar = el.querySelector('.toast__progress-bar');
+          if (bar) bar.style.transitionDuration = opts.duration + 'ms'; 
+        }
       });
     }
 
@@ -123,37 +145,40 @@
 
   function processQueue() {
     if (active.size >= config.maxVisible || queue.length === 0) return;
-    const opts = queue.shift();
-    const container = getContainer(opts.position || config.position);
-    const el = createToastEl(opts);
+    var opts = queue.shift();
+    var container = getContainer(opts.position || config.position);
+    var el = createToastEl(opts);
     container.appendChild(el);
-    active.set(opts.id, { el, opts, timer: null });
+    active.set(opts.id, { el: el, opts: opts, timer: null });
 
-    requestAnimationFrame(() => {
+    requestAnimationFrame(function() {
       el.classList.add('toast--visible');
       if (el._onShow) el._onShow(opts.id);
       playSound(opts.type);
 
       if (opts.autoDismiss && opts.duration > 0) {
-        const bar = el.querySelector('.toast__progress-bar');
+        var bar = el.querySelector('.toast__progress-bar');
         if (bar) bar.style.transform = 'scaleX(0)';
         
-        opts.timer = setTimeout(() => dismiss(opts.id), opts.duration);
+        opts.timer = setTimeout(function() { dismiss(opts.id); }, opts.duration);
       }
     });
   }
 
   function dismiss(id) {
-    const item = active.get(id);
+    var item = active.get(id);
     if (!item) return;
-    const { el, opts, timer } = item;
+    var el = item.el;
+    var opts = item.opts;
+    var timer = item.timer;
+    
     if (timer) clearTimeout(timer);
     
     el.classList.remove('toast--visible');
     el.classList.add('toast--hiding');
     if (el._onHide) el._onHide(id);
 
-    setTimeout(() => {
+    setTimeout(function() {
       el.remove();
       active.delete(id);
       processQueue();
@@ -161,70 +186,77 @@
   }
 
   function update(id, data) {
-    const item = active.get(id);
+    var item = active.get(id);
     if (!item) return;
-    const { el } = item;
-    if (data.message) el.querySelector('.toast__message').textContent = data.message;
-    if (data.title) el.querySelector('.toast__title').textContent = data.title;
+    var el = item.el;
+    if (data.message) {
+      var msgEl = el.querySelector('.toast__message');
+      if (msgEl) msgEl.textContent = data.message;
+    }
+    if (data.title) {
+      var titleEl = el.querySelector('.toast__title');
+      if (titleEl) titleEl.textContent = data.title;
+    }
     if (data.duration !== undefined) {
       item.opts.duration = data.duration;
-      const bar = el.querySelector('.toast__progress-bar');
-      if (bar) bar.style.transitionDuration = `${data.duration}ms`;
+      var bar = el.querySelector('.toast__progress-bar');
+      if (bar) bar.style.transitionDuration = data.duration + 'ms';
     }
   }
 
   function clear() {
-    active.forEach((_, id) => dismiss(id));
+    active.forEach(function(_, id) { dismiss(id); });
     queue.length = 0;
   }
 
-  function promise(promiseFn, opts = {}) {
-    const id = show({ ...opts, type: 'loading', message: opts.loadingMessage || 'Processing...', duration: 0, autoDismiss: false });
-    promiseFn.then(res => {
+  function promise(promiseFn, opts) {
+    opts = opts || {};
+    var id = show(Object.assign({}, opts, { type: 'loading', message: opts.loadingMessage || 'Processing...', duration: 0, autoDismiss: false }));
+    promiseFn.then(function(res) {
       update(id, { type: 'success', message: opts.successMessage || 'Completed successfully.', duration: opts.duration || config.duration });
       if (opts.onResolve) opts.onResolve(res);
-    }).catch(err => {
-      update(id, { type: 'error', message: opts.errorMessage || err.message || 'Failed.', duration: opts.duration || config.duration });
+    }).catch(function(err) {
+      update(id, { type: 'error', message: opts.errorMessage || (err && err.message) || 'Failed.', duration: opts.duration || config.duration });
       if (opts.onReject) opts.onReject(err);
     });
     return id;
   }
 
-  function progress(message, percent, opts = {}) {
-    const id = opts.id || show({ ...opts, type: 'info', message, duration: 0, autoDismiss: false });
-    const item = active.get(id);
+  function progress(message, percent, opts) {
+    opts = opts || {};
+    var id = opts.id || show(Object.assign({}, opts, { type: 'info', message: message, duration: 0, autoDismiss: false }));
+    var item = active.get(id);
     if (item) {
       item.opts.message = message;
-      const bar = item.el.querySelector('.toast__progress-bar');
-      if (bar) bar.style.transform = `scaleX(${percent / 100})`;
+      var bar = item.el.querySelector('.toast__progress-bar');
+      if (bar) bar.style.transform = 'scaleX(' + (percent / 100) + ')';
       if (percent >= 100 && opts.autoDismiss !== false) {
-        setTimeout(() => dismiss(id), 500);
+        setTimeout(function() { dismiss(id); }, 500);
       }
     }
     return id;
   }
 
   function globalConfig(newCfg) {
-    config = { ...config, ...newCfg };
+    config = Object.assign({}, config, newCfg);
   }
 
-  const api = {
-    show,
-    success: (msg, opts) => show({ message: msg, type: 'success', ...opts }),
-    error: (msg, opts) => show({ message: msg, type: 'error', ...opts }),
-    warning: (msg, opts) => show({ message: msg, type: 'warning', ...opts }),
-    info: (msg, opts) => show({ message: msg, type: 'info', ...opts }),
-    loading: (msg, opts) => show({ message: msg, type: 'loading', duration: 0, ...opts }),
-    dismiss,
-    update,
-    clear,
-    promise,
-    progress,
+  var api = {
+    show: show,
+    success: function(msg, opts) { return show(Object.assign({ message: msg, type: 'success' }, opts)); },
+    error: function(msg, opts) { return show(Object.assign({ message: msg, type: 'error' }, opts)); },
+    warning: function(msg, opts) { return show(Object.assign({ message: msg, type: 'warning' }, opts)); },
+    info: function(msg, opts) { return show(Object.assign({ message: msg, type: 'info' }, opts)); },
+    loading: function(msg, opts) { return show(Object.assign({ message: msg, type: 'loading', duration: 0 }, opts)); },
+    dismiss: dismiss,
+    update: update,
+    clear: clear,
+    promise: promise,
+    progress: progress,
     config: globalConfig,
-    getActive: () => Array.from(active.keys()),
-    getQueue: () => [...queue]
+    getActive: function() { return Array.from(active.keys()); },
+    getQueue: function() { return queue.slice(); }
   };
 
-  window.toast = api;
-  document.addEventListener('DOMContentLoaded', () => {});
-})();
+  global.toast = api;
+})(window);
