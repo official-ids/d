@@ -136,13 +136,112 @@
     return el;
   }
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ show ===
   function show(opts) {
+    // Генерируем уникальный ID если нет
+    if (!opts.id) {
+      opts.id = String(++idCounter);
+    }
+    
+    // Устанавливаем autoDismiss по умолчанию из конфига
+    if (opts.autoDismiss === undefined) {
+      opts.autoDismiss = config.autoDismiss;
+    }
+    
+    // Устанавливаем duration по умолчанию
+    if (opts.duration === undefined) {
+      opts.duration = config.duration;
+    }
+
     if (queue.length >= config.queueLimit) queue.shift();
     queue.push(opts);
     processQueue();
     return opts.id;
   }
 
+  // === ИСПРАВЛЕННАЯ ФУНКЦИЯ createToastEl (частично) ===
+  function createToastEl(opts) {
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.dataset.type = opts.type || 'info';
+    el.dataset.theme = opts.theme || config.theme;
+    el.id = 'toast-' + opts.id;  // Теперь id будет уникальным
+    el.setAttribute('role', 'alert');
+    el.setAttribute('aria-live', 'polite');
+
+    var iconHtml = opts.icon !== false ? (opts.icon || ICONS[opts.type] || ICONS.info) : '';
+    
+    // Прогресс-бар только если autoDismiss включён
+    var progressHtml = (config.showProgress && opts.autoDismiss !== false && opts.duration > 0) 
+      ? '<div class="toast__progress"><div class="toast__progress-bar" style="transition-duration:' + opts.duration + 'ms"></div></div>' 
+      : '';
+    
+    // Кнопка закрытия
+    var closeHtml = opts.closeable !== false 
+      ? '<button class="toast__close" aria-label="Close">' + ICONS.close + '</button>' 
+      : '';
+    
+    var actionsHtml = '';
+    if (opts.actions && opts.actions.length) {
+      actionsHtml = '<div class="toast__actions">' + opts.actions.map(function(a) {
+        return '<button class="toast__btn" data-act="' + (a.id || a.label) + '">' + a.label + '</button>';
+      }).join('') + '</div>';
+    }
+
+    el.innerHTML = 
+      (iconHtml ? '<div class="toast__icon">' + iconHtml + '</div>' : '') +
+      '<div class="toast__content">' +
+        (opts.title ? '<span class="toast__title">' + opts.title + '</span>' : '') +
+        '<span class="toast__message">' + (opts.message || '') + '</span>' +
+        actionsHtml +
+      '</div>' +
+      closeHtml +
+      progressHtml;
+
+    if (opts.onShow) el._onShow = opts.onShow;
+    if (opts.onHide) el._onHide = opts.onHide;
+    if (opts.onAction) el._onAction = opts.onAction;
+
+    // === ИСПРАВЛЕНИЕ: Кнопка закрытия ===
+    var closeBtn = el.querySelector('.toast__close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() { 
+        dismiss(opts.id);  // Теперь правильно закрывает
+      });
+    }
+
+    // Кнопки действий
+    var actionBtns = el.querySelectorAll('.toast__btn');
+    for (var i = 0; i < actionBtns.length; i++) {
+      actionBtns[i].addEventListener('click', function(e) {
+        var btn = e.currentTarget;
+        if (el._onAction) el._onAction(btn.dataset.act);
+        if (opts.autoDismiss !== false) dismiss(opts.id);
+      });
+    }
+
+    // Пауза при наведении
+    if (config.pauseOnHover && opts.autoDismiss !== false) {
+      var pauseStart = 0;
+      el.addEventListener('mouseenter', function() { 
+        pauseStart = Date.now(); 
+        var bar = el.querySelector('.toast__progress-bar');
+        if (bar) bar.style.animationPlayState = 'paused'; 
+      });
+      el.addEventListener('mouseleave', function() { 
+        var paused = Date.now() - pauseStart; 
+        if (paused > 0) { 
+          opts.duration += paused; 
+          var bar = el.querySelector('.toast__progress-bar');
+          if (bar) bar.style.transitionDuration = opts.duration + 'ms'; 
+        }
+      });
+    }
+
+    return el;
+  }
+
+  // === ИСПРАВЛЕННАЯ ФУНКЦИЯ processQueue ===
   function processQueue() {
     if (active.size >= config.maxVisible || queue.length === 0) return;
     var opts = queue.shift();
@@ -156,11 +255,20 @@
       if (el._onShow) el._onShow(opts.id);
       playSound(opts.type);
 
-      if (opts.autoDismiss && opts.duration > 0) {
+      // === АВТОЗАКРЫТИЕ ===
+      if (opts.autoDismiss !== false && opts.duration > 0) {
+        // Запускаем прогресс-бар
         var bar = el.querySelector('.toast__progress-bar');
-        if (bar) bar.style.transform = 'scaleX(0)';
+        if (bar) {
+          // Форсируем перерисовку для анимации
+          bar.offsetHeight; // eslint-disable-line no-unused-expressions
+          bar.style.transform = 'scaleX(0)';
+        }
         
-        opts.timer = setTimeout(function() { dismiss(opts.id); }, opts.duration);
+        // Устанавливаем таймер
+        opts.timer = setTimeout(function() { 
+          dismiss(opts.id); 
+        }, opts.duration);
       }
     });
   }
