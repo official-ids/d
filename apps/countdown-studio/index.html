@@ -13,7 +13,7 @@
   <style>
     :root {
       --bg: #f8fafc;
-      --surface: rgba(255, 255, 255, 0.85);
+      --surface: rgba(255, 255, 255, 0.9);
       --text: #0f172a;
       --text-muted: #64748b;
       --accent: #0d9488;
@@ -60,9 +60,20 @@
 
     /* Main */
     main { flex: 1; padding: 32px 24px; max-width: 1000px; margin: 0 auto; width: 100%; }
-    
     .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-    .page-subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 15px; }
+    .page-subtitle { color: var(--text-muted); margin-bottom: 8px; font-size: 15px; }
+    
+    /* Notify Button */
+    .notify-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; margin-bottom: 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; color: var(--text-muted);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .notify-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .notify-btn svg { width: 16px; height: 16px; }
+    .notify-btn.granted { background: #f0fdf4; border-color: #10b981; color: #15803d; }
 
     /* Create Form */
     .create-card {
@@ -128,23 +139,59 @@
     .cd-actions button:hover { opacity: 1; }
     .cd-actions svg { width: 16px; height: 16px; stroke: var(--text-muted); }
 
-    /* Timer */
+    /* Timer - FIXED LAYERING */
     .cd-timer-wrapper {
-      display: flex; align-items: center; justify-content: center;
-      margin: 16px 0; position: relative;
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 20px auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .cd-ring { width: 120px; height: 120px; transform: rotate(-90deg); }
-    .cd-ring-bg { fill: none; stroke: var(--border); stroke-width: 6; }
+    .cd-ring {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      transform: rotate(-90deg);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .cd-ring-bg {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 6;
+    }
     .cd-ring-progress {
-      fill: none; stroke: var(--accent); stroke-width: 6;
-      stroke-linecap: round; transition: stroke-dashoffset 0.5s linear;
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s linear;
     }
     .cd-time {
-      position: absolute; font-family: var(--font-mono);
-      font-size: 20px; font-weight: 700; color: var(--text);
-      text-align: center; line-height: 1.2;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.1;
+      background: transparent;
+      user-select: none;
     }
-    .cd-time small { display: block; font-size: 11px; font-weight: 400; color: var(--text-muted); }
+    .cd-time small {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
 
     /* Completed State */
     .cd-completed-badge {
@@ -173,6 +220,8 @@
       .create-card { flex-direction: column; }
       .input-group { min-width: 100%; }
       .btn { width: 100%; justify-content: center; }
+      .cd-timer-wrapper { width: 120px; height: 120px; }
+      .cd-time { font-size: 18px; }
     }
 
     .toast-container { bottom: 24px !important; top: auto !important; }
@@ -195,6 +244,11 @@
   <main>
     <h1 class="page-title">Persistent Countdowns</h1>
     <p class="page-subtitle">Создавайте таймеры с системными уведомлениями и звуком. Данные сохраняются локально.</p>
+    
+    <button class="notify-btn" id="btn-notify">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span id="notify-text">Включить системные уведомления</span>
+    </button>
 
     <div class="create-card">
       <div class="input-group">
@@ -211,24 +265,21 @@
       </button>
     </div>
 
-    <div class="countdown-grid" id="cd-grid">
-      <!-- Cards injected here -->
-    </div>
+    <div class="countdown-grid" id="cd-grid"></div>
   </main>
 
   <script>
-    // === Core Logic ===
+    // === Core ===
     const STORAGE_KEY = 'seraviel_countdowns_v1';
     let countdowns = [];
     let audioCtx = null;
 
-    // Init
     document.addEventListener('DOMContentLoaded', () => {
       loadCountdowns();
       render();
-      requestNotificationPermission();
+      updateNotifyButton();
       
-      // Set default date to +1 day
+      // Default date: +1 day
       const tomorrow = new Date(Date.now() + 86400000);
       document.getElementById('cd-date').value = tomorrow.toISOString().slice(0, 16);
       
@@ -236,11 +287,9 @@
       setInterval(tick, 1000);
     });
 
-    // Load/Save
     function loadCountdowns() {
-      try {
-        countdowns = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-      } catch { countdowns = []; }
+      try { countdowns = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { countdowns = []; }
     }
     function saveCountdowns() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(countdowns));
@@ -251,47 +300,42 @@
       const title = document.getElementById('cd-title').value.trim();
       const dateVal = document.getElementById('cd-date').value;
       
-      if (!title) { toast.warning('Введите название', { duration: 2500 }); return; }
-      if (!dateVal) { toast.warning('Выберите дату', { duration: 2500 }); return; }
+      if (!title) { toast.warning('Введите название'); return; }
+      if (!dateVal) { toast.warning('Выберите дату'); return; }
       
       const target = new Date(dateVal).getTime();
       if (isNaN(target) || target <= Date.now()) {
-        toast.error('Дата должна быть в будущем', { duration: 3000 });
+        toast.error('Дата должна быть в будущем');
         return;
       }
 
       countdowns.unshift({
         id: Date.now().toString(36),
-        title,
-        target,
-        completed: false,
-        notified: false
+        title, target,
+        completed: false, notified: false
       });
       
       saveCountdowns();
       render();
       document.getElementById('cd-title').value = '';
-      toast.success('Таймер создан', { duration: 2000 });
+      toast.success('Таймер создан');
     });
 
-    // Delete
     window.deleteCountdown = function(id) {
       countdowns = countdowns.filter(c => c.id !== id);
       saveCountdowns();
       render();
-      toast.info('Таймер удален', { duration: 2000 });
+      toast.info('Таймер удален');
     };
 
-    // Tick Logic
+    // Tick
     function tick() {
       let changed = false;
       const now = Date.now();
       
       countdowns.forEach(c => {
         if (c.completed || c.notified) return;
-        
-        const diff = c.target - now;
-        if (diff <= 0) {
+        if (c.target - now <= 0) {
           c.completed = true;
           c.notified = true;
           changed = true;
@@ -303,51 +347,90 @@
       renderTimeOnly();
     }
 
-    // Completion Actions
+    // Completion
     function triggerCompletion(c) {
       playSound();
-      toast.success(`Время вышло: ${c.title}`, { duration: 5000, closeable: true });
+      toast.success(`Время вышло: ${c.title}`, { duration: 6000, closeable: true });
       
       if (Notification.permission === 'granted') {
-        new Notification('Countdown Studio', {
-          body: `Время вышло: ${c.title}`,
-          icon: '/favicon.png',
-          tag: c.id
-        });
+        try {
+          const n = new Notification('Countdown Studio', {
+            body: `Таймер завершён: ${c.title}`,
+            icon: '/favicon.png',
+            tag: c.id,
+            requireInteraction: true
+          });
+          n.onclick = () => window.focus();
+        } catch(e) { console.warn('Notification error:', e); }
       }
     }
 
-    // Sound (Web Audio API - 0 dependencies)
+    // Sound - Two-tone pleasant chime
     function playSound() {
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
         
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-        osc.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // C6
+        // First tone
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, now); // C5
+        gain1.gain.setValueAtTime(0.25, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc1.start(now);
+        osc1.stop(now + 0.3);
         
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+        // Second tone (delayed)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(783.99, now + 0.3); // G5
+        gain2.gain.setValueAtTime(0.25, now + 0.3);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        osc2.start(now + 0.3);
+        osc2.stop(now + 0.6);
         
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.8);
       } catch(e) {}
     }
 
-    // Notification Permission
-    function requestNotificationPermission() {
-      if ('Notification' in window && Notification.permission === 'default') {
-        document.body.addEventListener('click', () => {
-          Notification.requestPermission();
-        }, { once: true });
+    // Notifications
+    function updateNotifyButton() {
+      const btn = document.getElementById('btn-notify');
+      const text = document.getElementById('notify-text');
+      if (!('Notification' in window)) {
+        btn.style.display = 'none';
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        btn.classList.add('granted');
+        text.textContent = 'Уведомления активны';
+      } else {
+        btn.classList.remove('granted');
+        text.textContent = 'Включить системные уведомления';
       }
     }
+
+    document.getElementById('btn-notify').addEventListener('click', () => {
+      if (!('Notification' in window)) {
+        toast.warning('Уведомления не поддерживаются браузером');
+        return;
+      }
+      Notification.requestPermission().then(permission => {
+        updateNotifyButton();
+        if (permission === 'granted') {
+          toast.success('Уведомления включены. Вы получите оповещение даже при свёрнутой вкладке.');
+        } else {
+          toast.warning('Разрешение отклонено. Проверьте настройки браузера.');
+        }
+      });
+    });
 
     // Render
     function render() {
@@ -381,11 +464,11 @@
               </div>
             </div>
             <div class="cd-timer-wrapper">
-              <svg class="cd-ring" viewBox="0 0 120 120">
-                <circle class="cd-ring-bg" cx="60" cy="60" r="54"/>
-                <circle class="cd-ring-progress" cx="60" cy="60" r="54" 
-                  stroke-dasharray="339.292" 
-                  stroke-dashoffset="0" 
+              <svg class="cd-ring" viewBox="0 0 140 140">
+                <circle class="cd-ring-bg" cx="70" cy="70" r="62"/>
+                <circle class="cd-ring-progress" cx="70" cy="70" r="62" 
+                  stroke-dasharray="389.557" 
+                  stroke-dashoffset="389.557" 
                   id="ring-${c.id}"/>
               </svg>
               <div class="cd-time" id="time-${c.id}">
@@ -402,7 +485,7 @@
 
     function renderTimeOnly() {
       const now = Date.now();
-      const totalDuration = 339.292; // 2 * PI * 54
+      const circumference = 389.557; // 2 * PI * 62
       
       countdowns.forEach(c => {
         const timeEl = document.getElementById(`time-${c.id}`);
@@ -411,7 +494,7 @@
         
         if (c.completed) {
           timeEl.innerHTML = `<span>00:00:00:00</span><small>Завершено</small>`;
-          if (ringEl) ringEl.style.strokeDashoffset = totalDuration;
+          if (ringEl) ringEl.style.strokeDashoffset = circumference;
           return;
         }
         
@@ -423,10 +506,10 @@
         
         timeEl.innerHTML = `<span>${pad(d)}:${pad(h)}:${pad(m)}:${pad(s)}</span><small>DD:HH:MM:SS</small>`;
         
-        // Progress calculation (assume max 30 days for ring full scale)
+        // Progress ring (max 30 days scale)
         const maxDuration = 30 * 86400000;
-        const progress = Math.min(1, diff / maxDuration);
-        const offset = totalDuration * (1 - progress);
+        const progress = Math.min(1, Math.max(0, diff / maxDuration));
+        const offset = circumference * (1 - progress);
         if (ringEl) ringEl.style.strokeDashoffset = offset;
       });
     }
@@ -434,7 +517,6 @@
     function pad(n) { return n.toString().padStart(2, '0'); }
     function escapeHtml(str) { return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-    // Toast Config
     if (window.toast && window.toast.config) {
       window.toast.config({ position: 'bottom-center', duration: 3000 });
     }
