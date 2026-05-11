@@ -158,6 +158,7 @@ function generateSitemap(apps) {
   // Статические страницы
   const staticPages = [
     { loc: '/', changefreq: 'monthly', priority: 1.0 },
+    { loc: '/to', changefreq: 'yearly', priority: 0.1 },
     { loc: '/list', changefreq: 'monthly', priority: 0.9 },
     { loc: '/code', changefreq: 'yearly', priority: 0.8 },
     { loc: '/info', changefreq: 'yearly', priority: 0.8 },
@@ -250,10 +251,8 @@ rewrites.push({ source: '/privacy', destination: '/privacy/index.html' });
 rewrites.push({ source: '/status', destination: '/status/index.html' });
 rewrites.push({ source: '/suggest', destination: '/suggest/index.html' });
 rewrites.push({ source: '/code/installer-s', destination: '/code/installer-s/index.html' });
-rewrites.push({ source: '/apps/json-to-ts', destination: '/apps/json-to-ts/index.html' });
-rewrites.push({ source: '/apps/palette', destination: '/apps/palette/index.html' });
 rewrites.push({ source: '/donate', destination: '/donate/index.html' });
-rewrites.push({ source: '/apps/stealth-studio', destination: '/apps/stealth-studio/index.html' });
+rewrites.push({ source: '/to', destination: '/to/index.html' });
 rewrites.push({ source: '/code', destination: '/code/index.html' }); // ← Правило для Code Viewer
 
 // 5. КОРЕНЬ (СТРОГО "/")

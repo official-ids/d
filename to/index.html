@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting... | SERAVIEL LABS</title>
+  <meta name="robots" content="noindex, nofollow">
+  
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .url-preview {
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      word-break: break-all;
+      margin: 12px 0;
+      padding: 8px;
+      background: var(--bg);
+      border-radius: 6px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 16px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.secondary:hover { background: var(--bg); }
+    .error { color: #ef4444; font-size: 14px; margin-top: 12px; }
+    .toast-container { bottom: 24px !important; top: auto !important; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner"></div>
+    <h2>Перенаправление...</h2>
+    <p style="color:var(--text-muted);margin:8px 0 16px">Вы переходите на внешний ресурс:</p>
+    <div class="url-preview" id="urlPreview">Loading...</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="#" id="proceedBtn" class="btn">Продолжить</a>
+      <a href="/" class="btn secondary">На главную</a>
+    </div>
+    <p class="error" id="errorMsg" style="display:none"></p>
+  </div>
+
+  <script>
+    // === Smart Redirect Logic ===
+    (function() {
+      const params = new URLSearchParams(location.search);
+      const rawUrl = params.get('url');
+      const preview = document.getElementById('urlPreview');
+      const proceedBtn = document.getElementById('proceedBtn');
+      const errorMsg = document.getElementById('errorMsg');
+
+      function isValidUrl(str) {
+        try {
+          const u = new URL(str);
+          return u.protocol === 'http:' || u.protocol === 'https:';
+        } catch { return false; }
+      }
+
+      function sanitizeUrl(str) {
+        // Remove javascript: and data: protocols
+        return str.replace(/^javascript:/i, '').replace(/^data:/i, '');
+      }
+
+      if (!rawUrl) {
+        preview.textContent = 'No URL provided';
+        proceedBtn.style.display = 'none';
+        errorMsg.textContent = 'Missing "url" parameter';
+        errorMsg.style.display = 'block';
+        if (window.toast) toast.error('Invalid redirect link');
+        return;
+      }
+
+      const cleanUrl = sanitizeUrl(rawUrl.trim());
+      
+      if (!isValidUrl(cleanUrl)) {
+        preview.textContent = cleanUrl.slice(0, 100) + (cleanUrl.length > 100 ? '...' : '');
+        proceedBtn.style.display = 'none';
+        errorMsg.textContent = 'Invalid or blocked URL protocol';
+        errorMsg.style.display = 'block';
+        if (window.toast) toast.error('Unsafe URL blocked');
+        return;
+      }
+
+      // Show preview
+      preview.textContent = cleanUrl.length > 60 
+        ? cleanUrl.slice(0, 57) + '...' 
+        : cleanUrl;
+      
+      // Set proceed link
+      proceedBtn.href = cleanUrl;
+
+      // Auto-redirect after 2 seconds
+      setTimeout(() => {
+        if (window.toast) toast.info('Redirecting...', { duration: 2000 });
+        window.location.href = cleanUrl;
+      }, 2000);
+
+      // Manual click handler
+      proceedBtn.addEventListener('click', () => {
+        if (window.toast) toast.success('Opening link...');
+      });
+    })();
+
+    // Init toast
+    if (window.toast && window.toast.config) {
+      window.toast.config({ position: 'bottom-center', duration: 2500 });
+    }
+  </script>
+</body>
+</html>
