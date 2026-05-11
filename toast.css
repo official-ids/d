@@ -98,75 +98,7 @@
 }
 .toast[data-theme="dark"] .toast__message { color: var(--toast-text-muted-dark); }
 
-.toast__actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-.toast__btn {
-  background: transparent;
-  border: 1px solid var(--toast-border);
-  color: var(--toast-text);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.toast__btn:hover {
-  background: var(--toast-accent);
-  color: white;
-  border-color: var(--toast-accent);
-}
-
-.toast__close {
-  background: none;
-  border: none;
-  padding: 4px;
-  cursor: pointer;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.toast__close:hover { opacity: 1; }
-.toast__close svg { width: 16px; height: 16px; color: var(--toast-text); }
-
-.toast__progress {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 3px;
-  background: rgba(0,0,0,0.05);
-}
-.toast__progress-bar {
-  height: 100%;
-  background: var(--toast-accent);
-  width: 100%;
-  transform-origin: left;
-  transition: transform linear;
-}
-.toast[data-type="success"] .toast__progress-bar { background: var(--toast-success); }
-.toast[data-type="warning"] .toast__progress-bar { background: var(--toast-warning); }
-.toast[data-type="error"] .toast__progress-bar { background: var(--toast-error); }
-.toast[data-type="info"] .toast__progress-bar { background: var(--toast-info); }
-
-.toast--loading .toast__icon { animation: toast-spin 1s linear infinite; }
-@keyframes toast-spin { to { transform: rotate(360deg); } }
-
-/* Accessibility & Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .toast { transition: none; }
-  .toast__progress-bar { transition: none; }
-  .toast__icon { animation: none; }
-}
-@media (max-width: 480px) {
-  .toast-container { max-width: 100%; left: 12px !important; right: 12px !important; transform: none !important; }
-  .toast-container[data-pos="top-center"], .toast-container[data-pos="bottom-center"] { width: calc(100% - 24px); }
-}
-
-/* === Toast Actions === */
+/* === Actions (единое определение) === */
 .toast__actions {
   display: flex;
   gap: 8px;
@@ -178,10 +110,11 @@
   border-top-color: var(--toast-border-dark);
 }
 
+/* === Action Buttons (единое определение) === */
 .toast__btn {
-  background: var(--surface, #f1f5f9);
+  background: #f1f5f9;
   border: 1px solid var(--toast-border);
-  color: var(--toast-text);
+  color: #0f172a;
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
@@ -200,10 +133,11 @@
 .toast__btn:active {
   transform: scale(0.98);
 }
+/* Тёмная тема для кнопок */
 .toast[data-theme="dark"] .toast__btn {
-  background: var(--surface-hover, #334155);
+  background: #334155;
   border-color: var(--toast-border-dark);
-  color: var(--toast-text-dark);
+  color: #c9d1d9;
 }
 .toast[data-theme="dark"] .toast__btn:hover {
   background: var(--toast-accent);
@@ -211,9 +145,55 @@
   color: white;
 }
 
-/* === Action Icons (optional) === */
-.toast__btn svg {
-  width: 14px;
-  height: 14px;
-  stroke: currentColor;
+/* === Close Button === */
+.toast__close {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toast__close:hover { opacity: 1; }
+.toast__close svg { width: 16px; height: 16px; color: var(--toast-text); }
+.toast[data-theme="dark"] .toast__close svg { color: var(--toast-text-dark); }
+
+/* === Progress Bar === */
+.toast__progress {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: rgba(0,0,0,0.05);
+}
+.toast[data-theme="dark"] .toast__progress {
+  background: rgba(255,255,255,0.1);
+}
+.toast__progress-bar {
+  height: 100%;
+  background: var(--toast-accent);
+  width: 100%;
+  transform-origin: left;
+  transition: transform linear;
+}
+.toast[data-type="success"] .toast__progress-bar { background: var(--toast-success); }
+.toast[data-type="warning"] .toast__progress-bar { background: var(--toast-warning); }
+.toast[data-type="error"] .toast__progress-bar { background: var(--toast-error); }
+.toast[data-type="info"] .toast__progress-bar { background: var(--toast-info); }
+
+/* === Loading Animation === */
+.toast--loading .toast__icon { animation: toast-spin 1s linear infinite; }
+@keyframes toast-spin { to { transform: rotate(360deg); } }
+
+/* === Accessibility === */
+@media (prefers-reduced-motion: reduce) {
+  .toast { transition: none; }
+  .toast__progress-bar { transition: none; }
+  .toast__icon { animation: none; }
+}
+@media (max-width: 480px) {
+  .toast-container { max-width: 100%; left: 12px !important; right: 12px !important; transform: none !important; }
+  .toast-container[data-pos="top-center"], .toast-container[data-pos="bottom-center"] { width: calc(100% - 24px); }
 }
