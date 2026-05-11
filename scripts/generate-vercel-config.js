@@ -166,6 +166,7 @@ function generateSitemap(apps) {
     { loc: '/status', changefreq: 'hourly', priority: 1.0 },
     { loc: '/suggest', changefreq: 'monthly', priority: 0.7 },
     { loc: '/code/installer-s', changefreq: 'monthly', priority: 0.8 },
+    { loc: '/donate', changefreq: 'yearly', priority: 0.8 },
     { loc: '/404', changefreq: 'yearly', priority: 0.1 }
   ];
   
@@ -251,6 +252,7 @@ rewrites.push({ source: '/suggest', destination: '/suggest/index.html' });
 rewrites.push({ source: '/code/installer-s', destination: '/code/installer-s/index.html' });
 rewrites.push({ source: '/apps/json-to-ts', destination: '/apps/json-to-ts/index.html' });
 rewrites.push({ source: '/apps/palette', destination: '/apps/palette/index.html' });
+rewrites.push({ source: '/donate', destination: '/donate/index.html' });
 rewrites.push({ source: '/code', destination: '/code/index.html' }); // ← Правило для Code Viewer
 
 // 5. КОРЕНЬ (СТРОГО "/")

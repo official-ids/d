@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Поддержать | SERAVIEL LABS</title>
+  <meta name="description" content="Ваша поддержка помогает создавать новые инструменты и держать лабораторию открытой для всех.">
+  
+  <!-- === SYSTEM ASSETS === -->
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo svg { width: 20px; height: 20px; stroke: var(--accent); }
+    nav a {
+      margin-left: 20px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover, nav a.active { color: var(--accent); }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .donate-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .donate-card h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .donate-card p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    /* Button */
+    .btn-donate {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-donate:hover { background: var(--accent-hover); }
+    .btn-donate:active { transform: scale(0.98); }
+    .btn-donate svg { width: 18px; height: 18px; }
+
+    /* Trust Note */
+    .trust-note {
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      line-height: 1.4;
+    }
+    .trust-note svg { width: 16px; height: 16px; stroke: var(--accent); flex-shrink: 0; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      .donate-card { padding: 28px 20px; }
+      .donate-card h1 { font-size: 20px; }
+      nav a { margin-left: 14px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      SERAVIEL LABS
+    </a>
+    <nav>
+      <a href="/">Главная</a>
+      <a href="/list">Инструменты</a>
+      <a href="/donate" class="active">Поддержать</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="donate-card">
+      <h1>Спасибо, что вы с нами</h1>
+      <p>Ваша поддержка помогает создавать новые инструменты, улучшать существующие и держать лабораторию открытой для всех. Без рекламы, без трекинга, без компромиссов.</p>
+      
+      <!-- ⚠️ ЗАМЕНИТЕ href НА ВАШУ РЕАЛЬНУЮ ССЫЛКУ (Boosty, Crypto, PayPal, ЮMoney и т.д.) -->
+      <a href="https://boosty.to/seraviellex" target="_blank" rel="noopener" class="btn-donate" id="donateBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Поддержать проект
+      </a>
+
+      <div class="trust-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Все инструменты работают локально в вашем браузере. Мы не собираем данные и не храним историю.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2024–2026 SERAVIEL LABS. Zero telemetry. Open by design.
+  </footer>
+
+  <script>
+    // Toast on button click
+    document.getElementById('donateBtn').addEventListener('click', () => {
+      if (window.toast) {
+        toast.info('Открываем страницу поддержки...', { duration: 2500 });
+      }
+    });
+  </script>
+</body>
+</html>
