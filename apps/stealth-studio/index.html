@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stealth Studio | SERAVIEL LABS</title>
+  <meta name="description" content="Hide secret text inside any file. 100% client-side, lossless, universal compatibility.">
+  
+  <!-- === SYSTEM ASSETS === -->
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .brand svg { stroke: var(--accent); width: 24px; height: 24px; }
+    
+    nav a {
+      margin-left: 20px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover, nav a.active { color: var(--accent); }
+
+    /* Main Layout */
+    main {
+      flex: 1;
+      padding: 40px 24px;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 14px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .tab {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-family: var(--font);
+    }
+    .tab:hover { background: var(--bg); }
+    .tab.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); border: 1px solid var(--border); }
+
+    /* Panels */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Drop Zone */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      text-align: center;
+      transition: all 0.2s;
+      background: var(--surface);
+      cursor: pointer;
+      position: relative;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: #f0fdfa;
+    }
+    .dropzone svg { width: 40px; height: 40px; stroke: var(--text-muted); margin-bottom: 12px; }
+    .dropzone p { color: var(--text-muted); font-size: 14px; margin-bottom: 4px; }
+    .dropzone small { color: var(--text-muted); opacity: 0.7; }
+    .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    /* File Info */
+    .file-info {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+    .file-info.visible { display: flex; }
+    .file-icon { width: 36px; height: 36px; background: var(--bg); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .file-icon svg { width: 20px; height: 20px; stroke: var(--accent); }
+    .file-meta { flex: 1; }
+    .file-name { font-weight: 600; font-size: 14px; word-break: break-all; }
+    .file-size { font-size: 12px; color: var(--text-muted); }
+    .file-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
+    .file-remove:hover { color: var(--accent); }
+
+    /* Text Area */
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: 14px;
+      resize: vertical;
+      margin-top: 16px;
+      background: var(--surface);
+      color: var(--text);
+    }
+    textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(13,148,136,0.1); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font);
+      margin-top: 16px;
+    }
+    .btn:hover { background: var(--bg); border-color: var(--text-muted); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn svg { width: 16px; height: 16px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Output Box */
+    .output-box {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: none;
+    }
+    .output-box.visible { display: block; }
+    .output-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+    /* Toast Position */
+    .toast-container { bottom: 24px !important; top: auto !important; }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      main { padding: 24px 16px; }
+      nav a { margin-left: 12px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Stealth Studio
+    </a>
+    <nav>
+      <a href="/">Главная</a>
+      <a href="/list">Инструменты</a>
+      <a href="/apps/stealth-studio" class="active">Stealth</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>File Steganography</h1>
+    <p class="subtitle">Спрячь текст в любой файл. Файл откроется как обычно. Текст извлечётся без потерь.</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="encode">Скрыть текст</button>
+      <button class="tab" data-tab="decode">Извлечь текст</button>
+    </div>
+
+    <!-- ENCODE PANEL -->
+    <div class="panel active" id="encode-panel">
+      <div class="dropzone" id="enc-dropzone">
+        <input type="file" id="enc-file-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5 5-5-5M12 3v12"/></svg>
+        <p>Перетащите файл или нажмите для выбора</p>
+        <small>Любой формат: изображения, аудио, PDF, HTML и т.д.</small>
+      </div>
+
+      <div class="file-info" id="enc-file-info">
+        <div class="file-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="file-meta">
+          <div class="file-name" id="enc-file-name">file.ext</div>
+          <div class="file-size" id="enc-file-size">0 KB</div>
+        </div>
+        <button class="file-remove" id="enc-remove" title="Убрать файл">✕</button>
+      </div>
+
+      <textarea id="enc-text" placeholder="Введите секретный текст..."></textarea>
+      <button class="btn primary" id="enc-btn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Зашифровать и скачать
+      </button>
+    </div>
+
+    <!-- DECODE PANEL -->
+    <div class="panel" id="decode-panel">
+      <div class="dropzone" id="dec-dropzone">
+        <input type="file" id="dec-file-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <p>Перетащите зашифрованный файл</p>
+        <small>Файл, созданный через вкладку "Скрыть текст"</small>
+      </div>
+
+      <div class="file-info" id="dec-file-info">
+        <div class="file-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="file-meta">
+          <div class="file-name" id="dec-file-name">file.ext</div>
+          <div class="file-size" id="dec-file-size">0 KB</div>
+        </div>
+        <button class="file-remove" id="dec-remove" title="Убрать файл">✕</button>
+      </div>
+
+      <button class="btn primary" id="dec-btn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Извлечь текст
+      </button>
+
+      <div class="output-box" id="dec-output">
+        <div id="dec-text-content"></div>
+        <div class="output-actions">
+          <button class="btn" id="dec-copy">Копировать</button>
+          <button class="btn" id="dec-download-original">Скачать оригинал</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // === Constants ===
+    const MARKER = new Uint8Array([0x53, 0x56, 0x4C, 0x41]); // "SVLA"
+    
+    // === State ===
+    let encFile = null;
+    let decFile = null;
+    let originalBlob = null;
+
+    // === DOM Elements ===
+    const encDrop = document.getElementById('enc-dropzone');
+    const encInput = document.getElementById('enc-file-input');
+    const encInfo = document.getElementById('enc-file-info');
+    const encName = document.getElementById('enc-file-name');
+    const encSize = document.getElementById('enc-file-size');
+    const encRemove = document.getElementById('enc-remove');
+    const encText = document.getElementById('enc-text');
+    const encBtn = document.getElementById('enc-btn');
+
+    const decDrop = document.getElementById('dec-dropzone');
+    const decInput = document.getElementById('dec-file-input');
+    const decInfo = document.getElementById('dec-file-info');
+    const decName = document.getElementById('dec-file-name');
+    const decSize = document.getElementById('dec-file-size');
+    const decRemove = document.getElementById('dec-remove');
+    const decBtn = document.getElementById('dec-btn');
+    const decOutput = document.getElementById('dec-output');
+    const decContent = document.getElementById('dec-text-content');
+    const decCopy = document.getElementById('dec-copy');
+    const decDownloadOriginal = document.getElementById('dec-download-original');
+
+    // === Helpers ===
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function setupDropzone(dropzone, input, setFile, removeBtn, infoEl, nameEl, sizeEl, btnEl) {
+      ['dragover', 'dragenter'].forEach(evt => {
+        dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+      });
+      ['dragleave', 'drop'].forEach(evt => {
+        dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+      });
+      dropzone.addEventListener('drop', e => {
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+      });
+      input.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) handleFile(file);
+      });
+
+      function handleFile(file) {
+        setFile(file);
+        nameEl.textContent = file.name;
+        sizeEl.textContent = formatBytes(file.size);
+        infoEl.classList.add('visible');
+        btnEl.disabled = false;
+      }
+
+      removeBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        setFile(null);
+        input.value = '';
+        infoEl.classList.remove('visible');
+        btnEl.disabled = true;
+        if (decOutput) decOutput.classList.remove('visible');
+      });
+    }
+
+    // === Init Dropzones ===
+    setupDropzone(encDrop, encInput, f => encFile = f, encRemove, encInfo, encName, encSize, encBtn);
+    setupDropzone(decDrop, decInput, f => decFile = f, decRemove, decInfo, decName, decSize, decBtn);
+
+    // === Tabs ===
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+      });
+    });
+
+    // === Encode Logic ===
+    encBtn.addEventListener('click', async () => {
+      if (!encFile || !encText.value.trim()) {
+        toast.warning('Выберите файл и введите текст', { duration: 3000 });
+        return;
+      }
+
+      try {
+        encBtn.disabled = true;
+        encBtn.innerHTML = '⏳ Обработка...';
+
+        const fileBuffer = await encFile.arrayBuffer();
+        const textBytes = new TextEncoder().encode(encText.value);
+        const lengthBuffer = new ArrayBuffer(4);
+        new DataView(lengthBuffer).setUint32(0, textBytes.length, false);
+
+        const result = new Uint8Array(fileBuffer.byteLength + 4 + 4 + textBytes.length);
+        result.set(new Uint8Array(fileBuffer), 0);
+        result.set(MARKER, fileBuffer.byteLength);
+        result.set(new Uint8Array(lengthBuffer), fileBuffer.byteLength + 4);
+        result.set(textBytes, fileBuffer.byteLength + 8);
+
+        const blob = new Blob([result], { type: encFile.type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = encFile.name;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        toast.success('Файл сохранён с секретным текстом', { duration: 3000 });
+      } catch (err) {
+        toast.error('Ошибка шифрования: ' + err.message);
+      } finally {
+        encBtn.disabled = false;
+        encBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Зашифровать и скачать`;
+      }
+    });
+
+    // === Decode Logic ===
+    decBtn.addEventListener('click', async () => {
+      if (!decFile) {
+        toast.warning('Выберите файл для расшифровки', { duration: 3000 });
+        return;
+      }
+
+      try {
+        decBtn.disabled = true;
+        decBtn.innerHTML = '⏳ Анализ...';
+
+        const buffer = await decFile.arrayBuffer();
+        const data = new Uint8Array(buffer);
+        
+        if (data.length < 12) throw new Error('Файл слишком маленький');
+
+        // Ищем маркер с конца
+        let markerIndex = -1;
+        for (let i = data.length - 8; i >= 0; i--) {
+          if (data[i] === MARKER[0] && data[i+1] === MARKER[1] && 
+              data[i+2] === MARKER[2] && data[i+3] === MARKER[3]) {
+            markerIndex = i;
+            break;
+          }
+        }
+        if (markerIndex === -1) throw new Error('Скрытый текст не найден. Файл не был зашифрован этим инструментом.');
+
+        const view = new DataView(buffer, markerIndex + 4, 4);
+        const textLength = view.getUint32(0, false);
+        const textBytes = data.slice(markerIndex + 8, markerIndex + 8 + textLength);
+        const decodedText = new TextDecoder().decode(textBytes);
+
+        // Сохраняем оригинал для скачивания
+        originalBlob = new Blob([buffer.slice(0, markerIndex)], { type: decFile.type });
+
+        decContent.textContent = decodedText;
+        decOutput.classList.add('visible');
+        toast.success('Текст успешно извлечён', { duration: 3000 });
+      } catch (err) {
+        toast.error(err.message);
+        decOutput.classList.remove('visible');
+      } finally {
+        decBtn.disabled = false;
+        decBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg> Извлечь текст`;
+      }
+    });
+
+    // === Decode Actions ===
+    decCopy.addEventListener('click', () => {
+      navigator.clipboard.writeText(decContent.textContent).then(() => {
+        toast.success('Скопировано в буфер');
+      });
+    });
+
+    decDownloadOriginal.addEventListener('click', () => {
+      if (!originalBlob) return;
+      const url = URL.createObjectURL(originalBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = decFile.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // === Init Toast ===
+    if (window.toast && window.toast.config) {
+      window.toast.config({ position: 'bottom-center', duration: 3000 });
+    }
+  </script>
+</body>
+</html>

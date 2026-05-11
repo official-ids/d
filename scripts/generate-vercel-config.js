@@ -253,6 +253,7 @@ rewrites.push({ source: '/code/installer-s', destination: '/code/installer-s/ind
 rewrites.push({ source: '/apps/json-to-ts', destination: '/apps/json-to-ts/index.html' });
 rewrites.push({ source: '/apps/palette', destination: '/apps/palette/index.html' });
 rewrites.push({ source: '/donate', destination: '/donate/index.html' });
+rewrites.push({ source: '/apps/stealth-studio', destination: '/apps/stealth-studio/index.html' });
 rewrites.push({ source: '/code', destination: '/code/index.html' }); // ← Правило для Code Viewer
 
 // 5. КОРЕНЬ (СТРОГО "/")
