@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown Studio | SERAVIEL LABS</title>
+  <meta name="description" content="Persistent countdowns with background notifications, sound alerts, and zero dependencies.">
+  
+  <!-- === SYSTEM ASSETS === -->
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: rgba(255, 255, 255, 0.85);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .brand {
+      font-weight: 700; font-size: 16px; text-decoration: none; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .brand svg { width: 22px; height: 22px; stroke: var(--accent); }
+    nav a {
+      margin-left: 16px; text-decoration: none; color: var(--text-muted);
+      font-size: 14px; font-weight: 500; transition: color 0.2s;
+    }
+    nav a:hover, nav a.active { color: var(--accent); }
+
+    /* Main */
+    main { flex: 1; padding: 32px 24px; max-width: 1000px; margin: 0 auto; width: 100%; }
+    
+    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .page-subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 15px; }
+
+    /* Create Form */
+    .create-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      box-shadow: var(--shadow);
+    }
+    .input-group { flex: 1; min-width: 200px; }
+    .input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .input-group input {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 14px; background: #fff; color: var(--text);
+      transition: border-color 0.2s;
+    }
+    .input-group input:focus { outline: none; border-color: var(--accent); }
+
+    .btn {
+      padding: 10px 18px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-icon { background: transparent; border: 1px solid var(--border); padding: 8px; border-radius: 6px; }
+    .btn-icon:hover { background: var(--bg); border-color: var(--text-muted); }
+    .btn-icon svg { width: 18px; height: 18px; stroke: var(--text-muted); }
+
+    /* Grid */
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* Card */
+    .cd-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: var(--shadow);
+    }
+    .cd-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .cd-card.completed { border-color: #10b981; background: #f0fdf4; }
+    .cd-card.completed .cd-time { color: #059669; }
+    
+    .cd-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .cd-title { font-weight: 600; font-size: 16px; word-break: break-word; }
+    .cd-target { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono); }
+    
+    .cd-actions { display: flex; gap: 6px; }
+    .cd-actions button { background: none; border: none; cursor: pointer; padding: 4px; opacity: 0.6; transition: opacity 0.2s; }
+    .cd-actions button:hover { opacity: 1; }
+    .cd-actions svg { width: 16px; height: 16px; stroke: var(--text-muted); }
+
+    /* Timer */
+    .cd-timer-wrapper {
+      display: flex; align-items: center; justify-content: center;
+      margin: 16px 0; position: relative;
+    }
+    .cd-ring { width: 120px; height: 120px; transform: rotate(-90deg); }
+    .cd-ring-bg { fill: none; stroke: var(--border); stroke-width: 6; }
+    .cd-ring-progress {
+      fill: none; stroke: var(--accent); stroke-width: 6;
+      stroke-linecap: round; transition: stroke-dashoffset 0.5s linear;
+    }
+    .cd-time {
+      position: absolute; font-family: var(--font-mono);
+      font-size: 20px; font-weight: 700; color: var(--text);
+      text-align: center; line-height: 1.2;
+    }
+    .cd-time small { display: block; font-size: 11px; font-weight: 400; color: var(--text-muted); }
+
+    /* Completed State */
+    .cd-completed-badge {
+      position: absolute; top: 12px; right: 12px;
+      background: #10b981; color: white; width: 24px; height: 24px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      animation: pulse 2s infinite;
+    }
+    .cd-completed-badge svg { width: 14px; height: 14px; stroke: white; }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .empty-state {
+      grid-column: 1 / -1; text-align: center; padding: 40px 20px;
+      color: var(--text-muted); background: var(--surface);
+      border: 1px dashed var(--border); border-radius: var(--radius);
+    }
+    .empty-state svg { width: 40px; height: 40px; stroke: var(--border); margin-bottom: 12px; }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      main { padding: 20px 16px; }
+      .create-card { flex-direction: column; }
+      .input-group { min-width: 100%; }
+      .btn { width: 100%; justify-content: center; }
+    }
+
+    .toast-container { bottom: 24px !important; top: auto !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Countdown Studio
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/list">Apps</a>
+      <a href="/countdown-studio" class="active">Countdown</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="page-title">Persistent Countdowns</h1>
+    <p class="page-subtitle">Создавайте таймеры с системными уведомлениями и звуком. Данные сохраняются локально.</p>
+
+    <div class="create-card">
+      <div class="input-group">
+        <label for="cd-title">Название</label>
+        <input type="text" id="cd-title" placeholder="Например: Дедлайн проекта" maxlength="40">
+      </div>
+      <div class="input-group">
+        <label for="cd-date">Дата и время</label>
+        <input type="datetime-local" id="cd-date">
+      </div>
+      <button class="btn btn-primary" id="btn-create">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Создать
+      </button>
+    </div>
+
+    <div class="countdown-grid" id="cd-grid">
+      <!-- Cards injected here -->
+    </div>
+  </main>
+
+  <script>
+    // === Core Logic ===
+    const STORAGE_KEY = 'seraviel_countdowns_v1';
+    let countdowns = [];
+    let audioCtx = null;
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCountdowns();
+      render();
+      requestNotificationPermission();
+      
+      // Set default date to +1 day
+      const tomorrow = new Date(Date.now() + 86400000);
+      document.getElementById('cd-date').value = tomorrow.toISOString().slice(0, 16);
+      
+      // Global tick
+      setInterval(tick, 1000);
+    });
+
+    // Load/Save
+    function loadCountdowns() {
+      try {
+        countdowns = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch { countdowns = []; }
+    }
+    function saveCountdowns() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(countdowns));
+    }
+
+    // Create
+    document.getElementById('btn-create').addEventListener('click', () => {
+      const title = document.getElementById('cd-title').value.trim();
+      const dateVal = document.getElementById('cd-date').value;
+      
+      if (!title) { toast.warning('Введите название', { duration: 2500 }); return; }
+      if (!dateVal) { toast.warning('Выберите дату', { duration: 2500 }); return; }
+      
+      const target = new Date(dateVal).getTime();
+      if (isNaN(target) || target <= Date.now()) {
+        toast.error('Дата должна быть в будущем', { duration: 3000 });
+        return;
+      }
+
+      countdowns.unshift({
+        id: Date.now().toString(36),
+        title,
+        target,
+        completed: false,
+        notified: false
+      });
+      
+      saveCountdowns();
+      render();
+      document.getElementById('cd-title').value = '';
+      toast.success('Таймер создан', { duration: 2000 });
+    });
+
+    // Delete
+    window.deleteCountdown = function(id) {
+      countdowns = countdowns.filter(c => c.id !== id);
+      saveCountdowns();
+      render();
+      toast.info('Таймер удален', { duration: 2000 });
+    };
+
+    // Tick Logic
+    function tick() {
+      let changed = false;
+      const now = Date.now();
+      
+      countdowns.forEach(c => {
+        if (c.completed || c.notified) return;
+        
+        const diff = c.target - now;
+        if (diff <= 0) {
+          c.completed = true;
+          c.notified = true;
+          changed = true;
+          triggerCompletion(c);
+        }
+      });
+      
+      if (changed) saveCountdowns();
+      renderTimeOnly();
+    }
+
+    // Completion Actions
+    function triggerCompletion(c) {
+      playSound();
+      toast.success(`Время вышло: ${c.title}`, { duration: 5000, closeable: true });
+      
+      if (Notification.permission === 'granted') {
+        new Notification('Countdown Studio', {
+          body: `Время вышло: ${c.title}`,
+          icon: '/favicon.png',
+          tag: c.id
+        });
+      }
+    }
+
+    // Sound (Web Audio API - 0 dependencies)
+    function playSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // C6
+        
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.8);
+      } catch(e) {}
+    }
+
+    // Notification Permission
+    function requestNotificationPermission() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        document.body.addEventListener('click', () => {
+          Notification.requestPermission();
+        }, { once: true });
+      }
+    }
+
+    // Render
+    function render() {
+      const grid = document.getElementById('cd-grid');
+      if (countdowns.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <p>Нет активных таймеров. Создайте первый!</p>
+          </div>`;
+        return;
+      }
+      
+      grid.innerHTML = countdowns.map(c => {
+        const targetDate = new Date(c.target);
+        const dateStr = targetDate.toLocaleString('ru-RU', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+        const isCompleted = c.completed;
+        
+        return `
+          <div class="cd-card ${isCompleted ? 'completed' : ''}" data-id="${c.id}">
+            ${isCompleted ? `<div class="cd-completed-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>` : ''}
+            <div class="cd-header">
+              <div>
+                <div class="cd-title">${escapeHtml(c.title)}</div>
+                <div class="cd-target">${dateStr}</div>
+              </div>
+              <div class="cd-actions">
+                <button onclick="deleteCountdown('${c.id}')" title="Удалить">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="cd-timer-wrapper">
+              <svg class="cd-ring" viewBox="0 0 120 120">
+                <circle class="cd-ring-bg" cx="60" cy="60" r="54"/>
+                <circle class="cd-ring-progress" cx="60" cy="60" r="54" 
+                  stroke-dasharray="339.292" 
+                  stroke-dashoffset="0" 
+                  id="ring-${c.id}"/>
+              </svg>
+              <div class="cd-time" id="time-${c.id}">
+                <span>00:00:00:00</span>
+                <small>DD:HH:MM:SS</small>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      renderTimeOnly();
+    }
+
+    function renderTimeOnly() {
+      const now = Date.now();
+      const totalDuration = 339.292; // 2 * PI * 54
+      
+      countdowns.forEach(c => {
+        const timeEl = document.getElementById(`time-${c.id}`);
+        const ringEl = document.getElementById(`ring-${c.id}`);
+        if (!timeEl) return;
+        
+        if (c.completed) {
+          timeEl.innerHTML = `<span>00:00:00:00</span><small>Завершено</small>`;
+          if (ringEl) ringEl.style.strokeDashoffset = totalDuration;
+          return;
+        }
+        
+        const diff = Math.max(0, c.target - now);
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        
+        timeEl.innerHTML = `<span>${pad(d)}:${pad(h)}:${pad(m)}:${pad(s)}</span><small>DD:HH:MM:SS</small>`;
+        
+        // Progress calculation (assume max 30 days for ring full scale)
+        const maxDuration = 30 * 86400000;
+        const progress = Math.min(1, diff / maxDuration);
+        const offset = totalDuration * (1 - progress);
+        if (ringEl) ringEl.style.strokeDashoffset = offset;
+      });
+    }
+
+    function pad(n) { return n.toString().padStart(2, '0'); }
+    function escapeHtml(str) { return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    // Toast Config
+    if (window.toast && window.toast.config) {
+      window.toast.config({ position: 'bottom-center', duration: 3000 });
+    }
+  </script>
+</body>
+</html>
