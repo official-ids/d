@@ -165,3 +165,55 @@
   .toast-container { max-width: 100%; left: 12px !important; right: 12px !important; transform: none !important; }
   .toast-container[data-pos="top-center"], .toast-container[data-pos="bottom-center"] { width: calc(100% - 24px); }
 }
+
+/* === Toast Actions === */
+.toast__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--toast-border);
+}
+.toast[data-theme="dark"] .toast__actions {
+  border-top-color: var(--toast-border-dark);
+}
+
+.toast__btn {
+  background: var(--surface, #f1f5f9);
+  border: 1px solid var(--toast-border);
+  color: var(--toast-text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.toast__btn:hover {
+  background: var(--toast-accent);
+  border-color: var(--toast-accent);
+  color: white;
+}
+.toast__btn:active {
+  transform: scale(0.98);
+}
+.toast[data-theme="dark"] .toast__btn {
+  background: var(--surface-hover, #334155);
+  border-color: var(--toast-border-dark);
+  color: var(--toast-text-dark);
+}
+.toast[data-theme="dark"] .toast__btn:hover {
+  background: var(--toast-accent);
+  border-color: var(--toast-accent);
+  color: white;
+}
+
+/* === Action Icons (optional) === */
+.toast__btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+}
