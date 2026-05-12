@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Санкт-Петербург — Северная столица России</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        nav a:hover {
+            color: #1e3a8a;
+        }
+
+        nav svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        section {
+            margin-top: 80px;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero {
+            margin-top: 0;
+            padding: 0;
+            max-width: 100%;
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.85) 0%, rgba(99, 102, 241, 0.85) 100%), 
+                        url('https://foxtime.ru/wp-content/uploads/2025/04/piter-5.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.25);
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            margin: 0.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .badge svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 700;
+        }
+
+        h2 svg {
+            width: 36px;
+            height: 36px;
+            color: #6366f1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #e0e0e0;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #6366f1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 1.8rem;
+        }
+
+        .card h3 {
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .card p {
+            color: #555;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .card strong {
+            color: #6366f1;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin: 2.5rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-top: 4px solid #1e3a8a;
+        }
+
+        .stat-item svg {
+            width: 48px;
+            height: 48px;
+            color: #6366f1;
+            margin-bottom: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1e3a8a;
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .info-box {
+            background: white;
+            border-left: 5px solid #1e3a8a;
+            padding: 2.5rem;
+            border-radius: 8px;
+            margin: 2.5rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .info-box.accent {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            border-left: none;
+        }
+
+        .info-box.accent h3 {
+            color: white;
+        }
+
+        .info-box.accent p {
+            color: rgba(255,255,255,0.95);
+        }
+
+        .info-box.accent svg {
+            color: white;
+        }
+
+        .info-box svg {
+            width: 48px;
+            height: 48px;
+            color: #6366f1;
+            margin-bottom: 1rem;
+        }
+
+        .info-box h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .info-box p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+            background: white;
+            padding: 1.8rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .timeline-icon {
+            flex-shrink: 0;
+            width: 56px;
+            height: 56px;
+            background: #1e3a8a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timeline-icon svg {
+            width: 28px;
+            height: 28px;
+            color: white;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-content h3 {
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .timeline-content .year {
+            color: #6366f1;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .timeline-content p {
+            color: #555;
+            line-height: 1.7;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+
+        .info-card {
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .info-card.blue {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        .info-card.indigo {
+            background: #6366f1;
+            color: white;
+        }
+
+        .info-card.cyan {
+            background: #06b6d4;
+            color: white;
+        }
+
+        .info-card h3 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .info-card p {
+            color: rgba(255,255,255,0.95);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .info-card strong {
+            color: #fbbf24;
+        }
+
+        footer {
+            background: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+        }
+
+        footer svg {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1rem;
+            color: #6366f1;
+        }
+
+        footer p {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            h2 {
+                font-size: 1.8rem;
+            }
+            
+            nav ul {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <ul>
+            <li><a href="#home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Главная</a></li>
+            <li><a href="#about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>О городе</a></li>
+            <li><a href="#architecture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9"/></svg>Архитектура</a></li>
+            <li><a href="#museums"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>Музеи</a></li>
+            <li><a href="#rivers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M2 12c0-3 2.5-5 5-5s5 2 5 5 2.5 5 5 5 5-2 5-5"></path></svg>Реки и каналы</a></li>
+            <li><a href="#facts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Факты</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1>Санкт-Петербург</h1>
+            <p>Северная столица России — город белых ночей и величественной архитектуры</p>
+            <div>
+                <div class="badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Основан: 27 мая 1703 года</span>
+                </div>
+                <div class="badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>5.6 млн жителей</span>
+                </div>
+                <div class="badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                    <span>Россия</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            Общие сведения
+        </h2>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span class="stat-number">1 439 км²</span>
+                <span class="stat-label">Площадь города</span>
+            </div>
+            <div class="stat-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg>
+                <span class="stat-number">18</span>
+                <span class="stat-label">Районов</span>
+            </div>
+            <div class="stat-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                <span class="stat-number">+5.8°C</span>
+                <span class="stat-label">Средняя температура</span>
+            </div>
+            <div class="stat-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span class="stat-number">321</span>
+                <span class="stat-label">Год истории</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+            <div>
+                <h3>Географическое положение</h3>
+                <p>Санкт-Петербург расположен на северо-западе России, в дельте реки Невы на берегу Финского залива Балтийского моря. Город построен на 42 островах, которые соединены более чем 800 мостами. Это второй по численности населения город России и важный культурный, научный и экономический центр страны.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="architecture">
+        <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9"/></svg>
+            Архитектурные достопримечательности
+        </h2>
+        
+        <p style="font-size: 1.15rem; margin-bottom: 2rem; color: #555; line-height: 1.8;">
+            Санкт-Петербург называют «музеем под открытым небом». Город славится своей уникальной архитектурой 
+            XVIII–XX веков, включающей барокко, классицизм и модерн.
+        </p>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://avatars.mds.yandex.net/i?id=ef25a16c577fcbe5b9edc0786a26cdd4_l-5256019-images-thumbs&n=13" alt="Исаакиевский собор">
+                </div>
+                <div class="card-content">
+                    <h3>Исаакиевский собор</h3>
+                    <p>Один из самых больших купольных сооружений в мире. Высота собора — <strong>101.5 метра</strong>. Строительство велось <strong>40 лет</strong> (1818–1858). Для позолоты купола использовано <strong>100 килограммов</strong> чистого золота. Внутри может поместиться до <strong>14 000 человек</strong>.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/%22%D0%A1%D0%BF%D0%B0%D1%81_%D0%BD%D0%B0_%D0%BA%D1%80%D0%BE%D0%B2%D0%B8%22_%28%D0%A1%D0%BE%D0%B1%D0%BE%D1%80_%D0%92%D0%BE%D1%81%D0%BA%D1%80%D0%B5%D1%81%D0%B5%D0%BD%D0%B8%D1%8F_%D0%A5%D1%80%D0%B8%D1%81%D1%82%D0%BE%D0%B2%D0%B0%29.jpg/1280px-%22%D0%A1%D0%BF%D0%B0%D1%81_%D0%BD%D0%B0_%D0%BA%D1%80%D0%BE%D0%B2%D0%B8%22_%28%D0%A1%D0%BE%D0%B1%D0%BE%D1%80_%D0%92%D0%BE%D1%81%D0%BA%D1%80%D0%B5%D1%81%D0%B5%D0%BD%D0%B8%D1%8F_%D0%A5%D1%80%D0%B8%D1%81%D1%82%D0%BE%D0%B2%D0%B0%29.jpg" alt="Храм Спаса на Крови">
+                </div>
+                <div class="card-content">
+                    <h3>Храм Спаса на Крови</h3>
+                    <p>Построен на месте покушения на императора Александра II в <strong>1881 году</strong>. Строительство завершено в <strong>1907 году</strong>. Храм украшен <strong>7 500 квадратных метров</strong> мозаики — это одна из самых больших мозаичных коллекций в Европе. Высота — <strong>81 метр</strong>.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://yastatic.net/naydex/yandex-search/mBb6M4i60/55678dCY/K7Psq_WKu0xxS7rDeWijWb2QuDrOCgkdx4gYcoFRJuBWTO3BMNZYC2vQhwpKJlvfnFU4Av2goqxuwfvaVqoBadoh30-UGGmKg4nYBWvaIctvIKzOz3oeHk" alt="Зимний дворец">
+                </div>
+                <div class="card-content">
+                    <h3>Зимний дворец</h3>
+                    <p>Главное здание Эрмитажа, построенное в <strong>1754–1762 годах</strong> архитектором Растрелли. Длина фасада — <strong>150 метров</strong>, высота — <strong>22 метра</strong>. Во дворце <strong>1 500 комнат</strong>, <strong>117 лестниц</strong> и около <strong>2 000 окон</strong>. Главный символ императорской России.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box accent" style="margin-top: 3rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <div>
+                <h3>Интересный факт</h3>
+                <p>В Санкт-Петербурге более <strong>300 мостов</strong>, из которых 22 — разводные. Самый известный — Дворцовый мост. В период навигации (апрель–ноябрь) мосты разводятся ночью, чтобы пропустить суда. Это настоящее шоу, которое привлекает тысячи туристов.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="museums">
+        <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            Музеи и дворцы
+        </h2>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://yastatic.net/naydex/yandex-search/mBb8M3i15/55678dTt/muONjxFvamnxirvmucxTabz13Uo-uw28Mzm885VA84GHmsm0Vec9G6pl0mqKoxvPnfB9N_3AVwluoRu71fo0Ccu3D0pxTs9N1L7-8qwoI2ntsW3u_xvMvWf4aMI0ZXNC5C0O40M1ixl9V2Cej6efe4tT0" alt="Эрмитаж">
+                </div>
+                <div class="card-content">
+                    <h3>Государственный Эрмитаж</h3>
+                    <p>Один из крупнейших и самых значимых художественных и культурно-исторических музеев мира. Коллекция насчитывает более <strong>3 миллионов экспонатов</strong>. Чтобы осмотреть все залы, нужно пройти <strong>22 километра</strong>. Если у каждого экспоната стоять по 1 минуте, потребуется <strong>11 лет</strong>.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://yastatic.net/naydex/yandex-search/mBb6M4i60/55678dCY/K7Psq_WKu0xxS7rDeWijWb2QuDrOCgkdx4gYcoFRJuBWTO3BMNZYC2vQ13o6NmsvXFU4Au1AYqxe4Wv6VqoBadoh30-UGGmKg4nYBWvaIctvIKzOz3oeHk" alt="Петергоф">
+                </div>
+                <div class="card-content">
+                    <h3>Петергоф</h3>
+                    <p>«Столица фонтанов» — дворцово-парковый ансамбль, основанный Петром I в <strong>1714 году</strong>. В Петергофе <strong>173 фонтана</strong> и 4 каскада. Главный фонтан — «Самсон», высота струи достигает <strong>21 метра</strong>. Фонтаны работают без насосов — только за счёт перепада высот.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://yastatic.net/naydex/yandex-search/mBb6M4i60/55678dCY/K7Psq_WKu0xxS7rDeWijWb2QuDrOCgkdx4gYcoFRJuBWTO3BMNZYC2vQ5-pqNhsvrFU4Au2QEjz-8UvqVqoBadoh30-UGGmKg4nYBWvaIctvIKzOz3oeHk" alt="Царское Село">
+                </div>
+                <div class="card-content">
+                    <h3>Царское Село</h3>
+                    <p>Бывшая загородная резиденция российских императоров. Знаменита Екатерининским дворцом с <strong>Янтарной комнатой</strong>, восстановленной в 2003 году. Площадь парка — <strong>600 гектаров</strong>. Здесь учился Александр Пушкин в Царскосельском лицее.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="rivers">
+        <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M2 12c0-3 2.5-5 5-5s5 2 5 5 2.5 5 5 5 5-2 5-5"></path></svg>
+            Реки и каналы
+        </h2>
+
+        <div class="info-box accent">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Info-icon-blue.svg/1280px-Info-icon-blue.svg.png" alt="Реки и каналы" style="width: 36px; height: 36px; object-fit: contain;">
+            <div>
+                <h3>Северная Венеция</h3>
+                <p>Санкт-Петербург называют «Северной Венецией» из-за многочисленных рек и каналов. По территории города протекает река Нева и её рукава, а также <strong>93 реки и канала</strong> общей протяжённостью <strong>300 километров</strong>. В городе более <strong>800 мостов</strong> — больше, чем в любом другом городе мира.</p>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://yastatic.net/naydex/yandex-search/mBb6M4i07/55678dCY/K7Psq_WKu0xxS7rDeWijWb2QuDrOCgkdx4gYcoFRJuBWTO3BMNZYC2vQ5-o6JgveLbUIcv2AokwuoQpNkPphbVjxeZs2aGhqg7gJBLpqwSscUSg7Dwi-E" alt="Река Нева">
+                </div>
+                <div class="card-content">
+                    <h3>Река Нева</h3>
+                    <p>Главная река города, длина — <strong>74 километра</strong>. Нева вытекает из Ладожского озера и впадает в Финский залив. Ширина реки в черте города — от <strong>400 до 1200 метров</strong>. Глубина достигает <strong>24 метров</strong>. Нева замерзает на <strong>135 дней</strong> в году.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://yastatic.net/naydex/yandex-search/mBb6M4i60/55678dCY/K7Psq_WKu0xxS7rDeWijWb2QuDrOCgkdx4gYcoFRJuBWTO3BMNZYC2vQpzqa5utfjFU4Av2Qcgwu8WuaVqoBadoh30-UGGmKg4nYBWvaIctvIKzOz3oeHk" alt="Канал Грибоедова">
+                </div>
+                <div class="card-content">
+                    <h3>Канал Грибоедова</h3>
+                    <p>Один из самых красивых каналов города, длина — <strong>5 километров</strong>. Вдоль канала расположены знаменитые достопримечательности: Храм Спаса на Крови, Мариинский театр, Дом книги. По берегам канала сохранилась историческая застройка XVIII–XIX веков.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="facts">
+        <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Интересные факты
+        </h2>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+                <div class="timeline-content">
+                    <span class="year">27 мая 1703 года</span>
+                    <h3>Основание города</h3>
+                    <p>Пётр I заложил крепость на Заячьем острове — так началась история Санкт-Петербурга. Город строился как «окно в Европу» и новая столица России. В строительстве участвовало более 40 000 человек.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                </div>
+                <div class="timeline-content">
+                    <span class="year">1712 год</span>
+                    <h3>Столица России</h3>
+                    <p>Санкт-Петербург стал столицей Российского государства и оставался ею более 200 лет (до 1918 года). За это время город превратился в один из красивейших городов Европы.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                </div>
+                <div class="timeline-content">
+                    <span class="year">1914–1924 годы</span>
+                    <h3>Смена названий</h3>
+                    <p>В 1914 году город переименован в Петроград (на немецкий манер), в 1924 — в Ленинград (в честь В.И. Ленина). В 1991 году возвращено историческое название — Санкт-Петербург.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                </div>
+                <div class="timeline-content">
+                    <span class="year">1941–1944 годы</span>
+                    <h3>Блокада Ленинграда</h3>
+                    <p>Самая трагическая страница истории города. Блокада длилась <strong>872 дня</strong>. Погибло около <strong>1 миллиона человек</strong>. Город выстоял и не был сдан врагу. За героизм жителей Ленинград получил звание «Город-герой».</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card blue">
+                <h3>Белые ночи</h3>
+                <p>Уникальное природное явление, когда солнце почти не заходит за горизонт. Длится с <strong>конца мая до середины июля</strong>. В это время в городе проходят знаменитые «Алые паруса» — праздник выпускников.</p>
+            </div>
+
+            <div class="info-card indigo">
+                <h3>Метрополитен</h3>
+                <p>Петербургский метрополитен открыт в <strong>1955 году</strong>. Это самый глубокий метро в мире — средняя глубина станций <strong>60 метров</strong>. Станция «Адмиралтейская» находится на глубине <strong>86 метров</strong>.</p>
+            </div>
+
+            <div class="info-card cyan">
+                <h3>Культурная столица</h3>
+                <p>В городе более <strong>200 музеев</strong>, <strong>80 театров</strong>, <strong>100 концертных организаций</strong>. Здесь находится Мариинский театр — один из лучших театров оперы и балета в мире.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        <p style="font-size: 1.3rem; margin-bottom: 1rem;"><strong>Санкт-Петербург ждёт вас!</strong></p>
+        <p>Презентацию подготовил: [Ваше имя]</p>
+        <p style="margin-top: 2rem; opacity: 0.8; font-size: 0.9rem;">2026</p>
+    </footer>
+
+    <script>
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Анимация при скролле
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card, .stat-item, .timeline-item, .info-box').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

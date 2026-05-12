@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presentations | SERAVIEL LABS</title>
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc; --surface: #fff; --text: #0f172a;
+      --text-muted: #64748b; --accent: #0d9488; --border: #e2e8f0;
+      --radius: 12px; --font: system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .logo { font-weight: 700; font-size: 16px; text-decoration: none; color: var(--text); display: flex; align-items: center; gap: 10px; }
+    .logo svg { width: 20px; height: 20px; stroke: var(--accent); }
+    nav a { margin-left: 16px; text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500; }
+    nav a:hover, nav a.active { color: var(--accent); }
+    main { flex: 1; padding: 40px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: var(--text-muted); margin-bottom: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-decoration: none; color: inherit; transition: transform 0.2s, border-color 0.2s; }
+    .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .card-title { font-weight: 600; font-size: 16px; margin-bottom: 8px; }
+    .card-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag { font-size: 11px; padding: 2px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; color: var(--text-muted); }
+    .empty { text-align: center; padding: 40px; color: var(--text-muted); background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
+    footer { text-align: center; padding: 24px; font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      SERAVIEL LABS
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/list">Apps</a>
+      <a href="/presentation" class="active">Presentations</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Presentations</h1>
+    <p class="subtitle">Интерактивные демонстрации инструментов и концепций лаборатории.</p>
+    <div class="grid" id="pres-grid"></div>
+  </main>
+  <footer>© 2024–2026 SERAVIEL LABS</footer>
+  <script>
+    fetch('/presentation/presentation-manifest.json')
+      .then(r => r.json())
+      .then(data => {
+        const grid = document.getElementById('pres-grid');
+        if (!data.presentations || data.presentations.length === 0) {
+          grid.innerHTML = '<div class="empty">Нет доступных презентаций</div>';
+          return;
+        }
+        grid.innerHTML = data.presentations.map(p => `
+          <a href="${p.path}" class="card">
+            <div class="card-title">${p.title}</div>
+            <div class="card-desc">${p.description}</div>
+            ${p.tags?.length ? `<div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+          </a>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('pres-grid').innerHTML = '<div class="empty">Не удалось загрузить список</div>';
+      });
+  </script>
+</body>
+</html>

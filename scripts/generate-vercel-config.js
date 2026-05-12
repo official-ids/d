@@ -148,6 +148,58 @@ function generateCodeStructure() {
 }
 
 
+
+// ─────────────────────────────────────────────────────────────
+// 5. Генерация presentation-manifest.json
+// ─────────────────────────────────────────────────────────────
+function generatePresentationManifest() {
+  const PRES_DIR = path.join(ROOT, 'presentation');
+  if (!fs.existsSync(PRES_DIR)) return [];
+  
+  const presentations = fs.readdirSync(PRES_DIR, { withFileTypes: true })
+    .filter(d => d.isDirectory() && !d.name.startsWith('.') && d.name !== 'node_modules')
+    .map(d => d.name);
+  
+  const items = presentations.map(name => {
+    const pkgPath = path.join(PRES_DIR, name, 'package.json');
+    const indexPath = path.join(PRES_DIR, name, 'index.html');
+    
+    let title = name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    let description = 'Presentation by SERAVIEL LABS';
+    let tags = [];
+    
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        if (pkg.name) title = pkg.name;
+        if (pkg.description) description = pkg.description;
+        if (pkg.keywords) tags = pkg.keywords;
+      } catch(e) {}
+    }
+    
+    if (fs.existsSync(indexPath)) {
+      const html = fs.readFileSync(indexPath, 'utf8');
+      const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+      if (titleMatch) title = titleMatch[1].replace(/\s*\|\s*.*/, '').trim();
+    }
+    
+    return {
+      id: name,
+      title,
+      description,
+      path: `/presentation/${name}`,
+      tags: tags.slice(0, 4)
+    };
+  });
+  
+  const manifestPath = path.join(PRES_DIR, 'presentation-manifest.json');
+  fs.writeFileSync(manifestPath, JSON.stringify({ presentations: items }, null, 2));
+  console.log(`✅ presentation-manifest.json сгенерирован (${items.length} presentations)`);
+  
+  return items;
+}
+
+
    // ─────────────────────────────────────────────────────────────
 // 3. Генерация sitemap.xml для поисковиков
 // ─────────────────────────────────────────────────────────────
@@ -177,9 +229,17 @@ function generateSitemap(apps) {
     changefreq: 'yearly',
     priority: 0.7
   }));
+
+
+  const presItems = generatePresentationManifest();
+  const presPages = presItems.map(p => ({
+    loc: p.path,
+    changefreq: 'monthly',
+    priority: 0.7
+  }));
   
   // Сборка XML
-  const urls = [...staticPages, ...appPages];
+    const urls = [...staticPages, ...appPages, ...presPages];
   const xmlParts = urls.map(url => `
   <url>
     <loc>${baseUrl}${url.loc}</loc>
@@ -257,6 +317,24 @@ rewrites.push({ source: '/code', destination: '/code/index.html' }); // ← Пр
 
 // 5. КОРЕНЬ (СТРОГО "/")
 rewrites.push({ source: '/$', destination: '/index.html' });
+
+
+// 6. ПРЕЗЕНТАЦИИ
+const presDir = path.join(ROOT, 'presentation');
+if (fs.existsSync(presDir)) {
+  // Главная страница презентаций
+  rewrites.push({ source: '/presentation', destination: '/presentation/index.html' });
+  
+  // Отдельные презентации
+  const presItems = fs.readdirSync(presDir, { withFileTypes: true })
+    .filter(d => d.isDirectory() && !d.name.startsWith('.'))
+    .map(d => d.name);
+  
+  presItems.forEach(name => {
+    rewrites.push({ source: `/presentation/${name}`, destination: `/presentation/${name}/index.html` });
+    rewrites.push({ source: `/presentation/${name}/:path*`, destination: `/presentation/${name}/:path*` });
+  });
+}
 
 // === КОНФИГ ===
 const config = {

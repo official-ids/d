@@ -1,0 +1,25 @@
+{
+  "name": "Saint Petersburg Guide",
+  "description": "Interactive presentation about Saint Petersburg — history, architecture, museums, and cultural heritage of Russia's northern capital.",
+  "keywords": [
+    "saint-petersburg",
+    "russia",
+    "presentation",
+    "tourism",
+    "architecture",
+    "history",
+    "museums",
+    "cultural-heritage",
+    "travel-guide",
+    "seraviel-labs"
+  ],
+  "version": "1.0.0",
+  "private": true,
+  "seraviel": {
+    "type": "presentation",
+    "category": "culture",
+    "language": "ru",
+    "author": "SERAVIEL LABS",
+    "license": "MIT"
+  }
+}
