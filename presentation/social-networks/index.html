@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Контакты | SERAVIEL LABS</title>
+  <meta name="description" content="Свяжитесь с командой SERAVIEL LABS: Telegram, Email, Website.">
+  
+  <!-- === SYSTEM ASSETS === -->
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo {
+      font-weight: 700; font-size: 16px; text-decoration: none; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo svg { width: 20px; height: 20px; stroke: var(--accent); }
+    nav a {
+      margin-left: 16px; text-decoration: none; color: var(--text-muted);
+      font-size: 14px; font-weight: 500; transition: color 0.2s;
+    }
+    nav a:hover, nav a.active { color: var(--accent); }
+
+    /* Main */
+    main {
+      flex: 1;
+      padding: 48px 24px;
+      max-width: 700px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 28px; font-weight: 700; margin-bottom: 8px; text-align: center;
+    }
+    .page-subtitle {
+      color: var(--text-muted); margin-bottom: 32px; text-align: center; font-size: 15px;
+    }
+
+    /* Contact Cards */
+    .contact-grid {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .contact-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+    }
+    .contact-icon {
+      width: 48px; height: 48px;
+      background: var(--bg);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .contact-icon svg { width: 24px; height: 24px; stroke: var(--accent); }
+    .contact-info { flex: 1; min-width: 0; }
+    .contact-label {
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+    }
+    .contact-value {
+      font-size: 16px; font-weight: 600; color: var(--text);
+      word-break: break-all;
+    }
+    .contact-hint {
+      font-size: 13px; color: var(--text-muted); margin-top: 4px;
+    }
+
+    /* Copy Button */
+    .copy-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn svg { width: 14px; height: 14px; }
+
+    /* Website Card */
+    .website-card {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .website-card .contact-icon { background: rgba(255,255,255,0.15); }
+    .website-card .contact-icon svg { stroke: white; }
+    .website-card .contact-label { color: rgba(255,255,255,0.8); }
+    .website-card .contact-value { color: white; font-size: 18px; }
+    .website-card .contact-hint { color: rgba(255,255,255,0.9); }
+
+    /* Note Box */
+    .note-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+    .note-box svg { width: 32px; height: 32px; stroke: var(--accent); margin-bottom: 12px; }
+    .note-box p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      main { padding: 32px 16px; }
+      .contact-card { flex-direction: column; text-align: center; }
+      .copy-btn { width: 100%; justify-content: center; }
+    }
+
+    .toast-container { bottom: 24px !important; top: auto !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      SERAVIEL LABS
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/list">Apps</a>
+      <a href="/presentation">Presentations</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="page-title">Наши контакты</h1>
+    <p class="page-subtitle">Свяжитесь с командой для сотрудничества, предложений или поддержки.</p>
+
+    <!-- Website (Primary) -->
+    <div class="website-card" onclick="openLink('https://seraviel-labs.vercel.app')">
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
+        <div class="contact-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="contact-info">
+          <div class="contact-label">Website</div>
+          <div class="contact-value">seraviel-labs.vercel.app</div>
+          <div class="contact-hint">Нажмите, чтобы открыть сайт</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contacts Grid -->
+    <div class="contact-grid">
+      <!-- Advertising -->
+      <div class="contact-card" onclick="copyText('@seraviellex', 'Telegram Advertising')">
+        <div class="contact-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+        </div>
+        <div class="contact-info">
+          <div class="contact-label">Advertising</div>
+          <div class="contact-value">@seraviellex</div>
+          <div class="contact-hint">Telegram — реклама и партнёрства</div>
+        </div>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyText('@seraviellex', 'Telegram Advertising')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+
+      <!-- Manager -->
+      <div class="contact-card" onclick="copyText('@SeravieLLabs', 'Telegram Manager')">
+        <div class="contact-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="contact-info">
+          <div class="contact-label">Manager</div>
+          <div class="contact-value">@SeravieLLabs</div>
+          <div class="contact-hint">Telegram — управление и вопросы</div>
+        </div>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyText('@SeravieLLabs', 'Telegram Manager')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+
+      <!-- Email -->
+      <div class="contact-card" onclick="copyText('di44avolod@ya.ru', 'Email')">
+        <div class="contact-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div class="contact-info">
+          <div class="contact-label">Email</div>
+          <div class="contact-value">di44avolod@ya.ru</div>
+          <div class="contact-hint">Почта для официальных запросов</div>
+        </div>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyText('di44avolod@ya.ru', 'Email')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="note-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <p>Все инструменты SERAVIEL LABS работают локально в браузере. Мы не собираем данные и не храним историю. Спасибо за доверие.</p>
+    </div>
+  </main>
+
+  <footer>
+    © 2024–2026 SERAVIEL LABS. Zero telemetry. Open by design.
+  </footer>
+
+  <script>
+    function copyText(text, label) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (window.toast) {
+          toast.success(`${label} скопирован`, { duration: 2500 });
+        }
+      }).catch(() => {
+        if (window.toast) {
+          toast.error('Не удалось скопировать', { duration: 3000 });
+        }
+      });
+    }
+
+    function openLink(url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      if (window.toast) {
+        toast.info('Открываем сайт...', { duration: 2000 });
+      }
+    }
+
+    if (window.toast && window.toast.config) {
+      window.toast.config({ position: 'bottom-center', duration: 2500 });
+    }
+  </script>
+</body>
+</html>
