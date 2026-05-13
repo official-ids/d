@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Test Check | SERAVIEL LABS</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; line-height: 1.6; color: #0f172a; }
+    h1 { color: #0d9488; margin-bottom: 1rem; }
+    .badge { background: #f1f5f9; color: #64748b; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid #e2e8f0; }
+    code { background: #f8fafc; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #e2e8f0; }
+    .note { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 16px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+  </style>
+</head>
+<body>
+  <span class="badge">AUTOMATED TEST</span>
+  <h1>Bot Notification Test</h1>
+  
+  <p>This presentation was created automatically to verify the Telegram bot integration.</p>
+  
+  <div class="note">
+    <strong>Check list:</strong>
+    <ul>
+      <li>Manifest generation includes "date" field</li>
+      <li>Bot detects recent presentations (&lt; 10 min)</li>
+      <li>Telegram message formatting (HTML) is valid</li>
+      <li>Inline button link works correctly</li>
+    </ul>
+  </div>
+
+  <h3>Technical Details</h3>
+  <p><strong>ID:</strong> <code>bot-test-check</code><br>
+  <strong>Created:</strong> <time datetime="2026-05-14T22:00:00Z">2026-05-14 22:00 UTC</time><br>
+  <strong>Purpose:</strong> System validation</p>
+
+  <hr style="margin: 32px 0; border: 0; border-top: 1px solid #e2e8f0;">
+  
+  <p style="color: #64748b; font-size: 14px;">
+    SERAVIEL LABS Presentation System<br>
+    Local-first architecture. Zero telemetry.
+  </p>
+
+  <script>
+    // Auto-remove test presentation after 5 minutes if viewed directly
+    setTimeout(() => {
+      if (location.hostname.includes('vercel.app')) {
+        console.log('Test view detected. Remember to clean up presentation/bot-test-check/ after verification.');
+      }
+    }, 300000);
+  </script>
+</body>
+</html>

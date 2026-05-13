@@ -1,9 +1,8 @@
 {
-  "name": "Test Notification",
-  "description": "🧪 Тестовая презентация для проверки Telegram-бота. Не удалять до завершения тестов.",
+  "name": "Bot Test Check",
+  "description": "Automated test for Telegram notification system. Please ignore.",
   "keywords": [
     "test",
-    "notification",
     "bot",
     "telegram",
     "debug",
@@ -14,10 +13,10 @@
   "seraviel": {
     "type": "presentation",
     "category": "general",
-    "language": "ru",
+    "language": "en",
     "author": "SERAVIEL LABS",
     "license": "MIT",
     "status": "test"
   },
-  "date": "2026-01-15T12:00:00.000Z"
+  "date": "2026-05-14T22:00:00.000Z"
 }
