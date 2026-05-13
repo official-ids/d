@@ -178,6 +178,7 @@ function generatePresentationManifest() {
         if (pkg.description) description = pkg.description;
         if (pkg.keywords) tags = pkg.keywords;
         if (pkg.seraviel?.category) category = pkg.seraviel.category;
+        if (pkg.date) date = pkg.date; // ← ДОБАВЬ ЭТУ СТРОКУ
       } catch(e) {}
     }
     
@@ -193,6 +194,7 @@ function generatePresentationManifest() {
       title,
       description,
       category,
+      date, // ← ДОБАВЬ ЭТО ПОЛЕ
       path: `/presentation/${name}`,
       tags: tags.slice(0, 4)
     };
