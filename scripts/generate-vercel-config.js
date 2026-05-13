@@ -164,10 +164,11 @@ function generatePresentationManifest() {
     const pkgPath = path.join(PRES_DIR, name, 'package.json');
     const indexPath = path.join(PRES_DIR, name, 'index.html');
     
-    // Defaults
+    // === ОБЯЗАТЕЛЬНО: Объявляем все переменные здесь ===
     let title = name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     let description = 'Presentation by SERAVIEL LABS';
     let category = 'general';
+    let date = null; // ← ← ← ВОТ ЭТОГО НЕ ХВАТАЛО
     let tags = [];
     
     // Read from package.json
@@ -178,7 +179,7 @@ function generatePresentationManifest() {
         if (pkg.description) description = pkg.description;
         if (pkg.keywords) tags = pkg.keywords;
         if (pkg.seraviel?.category) category = pkg.seraviel.category;
-        if (pkg.date) date = pkg.date; // ← ДОБАВЬ ЭТУ СТРОКУ
+        if (pkg.date) date = pkg.date; // ← Теперь это сработает
       } catch(e) {}
     }
     
@@ -194,7 +195,7 @@ function generatePresentationManifest() {
       title,
       description,
       category,
-      date, // ← ДОБАВЬ ЭТО ПОЛЕ
+      date, // ← Возвращаем дату
       path: `/presentation/${name}`,
       tags: tags.slice(0, 4)
     };
