@@ -164,19 +164,24 @@ function generatePresentationManifest() {
     const pkgPath = path.join(PRES_DIR, name, 'package.json');
     const indexPath = path.join(PRES_DIR, name, 'index.html');
     
+    // Defaults
     let title = name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     let description = 'Presentation by SERAVIEL LABS';
+    let category = 'general';
     let tags = [];
     
+    // Read from package.json
     if (fs.existsSync(pkgPath)) {
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
         if (pkg.name) title = pkg.name;
         if (pkg.description) description = pkg.description;
         if (pkg.keywords) tags = pkg.keywords;
+        if (pkg.seraviel?.category) category = pkg.seraviel.category;
       } catch(e) {}
     }
     
+    // Read from index.html title
     if (fs.existsSync(indexPath)) {
       const html = fs.readFileSync(indexPath, 'utf8');
       const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
@@ -187,6 +192,7 @@ function generatePresentationManifest() {
       id: name,
       title,
       description,
+      category,
       path: `/presentation/${name}`,
       tags: tags.slice(0, 4)
     };
