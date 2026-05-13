@@ -1,14 +1,17 @@
 {
-  "name": "Saint Petersburg Guide",
-  "description": "Interactive presentation about Saint Petersburg — history, architecture, museums, and cultural heritage of Russia's northern capital.",
+  "name": "kazan",
+  "description": "Interactive presentation about Kazan — the Third Capital of Russia, where East meets West. Explore unique landmarks, Tatar culture, hidden facts, and architectural wonders of Tatarstan's capital.",
   "keywords": [
-    "saint-petersburg",
+    "kazan",
+    "tatarstan",
     "russia",
     "presentation",
     "tourism",
     "architecture",
     "history",
-    "museums",
+    "tatar-culture",
+    "kul-sharif",
+    "kremlin",
     "cultural-heritage",
     "travel-guide",
     "seraviel-labs"
