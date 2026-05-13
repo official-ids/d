@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pass Studio | SERAVIEL LABS</title>
+  <meta name="description" content="Secure password generator. 100% client-side, zero telemetry.">
+  
+  <!-- === SYSTEM ASSETS === -->
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      font-weight: 700; font-size: 16px; text-decoration: none; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .brand svg { width: 22px; height: 22px; stroke: var(--accent); }
+    nav a {
+      margin-left: 16px; text-decoration: none; color: var(--text-muted);
+      font-size: 14px; font-weight: 500; transition: color 0.2s;
+    }
+    nav a:hover, nav a.active { color: var(--accent); }
+
+    /* Main */
+    main {
+      flex: 1; padding: 40px 24px; max-width: 700px; margin: 0 auto; width: 100%;
+    }
+    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .page-subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 15px; }
+
+    /* Password Display */
+    .pass-display {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow);
+    }
+    .pass-value {
+      flex: 1; font-family: var(--font-mono); font-size: 20px; font-weight: 600;
+      word-break: break-all; user-select: all; color: var(--text);
+    }
+    .pass-actions { display: flex; gap: 8px; }
+    .btn-icon {
+      width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: all 0.2s;
+    }
+    .btn-icon:hover { border-color: var(--accent); background: var(--bg); }
+    .btn-icon svg { width: 20px; height: 20px; stroke: var(--text-muted); }
+
+    /* Strength Meter */
+    .strength-meter {
+      margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
+    }
+    .strength-bar-bg {
+      flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+    }
+    .strength-bar-fill {
+      height: 100%; width: 0%; transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    .strength-label {
+      font-size: 13px; font-weight: 600; min-width: 80px; text-align: right;
+    }
+    .weak { background: #ef4444; }
+    .fair { background: #f59e0b; }
+    .good { background: #3b82f6; }
+    .strong { background: #22c55e; }
+
+    /* Controls */
+    .controls {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+    }
+    .control-group { margin-bottom: 16px; }
+    .control-group:last-child { margin-bottom: 0; }
+    .control-label {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px; font-weight: 500; margin-bottom: 8px;
+    }
+    .control-value { color: var(--accent); font-weight: 600; font-family: var(--font-mono); }
+    
+    input[type="range"] {
+      width: 100%; height: 6px; background: var(--border); border-radius: 3px;
+      appearance: none; outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none; width: 18px; height: 18px; background: var(--accent);
+      border-radius: 50%; cursor: pointer; transition: transform 0.2s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+    .checkbox-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;
+    }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;
+    }
+    .checkbox-item input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+    /* Footer */
+    footer {
+      text-align: center; padding: 24px; font-size: 13px; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      main { padding: 24px 16px; }
+      .pass-value { font-size: 16px; }
+      .checkbox-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .toast-container { bottom: 24px !important; top: auto !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Pass Studio
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/list">Apps</a>
+      <a href="/pass-studio" class="active">Pass</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="page-title">Pass Studio</h1>
+    <p class="page-subtitle">Генератор безопасных паролей. Работает локально, не отправляет данные.</p>
+
+    <!-- Password Output -->
+    <div class="pass-display">
+      <div class="pass-value" id="passValue">Generating...</div>
+      <div class="pass-actions">
+        <button class="btn-icon" id="btnRegen" title="Generate new">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        </button>
+        <button class="btn-icon" id="btnCopy" title="Copy to clipboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Strength Meter -->
+    <div class="strength-meter">
+      <div class="strength-bar-bg"><div class="strength-bar-fill" id="strengthBar"></div></div>
+      <div class="strength-label" id="strengthLabel">Calculating...</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control-group">
+        <div class="control-label">
+          <span>Length</span>
+          <span class="control-value" id="lengthValue">16</span>
+        </div>
+        <input type="range" id="lengthSlider" min="6" max="64" value="16">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Character Types</div>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" id="chkUpper" checked> Uppercase (A-Z)</label>
+          <label class="checkbox-item"><input type="checkbox" id="chkLower" checked> Lowercase (a-z)</label>
+          <label class="checkbox-item"><input type="checkbox" id="chkDigits" checked> Digits (0-9)</label>
+          <label class="checkbox-item"><input type="checkbox" id="chkSymbols" checked> Symbols (!@#)</label>
+          <label class="checkbox-item"><input type="checkbox" id="chkExclude"> Exclude Ambiguous</label>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2024–2026 SERAVIEL LABS. Zero telemetry. Open by design.
+  </footer>
+
+  <script>
+    // === Config & State ===
+    const CHARS = {
+      upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      lower: 'abcdefghijklmnopqrstuvwxyz',
+      digits: '0123456789',
+      symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?',
+      ambiguous: '0O1lI|'
+    };
+
+    const els = {
+      value: document.getElementById('passValue'),
+      lengthSlider: document.getElementById('lengthSlider'),
+      lengthValue: document.getElementById('lengthValue'),
+      chkUpper: document.getElementById('chkUpper'),
+      chkLower: document.getElementById('chkLower'),
+      chkDigits: document.getElementById('chkDigits'),
+      chkSymbols: document.getElementById('chkSymbols'),
+      chkExclude: document.getElementById('chkExclude'),
+      strengthBar: document.getElementById('strengthBar'),
+      strengthLabel: document.getElementById('strengthLabel'),
+      btnCopy: document.getElementById('btnCopy'),
+      btnRegen: document.getElementById('btnRegen')
+    };
+
+    // === Core Logic ===
+    function getCharset() {
+      let pool = '';
+      if (els.chkUpper.checked) pool += CHARS.upper;
+      if (els.chkLower.checked) pool += CHARS.lower;
+      if (els.chkDigits.checked) pool += CHARS.digits;
+      if (els.chkSymbols.checked) pool += CHARS.symbols;
+      
+      if (els.chkExclude.checked) {
+        const ambiguousSet = new Set(CHARS.ambiguous);
+        pool = pool.split('').filter(c => !ambiguousSet.has(c)).join('');
+      }
+      return pool;
+    }
+
+    function generatePassword() {
+      const charset = getCharset();
+      const length = parseInt(els.lengthSlider.value);
+      
+      if (!charset) {
+        els.value.textContent = 'Select at least one type';
+        updateStrength(0);
+        return '';
+      }
+
+      // Secure random generation using Crypto API
+      const array = new Uint32Array(length);
+      crypto.getRandomValues(array);
+      
+      let password = '';
+      for (let i = 0; i < length; i++) {
+        password += charset[array[i] % charset.length];
+      }
+      
+      els.value.textContent = password;
+      updateStrength(password.length * Math.log2(charset.length));
+      return password;
+    }
+
+    function updateStrength(entropy) {
+      let level = 'weak';
+      let label = 'Very Weak';
+      let width = '25%';
+
+      if (entropy >= 128) { level = 'strong'; label = 'Very Strong'; width = '100%'; }
+      else if (entropy >= 60) { level = 'strong'; label = 'Strong'; width = '75%'; }
+      else if (entropy >= 36) { level = 'good'; label = 'Good'; width = '50%'; }
+      else if (entropy >= 28) { level = 'fair'; label = 'Fair'; width = '25%'; }
+      else { level = 'weak'; label = 'Weak'; width = '10%'; }
+
+      els.strengthBar.className = 'strength-bar-fill ' + level;
+      els.strengthBar.style.width = width;
+      els.strengthLabel.textContent = label;
+    }
+
+    // === Events ===
+    function refresh() {
+      els.lengthValue.textContent = els.lengthSlider.value;
+      generatePassword();
+    }
+
+    els.lengthSlider.addEventListener('input', refresh);
+    [els.chkUpper, els.chkLower, els.chkDigits, els.chkSymbols, els.chkExclude].forEach(chk => {
+      chk.addEventListener('change', refresh);
+    });
+
+    els.btnRegen.addEventListener('click', () => {
+      generatePassword();
+      if (window.toast) toast.info('Password regenerated');
+    });
+
+    els.btnCopy.addEventListener('click', () => {
+      const pass = els.value.textContent;
+      if (!pass || pass === 'Select at least one type' || pass === 'Generating...') return;
+      
+      navigator.clipboard.writeText(pass).then(() => {
+        if (window.toast) toast.success('Password copied to clipboard');
+      }).catch(() => {
+        if (window.toast) toast.error('Failed to copy');
+      });
+    });
+
+    // === Init ===
+    refresh();
+    if (window.toast) toast.config({ position: 'bottom-center', duration: 2500 });
+  </script>
+</body>
+</html>
