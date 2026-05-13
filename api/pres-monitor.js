@@ -59,15 +59,24 @@ async function sendPresentationAlert(pres, chatId) {
   // Ссылка на фото (загрузи bot-pres.png в репозиторий или на хостинг)
   const photoUrl = 'https://seraviel-labs.vercel.app/icon/bot-pres.png';
 
-  // Текст сообщения с HTML-разметкой
-  const caption = `🔔 <b>Новая презентация</b>
+  // Экранируем спецсимволы в описании, чтобы не сломать HTML
+function escapeHtml(text) {
+  if (!text) return '';
+  return text.replace(/&/g, '&amp;')
+             .replace(/</g, '&lt;')
+             .replace(/>/g, '&gt;');
+}
 
-<b>Name:</b> ${pres.title}
+const safeDesc = escapeHtml(pres.description || 'Без описания');
+
+const caption = `🔔 <b>Новая презентация</b>
+
+<b>Name:</b> ${escapeHtml(pres.title)}
 <b>URL:</b> <a href="${presUrl}">${pres.path}</a>
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-<i>${pres.description || 'Без описания'}`;
+<i>${safeDesc}</i>`; // ← ТЕПЕРЬ ТЕГ ЗАКРЫТ
 
   // Кнопка под сообщением
   const keyboard = {
