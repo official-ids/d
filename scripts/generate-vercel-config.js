@@ -347,6 +347,11 @@ const config = {
   version: 2,
   cleanUrls: true,
   trailingSlash: false,
+
+  crons: [{
+    path: '/api/pres-monitor',
+    schedule: '*/45 * * * *'
+  }],
   
   errorPages: {
     '404': '/404.html',
