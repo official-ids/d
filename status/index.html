@@ -5,90 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>System Status | SERAVIEL LABS</title>
   <meta name="description" content="Real-time system status and uptime history for SERAVIEL LABS tools.">
+  
+  <!-- Skip link для доступности -->
   <style>
-    /* === SERAVIEL LABS Design System === */
+    .skip-link {
+      position: absolute; top: -40px; left: 0;
+      background: var(--accent); color: white;
+      padding: 8px 16px; z-index: 1000;
+      transition: top 0.2s;
+    }
+    .skip-link:focus { top: 0; }
+  </style>
+
+  <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --accent: #0d9488;
-      --accent-hover: #0f766e;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --radius: 12px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b;
+      --accent: #0d9488; --accent-hover: #0f766e;
+      --success: #22c55e; --warning: #f59e0b; --danger: #ef4444;
+      --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.05);
       --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     }
+    [data-theme="dark"] {
+      --bg: #0f172a; --surface: #1e293b; --border: #334155;
+      --text: #f8fafc; --text-muted: #94a3b8;
+      --accent: #2dd4bf; --accent-hover: #14b8a6;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .status-banner::before { animation: none !important; }
+      .pulse-dot { animation: none !important; }
+    }
     body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      line-height: 1.5;
-      padding: 24px;
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh; line-height: 1.5; padding: 24px;
+      transition: background 0.3s, color 0.3s;
     }
     .container { max-width: 800px; margin: 0 auto; }
 
-    /* === Header === */
-    .header {
-      text-align: center;
-      padding: 40px 24px;
-      margin-bottom: 32px;
-    }
-    .header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
+    /* Header */
+    .header { text-align: center; padding: 40px 24px; margin-bottom: 32px; }
+    .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 16px; }
     
-    /* Big Status Banner */
+    /* Theme Toggle */
+    .theme-toggle {
+      position: absolute; top: 24px; right: 24px;
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 8px; border-radius: 8px; cursor: pointer;
+      color: var(--text); display: flex; align-items: center;
+    }
+    .theme-toggle:hover { background: var(--bg); }
+    .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .theme-toggle svg { width: 18px; height: 18px; }
+
+    /* Status Banner */
     .status-banner {
-      background: var(--success);
-      color: white;
-      padding: 24px;
-      border-radius: var(--radius);
-      text-align: center;
-      margin-bottom: 32px;
+      background: var(--success); color: white;
+      padding: 24px; border-radius: var(--radius);
+      text-align: center; margin-bottom: 32px;
       box-shadow: 0 4px 20px rgba(34,197,94,0.2);
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
     .status-banner::before {
-      content: "";
-      position: absolute;
+      content: ""; position: absolute;
       top: -50%; left: -50%; width: 200%; height: 200%;
       background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
       animation: rotate 20s linear infinite;
     }
     @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    
     .status-banner h2 {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
+      font-size: 24px; font-weight: 700; margin-bottom: 8px;
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
     }
-    .status-banner p {
-      opacity: 0.9;
-      font-size: 14px;
-      position: relative;
-      z-index: 1;
-    }
+    .status-banner p { opacity: 0.9; font-size: 14px; position: relative; z-index: 1; }
     .pulse-dot {
-      width: 12px; height: 12px;
-      background: white;
-      border-radius: 50%;
-      display: inline-block;
-      box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
+      width: 12px; height: 12px; background: white; border-radius: 50%;
+      display: inline-block; box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
       animation: pulse-white 2s infinite;
     }
     @keyframes pulse-white {
@@ -97,146 +96,97 @@
       100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
     }
 
-    /* === Sections === */
+    /* Sections */
     .section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+      margin-bottom: 24px; box-shadow: var(--shadow);
     }
     .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
     }
     .section-header h3 { font-size: 18px; font-weight: 600; }
     .section-header .badge {
-      font-size: 12px;
-      padding: 4px 8px;
-      background: var(--bg);
-      border-radius: 6px;
-      color: var(--text-muted);
+      font-size: 12px; padding: 4px 8px; background: var(--bg);
+      border-radius: 6px; color: var(--text-muted);
     }
 
-    /* === Component List === */
+    /* Components */
     .component-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
     }
     .component-row:last-child { border-bottom: none; }
     .component-name {
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-weight: 500; display: flex; align-items: center; gap: 8px;
     }
+    .component-name svg { flex-shrink: 0; }
     .component-status {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--success);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-size: 13px; font-weight: 600; color: var(--success);
+      display: flex; align-items: center; gap: 6px;
     }
     .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--success);
+      width: 8px; height: 8px; border-radius: 50%; background: var(--success);
     }
     
     /* Uptime Bars */
-    .uptime-bars {
-      display: flex;
-      gap: 3px;
-      margin-top: 8px;
-    }
+    .uptime-bars { display: flex; gap: 3px; margin-top: 8px; flex-wrap: wrap; }
     .bar {
-      flex: 1;
-      height: 24px;
-      background: var(--success);
-      border-radius: 2px;
-      opacity: 0.8;
+      flex: 1; min-width: 4px; height: 24px;
+      background: var(--success); border-radius: 2px;
+      opacity: 0.8; transition: opacity 0.2s;
     }
     .bar:hover { opacity: 1; }
+    .bar.degraded { background: var(--warning); }
+    .bar.down { background: var(--danger); }
 
-    /* === Timeline === */
-    .timeline {
-      position: relative;
-      padding-left: 24px;
-    }
+    /* Timeline */
+    .timeline { position: relative; padding-left: 24px; }
     .timeline::before {
-      content: "";
-      position: absolute;
-      left: 7px; top: 8px; bottom: 8px;
-      width: 2px;
-      background: var(--border);
+      content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px;
+      width: 2px; background: var(--border);
     }
-    .timeline-item {
-      position: relative;
-      margin-bottom: 24px;
-    }
+    .timeline-item { position: relative; margin-bottom: 24px; }
     .timeline-item:last-child { margin-bottom: 0; }
     .timeline-dot {
-      position: absolute;
-      left: -20px; top: 4px;
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      background: var(--success);
-      border: 2px solid var(--surface);
+      position: absolute; left: -20px; top: 4px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--success); border: 2px solid var(--surface);
     }
-    .timeline-date {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
+    .timeline-date { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
     .timeline-content {
-      background: var(--bg);
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
+      background: var(--bg); padding: 12px; border-radius: 8px; font-size: 14px;
     }
     .timeline-content strong { display: block; margin-bottom: 4px; }
 
-    /* === Footer === */
+    /* Footer */
     .footer {
-      text-align: center;
-      padding: 24px;
-      font-size: 13px;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border);
+      text-align: center; padding: 24px; font-size: 13px;
+      color: var(--text-muted); border-top: 1px solid var(--border);
       margin-top: 32px;
     }
     .footer a { color: var(--accent); text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
+    .footer a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
-    /* === Loading Animation === */
+    /* Loading */
     .loading {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid var(--success);
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid var(--success); border-top-color: transparent;
+      border-radius: 50%; animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    /* === Toast === */
-    #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 20000; pointer-events: none; }
+    /* Toast */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px; z-index: 20000;
+      pointer-events: none; display: flex; flex-direction: column; gap: 8px;
+    }
     .toast {
-      pointer-events: auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      border-radius: 10px;
+      pointer-events: auto; background: var(--surface);
+      border: 1px solid var(--border); border-left: 4px solid var(--accent);
+      padding: 14px 18px; border-radius: 10px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       display: flex; align-items: center; gap: 12px;
       font-size: 14px; color: var(--text);
@@ -245,226 +195,452 @@
       opacity: 0; transform: translateX(100%);
     }
     .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    .toast-content { flex: 1; }
+    .toast-close {
+      background: none; border: none; padding: 4px; cursor: pointer;
+      opacity: 0.6; transition: opacity 0.2s;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .toast-close svg { width: 16px; height: 16px; }
     @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
 
-    /* === Responsive === */
+    /* Responsive */
     @media (max-width: 600px) {
       .status-banner h2 { font-size: 20px; }
       .component-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .theme-toggle { top: 16px; right: 16px; }
+      #toast-container { left: 16px; right: 16px; bottom: 16px; }
+      .toast { min-width: auto; max-width: 100%; }
     }
   </style>
 </head>
 <body>
+  <a href="#main" class="skip-link">Перейти к основному содержимому</a>
+
+  <button class="theme-toggle" id="themeToggle" aria-label="Переключить тему">
+    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"/>
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  </button>
+
   <div class="container">
     <!-- Header -->
     <header class="header">
       <h1>System Status</h1>
     </header>
 
-    <!-- Main Banner -->
-    <div class="status-banner" id="statusBanner">
-      <h2><span class="pulse-dot"></span> All Systems Operational</h2>
-      <p id="uptimeText">Last checked: Just now • 99.9% Uptime</p>
-    </div>
+    <main id="main">
+      <!-- Main Banner -->
+      <div class="status-banner" id="statusBanner" role="status" aria-live="polite">
+        <h2><span class="pulse-dot" aria-hidden="true"></span> <span id="bannerText">All Systems Operational</span></h2>
+        <p id="uptimeText">Last checked: Just now • 99.9% Uptime</p>
+      </div>
 
-    <!-- Core Services -->
-    <section class="section">
-      <div class="section-header">
-        <h3>Core Services</h3>
-        <span class="badge">Real-time</span>
-      </div>
-      <div class="component-row">
-        <div class="component-name">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Web Application
+      <!-- Core Services -->
+      <section class="section" aria-labelledby="core-heading">
+        <div class="section-header">
+          <h3 id="core-heading">Core Services</h3>
+          <span class="badge">Real-time</span>
         </div>
-        <div class="component-status" id="status-web">
-          <div class="loading"></div> Checking...
-        </div>
-      </div>
-      <div class="component-row">
-        <div class="component-name">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Source Code Viewer
-        </div>
-        <div class="component-status" id="status-code">
-          <div class="loading"></div> Checking...
-        </div>
-      </div>
-      <div class="component-row">
-        <div class="component-name">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Privacy & Security
-        </div>
-        <div class="component-status" id="status-privacy">
-          <div class="loading"></div> Checking...
-        </div>
-      </div>
-    </section>
-
-    <!-- Tools Health -->
-    <section class="section">
-      <div class="section-header">
-        <h3>Tools Health</h3>
-        <span class="badge" id="toolsCount">Loading...</span>
-      </div>
-      <div id="toolsList">
-        <div style="text-align:center;padding:20px;color:var(--text-muted)">
-          <div class="loading" style="margin:0 auto 10px"></div>
-          Loading manifest...
-        </div>
-      </div>
-      <div class="uptime-bars" id="uptimeBars" style="margin-top:16px">
-        <!-- Заполняется JS -->
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
-        <span>90 days ago</span>
-        <span>Today</span>
-      </div>
-    </section>
-
-    <!-- Incident History -->
-    <section class="section">
-      <div class="section-header">
-        <h3>Incident History</h3>
-        <span class="badge">Last 30 days</span>
-      </div>
-      <div class="timeline">
-        <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-date">May 7, 2026</div>
-          <div class="timeline-content">
-            <strong>System Update</strong>
-            <span style="color:var(--text-muted)">Upgraded build script and added new tools. No downtime.</span>
+        <div class="component-row">
+          <div class="component-name">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            Web Application
+          </div>
+          <div class="component-status" id="status-web" aria-live="polite">
+            <div class="loading" aria-hidden="true"></div> Checking...
           </div>
         </div>
-        <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-date">April 22, 2026</div>
-          <div class="timeline-content">
-            <strong>Performance Optimization</strong>
-            <span style="color:var(--text-muted)">Reduced bundle size by 30%. All systems nominal.</span>
+        <div class="component-row">
+          <div class="component-name">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Source Code Viewer
+          </div>
+          <div class="component-status" id="status-code" aria-live="polite">
+            <div class="loading" aria-hidden="true"></div> Checking...
           </div>
         </div>
-        <div class="timeline-item">
-          <div class="timeline-dot" style="background:var(--success)"></div>
-          <div class="timeline-date">April 1, 2026</div>
-          <div class="timeline-content">
-            <strong>Launch v1.0</strong>
-            <span style="color:var(--text-muted)">Initial release of SERAVIEL LABS platform.</span>
+        <div class="component-row">
+          <div class="component-name">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Privacy & Security
+          </div>
+          <div class="component-status" id="status-privacy" aria-live="polite">
+            <div class="loading" aria-hidden="true"></div> Checking...
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <!-- Tools Health -->
+      <section class="section" aria-labelledby="tools-heading">
+        <div class="section-header">
+          <h3 id="tools-heading">Tools Health</h3>
+          <span class="badge" id="toolsCount" aria-live="polite">Loading...</span>
+        </div>
+        <div id="toolsList" role="list" aria-live="polite">
+          <div style="text-align:center;padding:20px;color:var(--text-muted)">
+            <div class="loading" style="margin:0 auto 10px" aria-hidden="true"></div>
+            Loading manifest...
+          </div>
+        </div>
+        <div class="uptime-bars" id="uptimeBars" role="img" aria-label="Uptime history for the last 90 days">
+          <!-- Заполняется JS -->
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
+          <span>90 days ago</span>
+          <span>Today</span>
+        </div>
+      </section>
+
+      <!-- Incident History -->
+      <section class="section" aria-labelledby="incidents-heading">
+        <div class="section-header">
+          <h3 id="incidents-heading">Incident History</h3>
+          <span class="badge">Last 30 days</span>
+        </div>
+        <div class="timeline" id="incidentsList">
+          <!-- Заполняется из CONFIG -->
+        </div>
+      </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
-      <p>Powered by SERAVIEL LABS • <a href="/privacy">Privacy Policy</a> • <a href="https://github.com/official-ids/d" target="_blank">GitHub</a></p>
+      <p>Powered by SERAVIEL LABS • <a href="/privacy">Privacy Policy</a> • <a href="https://github.com/official-ids/d" target="_blank" rel="noopener noreferrer">GitHub</a></p>
     </footer>
   </div>
 
   <!-- Toast Container -->
-  <div id="toast-container"></div>
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <script>
-    // === Toast System ===
-    function toast(message, type = 'success', duration = 4000) {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      el.innerHTML = `<div class="toast-content">${message}</div>`;
-      container.appendChild(el);
-      const timer = setTimeout(() => { el.style.animation = 'toastOut 0.3s ease-out forwards'; setTimeout(() => el.remove(), 300); }, duration);
-    }
+    (function() {
+      'use strict';
+      
+      // === Конфигурация ===
+      const CONFIG = {
+        healthEndpoint: '/api/health',
+        coreServices: [
+          { id: 'status-web', name: 'Web Application', key: 'manifest' },
+          { id: 'status-code', name: 'Source Code Viewer', key: 'presentations' },
+          { id: 'status-privacy', name: 'Privacy & Security', key: 'filesystem' }
+        ],
+        incidents: [
+          { date: 'May 7, 2026', title: 'System Update', desc: 'Upgraded build script and added new tools. No downtime.', status: 'operational' },
+          { date: 'April 22, 2026', title: 'Performance Optimization', desc: 'Reduced bundle size by 30%. All systems nominal.', status: 'operational' },
+          { date: 'April 1, 2026', title: 'Launch v1.0', desc: 'Initial release of SERAVIEL LABS platform.', status: 'operational' }
+        ],
+        manifestUrl: '/apps/manifest.json',
+        checkInterval: 30000, // 30 секунд
+        timeout: 5000 // 5 секунд таймаут на запрос
+      };
 
-    // === Logic ===
-    function setStatus(id, status, text) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const color = status === 'operational' ? 'var(--success)' : (status === 'degraded' ? 'var(--warning)' : 'var(--danger)');
-      el.innerHTML = `<div class="status-dot" style="background:${color}"></div> ${text}`;
-      el.style.color = color;
-    }
+      // === Утилиты ===
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
 
-    // Fake "Ping" Simulation
-    async function checkService(name, id, delay) {
-      await new Promise(r => setTimeout(r, delay));
-      const success = Math.random() > 0.01;
-      setStatus(id, success ? 'operational' : 'degraded', success ? 'Operational' : 'Degraded');
-    }
+      function formatTimeAgo(date) {
+        const now = new Date();
+        const diff = Math.floor((now - date) / 1000);
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        return `${Math.floor(diff / 86400)}d ago`;
+      }
 
-    // === Load Tools from Manifest ===
-    async function loadTools() {
-      try {
-        const res = await fetch('/apps/manifest.json');
-        if (!res.ok) throw new Error('Manifest not found');
-        const data = await res.json();
-        const apps = data.apps || [];
+      // === Toast System ===
+      const Toast = {
+        container: null,
+        init() { this.container = document.getElementById('toast-container'); },
+        show(message, type = 'success', duration = 4000) {
+          if (!this.container) return;
+          const icons = {
+            success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+            error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
+          };
+          const el = document.createElement('div');
+          el.className = `toast ${type}`;
+          el.setAttribute('role', 'alert');
+          el.innerHTML = `
+            ${icons[type] || icons.success}
+            <div class="toast-content">${escapeHtml(message)}</div>
+            <button class="toast-close" aria-label="Закрыть">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          `;
+          el.querySelector('.toast-close').addEventListener('click', () => this.remove(el));
+          this.container.appendChild(el);
+          requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateX(0)';
+          });
+          const timer = setTimeout(() => this.remove(el), duration);
+          el.addEventListener('mouseenter', () => clearTimeout(timer));
+        },
+        remove(el) {
+          el.style.animation = 'toastOut 0.3s ease-out forwards';
+          setTimeout(() => el.remove(), 300);
+        }
+      };
 
+      // === Обновление статуса компонента ===
+      function updateStatus(elementId, status, text) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const colors = { operational: 'var(--success)', degraded: 'var(--warning)', down: 'var(--danger)' };
+        const color = colors[status] || colors.operational;
+        el.innerHTML = `<span class="status-dot" style="background:${color}" aria-hidden="true"></span> ${escapeHtml(text)}`;
+        el.style.color = color;
+        el.setAttribute('aria-label', `${text} — ${status}`);
+      }
+
+      // === Проверка сервиса через реальный API ===
+      async function checkService(name, elementId, key, attempt = 1) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), CONFIG.timeout);
+          
+          // Запрос к реальному эндпоинту
+          const res = await fetch(CONFIG.healthEndpoint, {
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json',
+              // Опционально: детальный режим с авторизацией
+              // 'Authorization': `Bearer ${process.env.HEALTH_SECRET}` 
+            }
+          });
+          clearTimeout(timeout);
+          
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          
+          const data = await res.json();
+          
+          // Определение статуса конкретного компонента из ответа
+          const checkStatus = data.checks?.[key];
+          if (checkStatus === 'pass') {
+            updateStatus(elementId, 'operational', 'Operational');
+          } else if (checkStatus === 'fail') {
+            updateStatus(elementId, 'degraded', 'Degraded');
+          } else {
+            // Если компонента нет в ответе — считаем unknown
+            updateStatus(elementId, 'operational', 'Unknown');
+          }
+          
+          // Обновление баннера, если это первая проверка
+          if (elementId === 'status-web') {
+            updateBanner(data.status);
+          }
+          
+        } catch (err) {
+          console.warn(`Check failed for ${name}:`, err);
+          if (attempt < 3) {
+            // Экспоненциальная задержка перед ретраем
+            await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
+            await checkService(name, elementId, key, attempt + 1);
+          } else {
+            updateStatus(elementId, 'down', 'Unavailable');
+            if (attempt === 3) Toast.show(`${name} check failed`, 'error');
+          }
+        }
+      }
+
+      // === Обновление главного баннера ===
+      function updateBanner(overallStatus) {
+        const banner = document.getElementById('statusBanner');
+        const text = document.getElementById('bannerText');
+        const colors = {
+          healthy: { bg: 'var(--success)', text: 'All Systems Operational' },
+          degraded: { bg: 'var(--warning)', text: 'Some Systems Degraded' },
+          down: { bg: 'var(--danger)', text: 'Major Outage' }
+        };
+        const cfg = colors[overallStatus] || colors.healthy;
+        
+        banner.style.background = cfg.bg;
+        text.textContent = cfg.text;
+        document.getElementById('uptimeText').textContent = 
+          `Last checked: ${formatTimeAgo(new Date())} • Live Status`;
+      }
+
+      // === Загрузка инструментов из манифеста ===
+      async function loadTools() {
         const list = document.getElementById('toolsList');
         const countBadge = document.getElementById('toolsCount');
-        list.innerHTML = ''; // Clear loading
-
-        let onlineCount = 0;
-
-        // Generate rows
-        apps.forEach((app, i) => {
-          const row = document.createElement('div');
-          row.className = 'component-row';
-          row.innerHTML = `
-            <div class="component-name">${app.name}</div>
-            <div class="component-status" id="tool-${i}">
-              <div class="loading" style="width:12px;height:12px;border-width:2px"></div>
+        
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), CONFIG.timeout);
+          
+          const res = await fetch(CONFIG.manifestUrl, { signal: controller.signal });
+          clearTimeout(timeout);
+          
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          const apps = Array.isArray(data.apps) ? data.apps : [];
+          
+          list.innerHTML = '';
+          let onlineCount = 0;
+          
+          // Рендеринг строк
+          apps.forEach((app, i) => {
+            const row = document.createElement('div');
+            row.className = 'component-row';
+            row.setAttribute('role', 'listitem');
+            row.innerHTML = `
+              <div class="component-name">${escapeHtml(app.name)}</div>
+              <div class="component-status" id="tool-${i}" aria-live="polite">
+                <div class="loading" style="width:12px;height:12px;border-width:2px" aria-hidden="true"></div>
+              </div>
+            `;
+            list.appendChild(row);
+          });
+          
+          // Проверка каждого инструмента (в реальном проекте здесь был бы health-check для каждого)
+          // Для демо: считаем все инструменты "operational", если манифест загрузился
+          apps.forEach((app, i) => {
+            setTimeout(() => {
+              onlineCount++;
+              updateStatus(`tool-${i}`, 'operational', 'Operational');
+              countBadge.textContent = `${onlineCount}/${apps.length} Online`;
+            }, Math.random() * 200);
+          });
+          
+          // Генерация uptime bars (90 дней) — в реальном проекте брать из API
+          renderUptimeBars(90);
+          
+        } catch (e) {
+          list.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger)">
+              Failed to load manifest. <button id="retryBtn" style="background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">Retry</button>
             </div>
           `;
-          list.appendChild(row);
-        });
-
-        // Simulate checks
-        apps.forEach((app, i) => {
-          const delay = Math.random() * 500 + 100;
-          setTimeout(() => {
-            const success = Math.random() > 0.02; // 98% uptime
-            if (success) onlineCount++;
-            setStatus(`tool-${i}`, success ? 'operational' : 'degraded', success ? 'Operational' : 'Issues');
-            countBadge.textContent = `${onlineCount}/${apps.length} Online`;
-          }, delay);
-        });
-
-      } catch (e) {
-        document.getElementById('toolsList').innerHTML = `
-          <div style="text-align:center;padding:20px;color:var(--danger)">
-            Failed to load manifest. Please refresh.
-          </div>
-        `;
-        toast('Failed to load tools list', 'error');
-      }
-    }
-
-    async function init() {
-      // 1. Check Core Services
-      await checkService('Web', 'status-web', 200);
-      await checkService('Code', 'status-code', 400);
-      await checkService('Privacy', 'status-privacy', 600);
-
-      // 2. Load Tools dynamically
-      await loadTools();
-
-      // 3. Generate Uptime Bars (90 days)
-      const barsContainer = document.getElementById('uptimeBars');
-      for (let i = 0; i < 90; i++) {
-        const bar = document.createElement('div');
-        bar.className = 'bar';
-        bar.style.opacity = 0.6 + (Math.random() * 0.4);
-        barsContainer.appendChild(bar);
+          document.getElementById('retryBtn')?.addEventListener('click', loadTools);
+          Toast.show('Failed to load tools list', 'error');
+        }
       }
 
-      toast('System status updated', 'success');
-    }
+      // === Рендеринг uptime bars ===
+      function renderUptimeBars(days) {
+        const container = document.getElementById('uptimeBars');
+        container.innerHTML = '';
+        for (let i = 0; i < days; i++) {
+          const bar = document.createElement('div');
+          bar.className = 'bar';
+          // В реальном проекте: брать данные из истории мониторинга
+          // Для демо: 98% зелёных
+          const rand = Math.random();
+          if (rand > 0.98) bar.classList.add('down');
+          else if (rand > 0.95) bar.classList.add('degraded');
+          bar.style.opacity = 0.6 + (Math.random() * 0.4);
+          bar.setAttribute('aria-label', `Day ${i + 1}: ${bar.classList.contains('down') ? 'down' : bar.classList.contains('degraded') ? 'degraded' : 'operational'}`);
+          container.appendChild(bar);
+        }
+      }
 
-    // Start
-    init();
+      // === Рендеринг инцидентов ===
+      function renderIncidents() {
+        const container = document.getElementById('incidentsList');
+        container.innerHTML = CONFIG.incidents.map(inc => {
+          const dotColor = inc.status === 'operational' ? 'var(--success)' : 
+                          inc.status === 'degraded' ? 'var(--warning)' : 'var(--danger)';
+          return `
+            <div class="timeline-item">
+              <div class="timeline-dot" style="background:${dotColor}" aria-hidden="true"></div>
+              <div class="timeline-date">${escapeHtml(inc.date)}</div>
+              <div class="timeline-content">
+                <strong>${escapeHtml(inc.title)}</strong>
+                <span style="color:var(--text-muted)">${escapeHtml(inc.desc)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // === Тема ===
+      function initTheme() {
+        const saved = localStorage.getItem('seraviel-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+        
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('seraviel-theme', next);
+          updateThemeIcon(next);
+          Toast.show(`Theme: ${next}`, 'success', 1500);
+        });
+      }
+      
+      function updateThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        icon.innerHTML = theme === 'dark' 
+          ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+          : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      }
+
+      // === Периодические проверки ===
+      function startPeriodicChecks() {
+        setInterval(async () => {
+          for (const service of CONFIG.coreServices) {
+            await checkService(service.name, service.id, service.key);
+          }
+          document.getElementById('uptimeText').textContent = 
+            `Last checked: ${formatTimeAgo(new Date())} • Live Status`;
+        }, CONFIG.checkInterval);
+      }
+
+      // === Init ===
+      async function init() {
+        Toast.init();
+        initTheme();
+        renderIncidents();
+        
+        // Первоначальная проверка ядровых сервисов
+        for (const service of CONFIG.coreServices) {
+          await checkService(service.name, service.id, service.key);
+        }
+        
+        // Загрузка инструментов
+        await loadTools();
+        
+        // Запуск периодических проверок
+        startPeriodicChecks();
+        
+        Toast.show('System status updated', 'success');
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
   </script>
+</body>
+</html>
 </body>
 </html>

@@ -7,309 +7,240 @@
   <meta name="description" content="Browse SERAVIEL LABS source code. Open source project on GitHub.">
   <meta name="keywords" content="code, viewer, source, github, open-source, read-only">
   <meta name="robots" content="noindex, follow">
+  
+  <!-- Подсветка синтаксиса (лёгкая версия) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+  
   <style>
-    /* === SERAVIEL LABS Design System === */
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --accent: #0d9488;
-      --accent-hover: #0f766e;
-      --code-bg: #1e293b;
-      --code-text: #e2e8f0;
-      --code-keyword: #c084fc;
-      --code-string: #86efac;
-      --code-comment: #94a3b8;
-      --radius: 12px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b;
+      --accent: #0d9488; --accent-hover: #0f766e;
+      --code-bg: #1e293b; --code-text: #e2e8f0;
+      --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.05);
       --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      user-select: none;
-      -webkit-user-select: none;
+    [data-theme="dark"] {
+      --bg: #0f172a; --surface: #1e293b; --border: #334155;
+      --text: #f8fafc; --text-muted: #94a3b8;
+      --accent: #2dd4bf; --accent-hover: #14b8a6;
+      --code-bg: #0f172a; --code-text: #e2e8f0;
     }
-
-    /* === Header === */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      transition: background 0.3s, color 0.3s;
+    }
     .header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
     }
     .header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;
     }
     .header h1 svg { width: 20px; height: 20px; stroke: var(--accent); }
     .header-actions { display: flex; gap: 8px; align-items: center; }
     .btn-icon {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
     }
     .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-icon:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn-icon svg { width: 18px; height: 18px; }
-
-    /* === Main Layout === */
+    
     .container { display: flex; flex: 1; min-height: calc(100vh - 64px); }
-
-    /* === Sidebar === */
+    
     .sidebar {
-      width: 300px;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-      padding: 16px;
+      width: 300px; background: var(--surface); border-right: 1px solid var(--border);
+      overflow-y: auto; padding: 16px; display: flex; flex-direction: column;
     }
     
-    /* GitHub Card */
     .gh-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 20px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 20px;
     }
     .gh-card a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: var(--text);
-      padding: 12px;
-      border-radius: 8px;
-      transition: all 0.2s;
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+      color: var(--text); padding: 12px; border-radius: 8px; transition: all 0.2s;
       margin-bottom: 12px;
     }
-    .gh-card a:hover {
-      background: var(--surface);
-      border: 1px solid var(--accent);
-    }
+    .gh-card a:hover { background: var(--surface); border: 1px solid var(--accent); }
+    .gh-card a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .gh-card a svg { width: 20px; height: 20px; stroke: var(--text); }
     .gh-card .repo-name { font-weight: 600; font-size: 14px; }
     .gh-card .repo-meta { font-size: 12px; color: var(--text-muted); }
-    
     .gh-card p {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 16px;
+      font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;
     }
-    
     .btn-browse {
-      width: 100%;
-      padding: 10px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
+      width: 100%; padding: 10px; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-weight: 500; font-size: 14px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 6px; transition: all 0.2s;
     }
     .btn-browse:hover { background: var(--accent-hover); }
+    .btn-browse:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn-browse svg { width: 16px; height: 16px; }
-
-    /* File Tree */
+    
+    /* Поиск по файлам */
+    .search-box {
+      margin-bottom: 12px; position: relative;
+    }
+    .search-box input {
+      width: 100%; padding: 8px 12px 8px 32px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--surface); font-size: 13px; color: var(--text);
+    }
+    .search-box input:focus { outline: none; border-color: var(--accent); }
+    .search-box svg {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px; stroke: var(--text-muted); pointer-events: none;
+    }
+    
     .tree-root { list-style: none; padding: 0; margin: 0; }
     .tree-item { margin: 2px 0; }
     .tree-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--text);
+      display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+      border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text);
       transition: background 0.2s;
     }
     .tree-toggle:hover { background: var(--bg); }
     .tree-toggle.active { background: rgba(13,148,136,0.1); color: var(--accent); font-weight: 500; }
-    .tree-toggle svg { width: 14px; height: 14px; transition: transform 0.2s; }
+    .tree-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .tree-toggle svg { width: 14px; height: 14px; transition: transform 0.2s; flex-shrink: 0; }
     .tree-toggle.expanded svg { transform: rotate(90deg); }
     .tree-children {
-      list-style: none;
-      padding-left: 20px;
-      margin: 0;
-      display: none;
+      list-style: none; padding-left: 20px; margin: 0; display: none;
     }
     .tree-children.expanded { display: block; }
     .tree-file {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--text-muted);
+      display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+      border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-muted);
       transition: all 0.2s;
     }
     .tree-file:hover { background: var(--bg); color: var(--text); }
     .tree-file.active { background: rgba(13,148,136,0.1); color: var(--accent); font-weight: 500; }
+    .tree-file:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .tree-file svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-    /* === Viewer === */
+    
     .viewer {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
     }
     .viewer-header {
-      padding: 12px 24px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--text-muted);
+      padding: 12px 24px; border-bottom: 1px solid var(--border);
+      background: var(--surface); display: flex; align-items: center;
+      justify-content: space-between; font-size: 13px; color: var(--text-muted);
+      flex-wrap: wrap; gap: 8px;
     }
-    .viewer-header .path { font-family: var(--font-mono); color: var(--text); }
+    .viewer-header .path { font-family: var(--font-mono); color: var(--text); word-break: break-all; }
+    .viewer-header .meta { display: flex; gap: 12px; align-items: center; }
+    .viewer-header .meta span { display: flex; align-items: center; gap: 4px; }
+    .viewer-header .actions { display: flex; gap: 4px; }
+    
     .viewer-content {
-      flex: 1;
-      overflow: auto;
-      padding: 24px;
-      background: var(--code-bg);
-      color: var(--code-text);
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre;
-      tab-size: 2;
-      user-select: none;
+      flex: 1; overflow: auto; padding: 24px; background: var(--code-bg);
+      color: var(--code-text); font-family: var(--font-mono); font-size: 13px;
+      line-height: 1.6; white-space: pre; tab-size: 2;
     }
     .viewer-content img {
-      max-width: 100%;
-      border-radius: 8px;
-      pointer-events: none;
-      user-select: none;
+      max-width: 100%; border-radius: 8px; display: block; margin: 0 auto;
     }
+    .viewer-content pre { margin: 0; }
+    .viewer-content code { font-family: var(--font-mono); }
+    
     .viewer-empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 24px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; color: var(--text-muted); text-align: center; padding: 24px;
     }
     .viewer-empty svg { width: 64px; height: 64px; margin-bottom: 24px; opacity: 0.3; }
     .viewer-empty .title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
     .viewer-empty .link { color: var(--accent); text-decoration: none; }
     .viewer-empty .desc { max-width: 500px; font-size: 14px; line-height: 1.6; margin-top: 16px; }
-
-    /* === Syntax Highlighting === */
-    .code-keyword { color: var(--code-keyword); }
-    .code-string { color: var(--code-string); }
-    .code-comment { color: var(--code-comment); font-style: italic; }
-    .code-function { color: #60a5fa; }
-    .code-number { color: #fbbf24; }
-
-    /* === Toast === */
+    
+    /* Toast */
     #toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 20000;
-      pointer-events: none;
+      position: fixed; bottom: 24px; right: 24px; z-index: 20000;
+      pointer-events: none; display: flex; flex-direction: column; gap: 8px;
     }
     .toast {
-      pointer-events: auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
-      color: var(--text);
-      min-width: 280px;
-      max-width: 400px;
-      animation: toastIn 0.3s ease-out forwards;
-      opacity: 0;
-      transform: translateX(100%);
+      pointer-events: auto; background: var(--surface); border: 1px solid var(--border);
+      border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; align-items: center;
+      gap: 12px; font-size: 14px; color: var(--text); min-width: 280px; max-width: 400px;
+      animation: toastIn 0.3s ease-out forwards; opacity: 0; transform: translateX(100%);
     }
     .toast.warning { border-left-color: #f59e0b; }
+    .toast.error { border-left-color: #ef4444; }
     .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
     .toast-content { flex: 1; }
     .toast-close {
-      background: none; border: none; padding: 4px;
-      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
-      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; padding: 4px; cursor: pointer;
+      opacity: 0.6; transition: opacity 0.2s; display: flex; align-items: center;
     }
     .toast-close:hover { opacity: 1; }
     .toast-close svg { width: 16px; height: 16px; }
     @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
     @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
-
-    /* === Responsive === */
+    
+    /* Прогресс загрузки */
+    .progress-bar {
+      height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      height: 100%; background: var(--accent); width: 0%; transition: width 0.2s;
+    }
+    
+    /* Адаптив */
     @media (max-width: 768px) {
       .container { flex-direction: column; }
       .sidebar { width: 100%; max-height: 40vh; border-right: none; border-bottom: 1px solid var(--border); }
       #toast-container { left: 16px; right: 16px; bottom: 16px; }
       .toast { min-width: auto; max-width: 100%; }
+      .viewer-header { flex-direction: column; align-items: flex-start; }
     }
-    .protection-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 9999;
-    }
+    
+    /* Скрытие выделения текста только для кода */
+    .viewer-content { user-select: text; -webkit-user-select: text; }
+    .no-select { user-select: none; -webkit-user-select: none; }
   </style>
 </head>
 <body>
-  <div class="protection-overlay"></div>
-
   <!-- Header -->
   <header class="header">
     <h1>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
       Source Code
     </h1>
     <div class="header-actions">
+      <button class="btn-icon" id="themeToggle" aria-label="Переключить тему">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </button>
       <button class="btn-icon" id="btnHome" title="На главную">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
       </button>
       <button class="btn-icon" id="btnList" title="Каталог">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
       </button>
     </div>
   </header>
@@ -321,32 +252,70 @@
       <!-- GitHub Card -->
       <div class="gh-card">
         <a href="https://github.com/official-ids/d" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+          </svg>
           <div>
             <div class="repo-name">official-ids/d</div>
             <div class="repo-meta">GitHub Repository</div>
           </div>
         </a>
         <p>Browse the complete source code of SERAVIEL LABS. All files are available for viewing in read-only mode.</p>
-        <button class="btn-browse" onclick="loadCodeStructure()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <button class="btn-browse" id="btnBrowse">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
           Browse Source Code
         </button>
       </div>
       
-      <!-- File Tree (hidden until button click) -->
-      <ul class="tree-root" id="fileTree" style="display: none;"></ul>
+      <!-- Поиск -->
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="search" id="fileSearch" placeholder="Поиск файлов..." aria-label="Поиск файлов">
+      </div>
+      
+      <!-- File Tree -->
+      <ul class="tree-root" id="fileTree" role="tree" aria-label="Дерево файлов"></ul>
     </aside>
 
     <!-- Viewer -->
     <main class="viewer">
       <div class="viewer-header">
         <span class="path" id="filePath">Source Code Viewer</span>
-        <span id="fileInfo"></span>
+        <div class="meta">
+          <span id="fileLang"></span>
+          <span id="fileSize"></span>
+          <span id="fileLines"></span>
+        </div>
+        <div class="actions">
+          <button class="btn-icon" id="btnCopyPath" title="Скопировать путь">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+            </svg>
+          </button>
+          <button class="btn-icon" id="btnDownload" title="Скачать файл" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+        </div>
       </div>
-      <div class="viewer-content" id="viewerContent">
+      <div class="viewer-content" id="viewerContent" role="region" aria-live="polite">
         <div class="viewer-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+          </svg>
           <div class="title">SERAVIEL LABS Source Code</div>
           <div>
             Open source project<br>
@@ -358,179 +327,478 @@
           </div>
         </div>
       </div>
+      <div class="progress-bar" id="progressBar" style="display:none">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
     </main>
   </div>
 
   <div id="toast-container"></div>
 
   <script>
-    // === ЗАЩИТА ===
-    document.addEventListener('contextmenu', (e) => { e.preventDefault(); toast('Копирование отключено', 'warning'); });
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && ['c','u','s','p'].includes(e.key.toLowerCase())) { e.preventDefault(); toast('Действие запрещено', 'warning'); }
-      if (e.key === 'F12') { e.preventDefault(); toast('DevTools отключён', 'warning'); }
-    });
-    document.addEventListener('copy', (e) => { e.preventDefault(); toast('Копирование отключено', 'warning'); });
-    document.addEventListener('cut', (e) => { e.preventDefault(); });
-    document.addEventListener('dragstart', (e) => { if(e.target.tagName === 'IMG') e.preventDefault(); });
-
-    // === Toast ===
-    function toast(message, type = 'success', duration = 4000) {
-      const globalToast = typeof window.toast === 'function' ? window.toast : null;
-      if (globalToast && globalToast !== toast) { globalToast(message, type, duration); return; }
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-      const icons = {
-        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
-        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
-      };
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
-      el.querySelector('.toast-close').onclick = () => removeToast(el);
-      container.appendChild(el);
-      const timer = setTimeout(() => removeToast(el), duration);
-      el.onmouseenter = () => clearTimeout(timer);
-    }
-    function removeToast(el) {
-      el.style.animation = 'toastOut 0.3s ease-out forwards';
-      setTimeout(() => el.remove(), 300);
-    }
-
-    // === Logic ===
-    let fileStructure = null;
-    const fileIcons = {
-      folder: '<path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>',
-      file: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-      js: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 13h4M10 17h4"/>',
-      html: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h6"/>',
-      css: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13l2 2 4-4"/>',
-      json: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12h8M8 16h8M8 8h2"/>',
-      md: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12h2l2 3 2-3h2"/>',
-      png: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><circle cx="12" cy="13" r="3"/>',
-      default: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'
-    };
-
-    function getIcon(name, type) {
-      const ext = name.split('.').pop().toLowerCase();
-      if (type === 'folder') return fileIcons.folder;
-      return fileIcons[ext] || fileIcons.default;
-    }
-
-    function renderTree(items, parentEl, path = '') {
-      items.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'tree-item';
-        if (item.type === 'folder') {
-          const toggle = document.createElement('div');
-          toggle.className = 'tree-toggle';
-          toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${fileIcons.folder}</svg> ${item.name}`;
-          const children = document.createElement('ul');
-          children.className = 'tree-children';
-          toggle.onclick = () => { children.classList.toggle('expanded'); toggle.classList.toggle('expanded'); };
-          li.appendChild(toggle);
-          li.appendChild(children);
-          if (item.children) renderTree(item.children, children, `${path}/${item.name}`);
-        } else {
-          const file = document.createElement('div');
-          file.className = 'tree-file';
-          file.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${getIcon(item.name, item.type)}</svg> ${item.name}`;
-          file.onclick = () => loadFile(item, path);
-          li.appendChild(file);
-        }
-        parentEl.appendChild(li);
-      });
-    }
-
-    async function loadFile(item, basePath) {
-      const fullPath = `${basePath}/${item.name}`.replace('//', '/');
-      document.querySelectorAll('.tree-file').forEach(el => el.classList.remove('active'));
-      event.currentTarget?.classList.add('active');
-      document.getElementById('filePath').textContent = fullPath;
-      document.getElementById('fileInfo').textContent = item.size ? formatBytes(item.size) : '';
-      const viewer = document.getElementById('viewerContent');
-      viewer.innerHTML = '<div style="padding:24px;color:var(--code-comment)">Загрузка...</div>';
+    (function() {
+      'use strict';
       
-      try {
-        const res = await fetch(fullPath.startsWith('/') ? fullPath : `/${fullPath}`);
-        if (!res.ok) throw new Error('Not found');
-        const contentType = res.headers.get('content-type') || '';
+      // === SVG Icons ===
+      const ICONS = {
+        folder: '<path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>',
+        file: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+        js: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 13h4M10 17h4"/>',
+        html: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h6"/>',
+        css: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13l2 2 4-4"/>',
+        json: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12h8M8 16h8M8 8h2"/>',
+        md: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12h2l2 3 2-3h2"/>',
+        png: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><circle cx="12" cy="13" r="3"/>',
+        default: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+        copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>',
+        download: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>',
+        search: '<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>'
+      };
+      
+      // === Toast System ===
+      const Toast = {
+        container: null,
+        queue: [],
+        showing: false,
         
-        if (contentType.startsWith('image/')) {
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          viewer.innerHTML = `<img src="${url}" alt="${item.name}" style="max-width:100%;border-radius:8px">`;
-          toast('Изображение загружено', 'success');
-        } else if (
-          contentType.includes('text') || 
-          contentType.includes('application/json') ||
-          contentType.includes('application/xml') ||
-          fullPath.match(/\.(js|ts|jsx|tsx|html|htm|css|scss|json|xml|md|txt|sh|py|java|c|cpp|h|php|sql|yaml|yml|toml|ini|cfg|log|env)$/i)
-        ) {
-          const text = await res.text();
-          viewer.textContent = text;
-          highlightCode(viewer, fullPath);
-          toast('Файл загружен', 'success');
-        } else {
-          viewer.innerHTML = `<div class="viewer-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div>Бинарный файл: ${item.name}<br><small>${formatBytes(item.size || 0)}</small><br>Просмотр недоступен</div></div>`;
+        init() {
+          this.container = document.getElementById('toast-container');
+        },
+        
+        show(message, type = 'success', duration = 4000) {
+          const icons = {
+            success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+            error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+            warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+          };
+          
+          const el = document.createElement('div');
+          el.className = `toast ${type}`;
+          el.setAttribute('role', 'alert');
+          el.innerHTML = `
+            ${icons[type] || icons.success}
+            <div class="toast-content">${this.escapeHtml(message)}</div>
+            <button class="toast-close" aria-label="Закрыть">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          `;
+          
+          el.querySelector('.toast-close').addEventListener('click', () => this.remove(el));
+          this.container.appendChild(el);
+          
+          // Анимация появления
+          requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateX(0)';
+          });
+          
+          // Авто-удаление
+          const timer = setTimeout(() => this.remove(el), duration);
+          el.addEventListener('mouseenter', () => clearTimeout(timer));
+        },
+        
+        remove(el) {
+          el.style.animation = 'toastOut 0.3s ease-out forwards';
+          setTimeout(() => el.remove(), 300);
+        },
+        
+        escapeHtml(str) {
+          if (!str) return '';
+          return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
         }
-      } catch (e) {
-        viewer.innerHTML = `<div class="viewer-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Ошибка загрузки файла</div></div>`;
-        toast('Не удалось загрузить файл', 'error');
+      };
+      
+      // === App State ===
+      const state = {
+        fileStructure: null,
+        currentFile: null,
+        theme: localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+        searchQuery: ''
+      };
+      
+      // === Helpers ===
+      function getFileIcon(name, type) {
+        if (type === 'folder') return ICONS.folder;
+        const ext = name.split('.').pop().toLowerCase();
+        return ICONS[ext] || ICONS.default;
       }
-    }
-
-    function highlightCode(el, path) {
-      const text = el.textContent;
-      if (path.endsWith('.js') || path.endsWith('.ts')) {
-        el.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          .replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|async|await)\b/g, '<span class="code-keyword">$1</span>')
-          .replace(/(['"`].*?['"`])/g, '<span class="code-string">$1</span>')
-          .replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, '<span class="code-comment">$1</span>')
-          .replace(/\b(\d+\.?\d*)\b/g, '<span class="code-number">$1</span>');
-      } else if (path.endsWith('.html')) {
-        el.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          .replace(/(&lt;\/?[\w-]+|&lt;[\w-]+\/?&gt;)/g, '<span class="code-keyword">$1</span>')
-          .replace(/([\w-]+)=/g, '<span class="code-function">$1</span>=')
-          .replace(/(["'].*?["'])/g, '<span class="code-string">$1</span>');
-      } else if (path.endsWith('.css')) {
-        el.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          .replace(/([{}:;,])/g, '<span class="code-keyword">$1</span>')
-          .replace(/([\w-]+):/g, '<span class="code-function">$1</span>:')
-          .replace(/(:\s*[^;]+)/g, ':<span class="code-string">$1</span>');
-      } else if (path.endsWith('.json')) {
-        el.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          .replace(/"([\w-]+)"\s*:/g, '<span class="code-function">"$1"</span>:')
-          .replace(/:\s*"([^"]+)"/g, ': <span class="code-string">"$1"</span>')
-          .replace(/:\s*(\d+\.?\d*)/g, ': <span class="code-number">$1</span>');
+      
+      function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024, sizes = ['B','KB','MB','GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
       }
-    }
-
-    function formatBytes(bytes) {
-      if (!bytes || bytes === 0) return '0 B';
-      const k = 1024, sizes = ['B','KB','MB','GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-    }
-
-    function loadCodeStructure() {
-      document.getElementById('fileTree').style.display = 'block';
-      init();
-    }
-
-    async function init() {
-      try {
-        const res = await fetch('/code-structure.json');
-        if (res.ok) {
-          fileStructure = await res.json();
-          renderTree(fileStructure.tree, document.getElementById('fileTree'));
-          toast('Дерево файлов загружено', 'success', 3000);
+      
+      function countLines(text) {
+        return text ? (text.match(/\n/g) || []).length + 1 : 0;
+      }
+      
+      function getLanguageFromPath(path) {
+        const ext = path.split('.').pop().toLowerCase();
+        const langMap = {
+          js: 'javascript', ts: 'typescript', jsx: 'jsx', tsx: 'tsx',
+          html: 'html', htm: 'html', css: 'css', scss: 'scss',
+          json: 'json', md: 'markdown', txt: 'text',
+          py: 'python', java: 'java', c: 'c', cpp: 'cpp',
+          php: 'php', sql: 'sql', yaml: 'yaml', yml: 'yaml',
+          sh: 'bash', bash: 'bash'
+        };
+        return langMap[ext] || 'plaintext';
+      }
+      
+      function sanitizePath(p) {
+        if (!p || typeof p !== 'string') return null;
+        // Блокируем абсолютные пути, протоколы, выход за пределы
+        if (p.startsWith('/') || p.includes('..') || /^[a-z]+:\/\//i.test(p)) return null;
+        // Разрешаем только безопасные символы
+        return /^[a-zA-Z0-9_\-./\\]+$/.test(p) ? p : null;
+      }
+      
+      // === Tree Rendering ===
+      function renderTree(items, parentEl, path = '') {
+        items.forEach((item, index) => {
+          const li = document.createElement('li');
+          li.className = 'tree-item';
+          li.setAttribute('role', 'treeitem');
+          
+          if (item.type === 'folder') {
+            const toggle = document.createElement('div');
+            toggle.className = 'tree-toggle';
+            toggle.setAttribute('tabindex', '0');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.innerHTML = `
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONS.folder}</svg>
+              <span>${item.name}</span>
+            `;
+            
+            const children = document.createElement('ul');
+            children.className = 'tree-children';
+            children.setAttribute('role', 'group');
+            
+            // Обработчики
+            const toggleExpand = () => {
+              const expanded = children.classList.toggle('expanded');
+              toggle.classList.toggle('expanded', expanded);
+              toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            };
+            
+            toggle.addEventListener('click', toggleExpand);
+            toggle.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleExpand();
+              }
+            });
+            
+            li.appendChild(toggle);
+            li.appendChild(children);
+            
+            if (item.children) {
+              renderTree(item.children, children, `${path}/${item.name}`);
+            }
+          } else {
+            const file = document.createElement('div');
+            file.className = 'tree-file';
+            file.setAttribute('tabindex', '0');
+            file.setAttribute('role', 'treeitem');
+            file.innerHTML = `
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${getFileIcon(item.name, item.type)}</svg>
+              <span>${item.name}</span>
+            `;
+            
+            file.addEventListener('click', () => loadFile(item, path));
+            file.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                loadFile(item, path);
+              }
+            });
+            
+            li.appendChild(file);
+          }
+          
+          parentEl.appendChild(li);
+        });
+      }
+      
+      // === File Loading ===
+      async function loadFile(item, basePath) {
+        const rawPath = `${basePath}/${item.name}`.replace('//', '/');
+        const safePath = sanitizePath(rawPath);
+        
+        if (!safePath) {
+          Toast.show('Недопустимый путь к файлу', 'error');
+          return;
         }
-      } catch (e) { console.warn('Code structure not available'); }
-      document.getElementById('btnHome').onclick = () => window.location.href = '/';
-      document.getElementById('btnList').onclick = () => window.location.href = '/list';
-    }
+        
+        // UI обновления
+        document.querySelectorAll('.tree-file').forEach(el => el.classList.remove('active'));
+        const clickedEl = event?.currentTarget;
+        if (clickedEl) clickedEl.classList.add('active');
+        
+        state.currentFile = { path: safePath, ...item };
+        document.getElementById('filePath').textContent = safePath;
+        document.getElementById('fileSize').textContent = item.size ? formatBytes(item.size) : '';
+        document.getElementById('fileLang').textContent = getLanguageFromPath(safePath).toUpperCase();
+        
+        const viewer = document.getElementById('viewerContent');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        
+        // Показать прогресс для больших файлов
+        const isLarge = item.size && item.size > 100 * 1024;
+        if (isLarge) {
+          progressBar.style.display = 'block';
+          progressFill.style.width = '30%';
+        }
+        
+        viewer.innerHTML = '<div style="padding:24px;color:var(--code-comment)">Загрузка...</div>';
+        
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 15000);
+          
+          const res = await fetch(safePath.startsWith('/') ? safePath : `/${safePath}`, {
+            signal: controller.signal,
+            headers: { 'Accept': 'text/plain, application/json, image/*' }
+          });
+          
+          clearTimeout(timeout);
+          
+          if (!res.ok) {
+            if (res.status === 404) throw new Error('Файл не найден');
+            if (res.status === 403) throw new Error('Доступ запрещён');
+            throw new Error(`HTTP ${res.status}`);
+          }
+          
+          if (isLarge) progressFill.style.width = '70%';
+          
+          const contentType = res.headers.get('content-type') || '';
+          const contentLength = res.headers.get('content-length');
+          
+          // Обработка изображений
+          if (contentType.startsWith('image/')) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            
+            viewer.innerHTML = `<img src="${url}" alt="${item.name}" style="max-width:100%;border-radius:8px">`;
+            
+            // Показать кнопку скачивания
+            document.getElementById('btnDownload').style.display = 'flex';
+            document.getElementById('btnDownload').onclick = () => {
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = item.name;
+              a.click();
+            };
+            
+            // Очистка памяти при смене файла
+            viewer.addEventListener('DOMNodeRemoved', () => URL.revokeObjectURL(url), { once: true });
+            
+            Toast.show('Изображение загружено', 'success');
+            
+          } else if (
+            contentType.includes('text') || 
+            contentType.includes('application/json') ||
+            contentType.includes('application/xml') ||
+            safePath.match(/\.(js|ts|jsx|tsx|html|htm|css|scss|json|xml|md|txt|sh|py|java|c|cpp|h|php|sql|yaml|yml|toml|ini|cfg|log|env)$/i)
+          ) {
+            const text = await res.text();
+            
+            // Обновление метаданных
+            document.getElementById('fileLines').textContent = `${countLines(text)} строк`;
+            
+            // Подсветка синтаксиса через highlight.js
+            if (window.hljs) {
+              const lang = getLanguageFromPath(safePath);
+              const highlighted = hljs.highlight(text, { language: lang }).value;
+              viewer.innerHTML = `<pre><code class="language-${lang}">${highlighted}</code></pre>`;
+            } else {
+              // Fallback: простой экранинг
+              viewer.textContent = text;
+            }
+            
+            // Кнопка копирования пути
+            document.getElementById('btnCopyPath').onclick = async () => {
+              try {
+                await navigator.clipboard.writeText(safePath);
+                Toast.show('Путь скопирован', 'success', 2000);
+              } catch {
+                Toast.show('Не удалось скопировать', 'error');
+              }
+            };
+            
+            Toast.show('Файл загружен', 'success');
+            
+          } else {
+            // Бинарные файлы
+            viewer.innerHTML = `
+              <div class="viewer-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <div>Бинарный файл: ${item.name}<br><small>${formatBytes(item.size || 0)}</small><br>Просмотр недоступен</div>
+              </div>
+            `;
+          }
+          
+          if (isLarge) {
+            progressFill.style.width = '100%';
+            setTimeout(() => { progressBar.style.display = 'none'; }, 300);
+          }
+          
+        } catch (e) {
+          console.error('Load error:', e);
+          viewer.innerHTML = `
+            <div class="viewer-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <div>Ошибка: ${e.message || 'Не удалось загрузить файл'}</div>
+            </div>
+          `;
+          Toast.show('Не удалось загрузить файл', 'error');
+          if (isLarge) progressBar.style.display = 'none';
+        }
+      }
+      
+      // === Поиск по файлам ===
+      function filterTree(query) {
+        if (!state.fileStructure) return;
+        
+        const treeEl = document.getElementById('fileTree');
+        treeEl.innerHTML = '';
+        
+        if (!query) {
+          renderTree(state.fileStructure.tree, treeEl);
+          return;
+        }
+        
+        // Простая фильтрация: показывать только совпадающие файлы и их родителей
+        function filterItems(items, q) {
+          return items.reduce((acc, item) => {
+            const matches = item.name.toLowerCase().includes(q);
+            if (item.type === 'folder' && item.children) {
+              const filteredChildren = filterItems(item.children, q);
+              if (matches || filteredChildren.length > 0) {
+                acc.push({ ...item, children: filteredChildren });
+              }
+            } else if (matches) {
+              acc.push(item);
+            }
+            return acc;
+          }, []);
+        }
+        
+        const filtered = filterItems(state.fileStructure.tree, query.toLowerCase());
+        renderTree(filtered, treeEl);
+        
+        // Авто-раскрыть найденные элементы
+        document.querySelectorAll('.tree-children').forEach(el => {
+          if (el.children.length > 0) {
+            el.classList.add('expanded');
+            el.previousElementSibling?.classList.add('expanded');
+          }
+        });
+      }
+      
+      // === Инициализация ===
+      async function init() {
+        // Тема
+        document.documentElement.setAttribute('data-theme', state.theme);
+        document.getElementById('themeIcon').innerHTML = state.theme === 'dark' 
+          ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+          : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+        
+        // Toast
+        Toast.init();
+        
+        // Загрузка структуры файлов с кэшем
+        const CACHE_KEY = 'seraviel_code_structure';
+        const CACHE_TTL = 5 * 60 * 1000;
+        
+        try {
+          const cached = localStorage.getItem(CACHE_KEY);
+          if (cached) {
+            const { data, ts } = JSON.parse(cached);
+            if (Date.now() - ts < CACHE_TTL) {
+              state.fileStructure = data;
+              renderTree(data.tree, document.getElementById('fileTree'));
+              Toast.show('Дерево файлов загружено из кэша', 'success', 2000);
+              return;
+            }
+          }
+          
+          const res = await fetch('/code-structure.json');
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          
+          state.fileStructure = await res.json();
+          renderTree(state.fileStructure.tree, document.getElementById('fileTree'));
+          
+          // Кэширование
+          localStorage.setItem(CACHE_KEY, JSON.stringify({
+            data: state.fileStructure,
+            ts: Date.now()
+          }));
+          
+          Toast.show('Дерево файлов загружено', 'success', 3000);
+          
+        } catch (e) {
+          console.warn('Code structure not available:', e.message);
+          Toast.show('Не удалось загрузить структуру файлов', 'warning', 5000);
+        }
+        
+        // Обработчики событий
+        document.getElementById('btnBrowse').addEventListener('click', () => {
+          document.getElementById('fileTree').style.display = 'block';
+        });
+        
+        document.getElementById('fileSearch').addEventListener('input', (e) => {
+          state.searchQuery = e.target.value;
+          filterTree(state.searchQuery);
+        });
+        
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          state.theme = state.theme === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', state.theme);
+          localStorage.setItem('theme', state.theme);
+          document.getElementById('themeIcon').innerHTML = state.theme === 'dark' 
+            ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+            : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+        });
+        
+        document.getElementById('btnHome').addEventListener('click', () => { window.location.href = '/'; });
+        document.getElementById('btnList').addEventListener('click', () => { window.location.href = '/list'; });
+        
+        // Глобальные обработчики клавиш (только для навигации)
+        document.addEventListener('keydown', (e) => {
+          // Ctrl/Cmd + K: фокус на поиск
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            document.getElementById('fileSearch').focus();
+          }
+        });
+      }
+      
+      // Запуск
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
   </script>
 </body>
 </html>

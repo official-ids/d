@@ -6,40 +6,53 @@
   <title>Redirecting... | SERAVIEL LABS</title>
   <meta name="robots" content="noindex, nofollow">
   
+  <!-- Skip link для доступности -->
+  <style>
+    .skip-link {
+      position: absolute; top: -40px; left: 0;
+      background: var(--accent); color: white;
+      padding: 8px 16px; z-index: 1000;
+      transition: top 0.2s;
+    }
+    .skip-link:focus { top: 0; }
+  </style>
+
   <link rel="stylesheet" href="/toast.css">
   <script src="/toast.js"></script>
 
   <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --accent: #0d9488;
-      --border: #e2e8f0;
-      --radius: 12px;
+      --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b;
+      --accent: #0d9488; --accent-hover: #0f766e;
+      --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.05);
       --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a; --surface: #1e293b; --border: #334155;
+      --text: #f8fafc; --text-muted: #94a3b8;
+      --accent: #2dd4bf; --accent-hover: #14b8a6;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
     body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 24px; transition: background 0.3s, color 0.3s;
     }
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      max-width: 480px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 32px;
+      max-width: 480px; width: 100%; text-align: center;
+      box-shadow: var(--shadow);
     }
     .spinner {
       width: 32px; height: 32px;
@@ -50,129 +63,317 @@
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    
     .url-preview {
-      font-family: monospace;
-      font-size: 13px;
-      color: var(--text-muted);
-      word-break: break-all;
-      margin: 12px 0;
-      padding: 8px;
-      background: var(--bg);
-      border-radius: 6px;
+      font-family: var(--font-mono); font-size: 13px;
+      color: var(--text-muted); word-break: break-all;
+      margin: 12px 0; padding: 8px;
+      background: var(--bg); border-radius: 6px;
+      text-align: left;
+    }
+    
+    .btn-group {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px;
     }
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      margin-top: 16px;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; background: var(--accent);
+      color: white; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: all 0.2s;
     }
-    .btn:hover { background: var(--accent-hover); }
+    .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn.secondary {
-      background: var(--surface);
-      color: var(--text);
+      background: var(--surface); color: var(--text);
       border: 1px solid var(--border);
     }
     .btn.secondary:hover { background: var(--bg); }
-    .error { color: #ef4444; font-size: 14px; margin-top: 12px; }
+    
+    .error {
+      color: var(--danger, #ef4444); font-size: 14px;
+      margin-top: 12px; display: none;
+    }
+    
+    .warning-box {
+      background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 8px; padding: 12px; margin: 16px 0;
+      font-size: 13px; color: var(--text);
+      text-align: left;
+    }
+    [data-theme="dark"] .warning-box {
+      background: rgba(245,158,11,0.15);
+    }
+    
+    .theme-toggle {
+      position: absolute; top: 24px; right: 24px;
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 8px; border-radius: 8px; cursor: pointer;
+      color: var(--text); display: flex; align-items: center;
+    }
+    .theme-toggle:hover { background: var(--bg); }
+    .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .theme-toggle svg { width: 18px; height: 18px; }
+    
+    /* Toast override */
     .toast-container { bottom: 24px !important; top: auto !important; }
+    
+    @media (max-width: 600px) {
+      body { padding: 16px; }
+      .theme-toggle { top: 16px; right: 16px; }
+      .btn-group { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="spinner"></div>
+  <a href="#main" class="skip-link">Перейти к основному содержимому</a>
+
+  <button class="theme-toggle" id="themeToggle" aria-label="Переключить тему">
+    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"/>
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  </button>
+
+  <main id="main" class="card" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
     <h2>Перенаправление...</h2>
     <p style="color:var(--text-muted);margin:8px 0 16px">Вы переходите на внешний ресурс:</p>
-    <div class="url-preview" id="urlPreview">Loading...</div>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <a href="#" id="proceedBtn" class="btn">Продолжить</a>
-      <a href="/" class="btn secondary">На главную</a>
+    
+    <div class="url-preview" id="urlPreview" aria-label="Целевой URL">Loading...</div>
+    
+    <div class="warning-box">
+      <strong>Внимание:</strong> Вы покидаете сайт SERAVIEL LABS. Мы не несём ответственности за содержимое внешних сайтов.
     </div>
-    <p class="error" id="errorMsg" style="display:none"></p>
-  </div>
+    
+    <div class="btn-group">
+      <a href="#" id="proceedBtn" class="btn" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true">
+          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Продолжить
+      </a>
+      <a href="/" class="btn secondary">На главную</a>
+      <button type="button" class="btn secondary" id="copyBtn" aria-label="Скопировать ссылку">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+        Копировать
+      </button>
+    </div>
+    
+    <p class="error" id="errorMsg" role="alert"></p>
+  </main>
 
   <script>
-    // === Smart Redirect Logic ===
     (function() {
-      const preview = document.getElementById('urlPreview');
-      const proceedBtn = document.getElementById('proceedBtn');
-      const errorMsg = document.getElementById('errorMsg');
+      'use strict';
+      
+      // === Конфигурация ===
+      const CONFIG = {
+        allowedProtocols: ['https:', 'http:', 'mailto:', 'tel:'],
+        trustedDomains: [], // Пустой = разрешены все валидные URL. Можно добавить ['seraviel-labs.vercel.app']
+        autoRedirectDelay: 2000, // 2 секунды
+        maxUrlPreviewLength: 60
+      };
 
+      // === Утилиты ===
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // Безопасное декодирование base64 URL
+      function decodeBase64Url(base64) {
+        try {
+          // Добавляем паддинги если нужно
+          const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+          const binary = atob(padded);
+          // Используем TextDecoder для корректной работы с юникодом
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          return new TextDecoder('utf-8').decode(bytes);
+        } catch {
+          return null;
+        }
+      }
+
+      // Валидация URL
       function isValidUrl(str) {
         try {
-          const u = new URL(str);
-          return u.protocol === 'http:' || u.protocol === 'https:';
-        } catch { return false; }
+          const url = new URL(str);
+          // Проверка протокола
+          if (!CONFIG.allowedProtocols.includes(url.protocol)) {
+            return false;
+          }
+          // Проверка домена (если заданы доверенные)
+          if (CONFIG.trustedDomains.length > 0) {
+            return CONFIG.trustedDomains.some(domain => 
+              url.hostname === domain || url.hostname.endsWith('.' + domain)
+            );
+          }
+          return true;
+        } catch {
+          return false;
+        }
       }
 
+      // Санитизация: удаление опасных префиксов
       function sanitizeUrl(str) {
-        return str.replace(/^javascript:/i, '').replace(/^data:/i, '');
+        if (!str) return '';
+        // Удаляем потенциально опасные префиксы
+        return str.replace(/^(javascript|data|vbscript|file):/i, '').trim();
       }
 
-      function decodeHashUrl(hash) {
+      // Обрезка URL для предпросмотра (с многоточием в середине)
+      function truncateUrl(url, maxLength) {
+        if (url.length <= maxLength) return url;
+        const start = Math.floor(maxLength * 0.6);
+        const end = Math.ceil(maxLength * 0.4);
+        return url.slice(0, start) + '...' + url.slice(-end);
+      }
+
+      // === Toast wrapper (если есть глобальный toast) ===
+      const Toast = {
+        show(message, type = 'info', duration = 2500) {
+          if (typeof window.toast === 'function') {
+            window.toast(message, type, { duration });
+          }
+        }
+      };
+
+      // === Копирование в буфер ===
+      async function copyToClipboard(text) {
         try {
-          return decodeURIComponent(escape(atob(hash)));
-        } catch { return null; }
+          await navigator.clipboard.writeText(text);
+          Toast.show('Ссылка скопирована', 'success');
+          return true;
+        } catch {
+          // Fallback
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.left = '-9999px';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          try {
+            document.execCommand('copy');
+            Toast.show('Ссылка скопирована (fallback)', 'success');
+            return true;
+          } catch {
+            Toast.show('Не удалось скопировать', 'error');
+            return false;
+          } finally {
+            document.body.removeChild(textarea);
+          }
+        }
       }
 
-      // === Get target URL: ?url= OR #hash ===
-      function getTargetUrl() {
-        // 1. Try query param: /to?url=...
-        const params = new URLSearchParams(location.search);
-        const queryUrl = params.get('url');
-        if (queryUrl) return sanitizeUrl(queryUrl.trim());
+      // === Основная логика ===
+      function init() {
+        const preview = document.getElementById('urlPreview');
+        const proceedBtn = document.getElementById('proceedBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const errorMsg = document.getElementById('errorMsg');
 
-        // 2. Try hash: /to#<base64>
-        const hash = location.hash.slice(1);
-        if (hash) {
-          const decoded = decodeHashUrl(hash);
-          if (decoded && isValidUrl(decoded)) return decoded;
+        // Получение целевого URL
+        function getTargetUrl() {
+          // 1. Query param: /to?url=...
+          const params = new URLSearchParams(location.search);
+          const queryUrl = params.get('url');
+          if (queryUrl) return sanitizeUrl(queryUrl);
+
+          // 2. Hash: /to#<base64>
+          const hash = location.hash.slice(1);
+          if (hash) {
+            const decoded = decodeBase64Url(hash);
+            if (decoded && isValidUrl(decoded)) return decoded;
+          }
+
+          return null;
         }
 
-        return null;
+        const rawUrl = getTargetUrl();
+        
+        if (!rawUrl || !isValidUrl(rawUrl)) {
+          preview.textContent = 'Invalid or missing URL';
+          proceedBtn.style.display = 'none';
+          copyBtn.style.display = 'none';
+          errorMsg.textContent = 'Cannot redirect: invalid URL';
+          errorMsg.style.display = 'block';
+          Toast.show('Invalid redirect link', 'error');
+          return;
+        }
+
+        // Отображение предпросмотра
+        preview.textContent = truncateUrl(rawUrl, CONFIG.maxUrlPreviewLength);
+        preview.setAttribute('title', rawUrl); // Полный URL в tooltip
+        
+        // Настройка кнопки "Продолжить"
+        proceedBtn.href = rawUrl;
+        
+        // Кнопка "Копировать"
+        copyBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          copyToClipboard(rawUrl);
+        });
+        
+        // Обработчик клика на "Продолжить"
+        proceedBtn.addEventListener('click', () => {
+          Toast.show('Opening link...', 'success');
+        });
+
+        // Авто-редирект
+        setTimeout(() => {
+          Toast.show('Redirecting...', 'info', 1500);
+          window.location.href = rawUrl;
+        }, CONFIG.autoRedirectDelay);
+
+        // Инициализация темы
+        initTheme();
       }
 
-      const targetUrl = getTargetUrl();
-
-      if (!targetUrl || !isValidUrl(targetUrl)) {
-        preview.textContent = 'Invalid or missing URL';
-        proceedBtn.style.display = 'none';
-        errorMsg.textContent = 'Cannot redirect: invalid URL';
-        errorMsg.style.display = 'block';
-        if (window.toast) toast.error('Invalid redirect link');
-        return;
+      // === Тема ===
+      function initTheme() {
+        const saved = localStorage.getItem('seraviel-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+        
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('seraviel-theme', next);
+          updateThemeIcon(next);
+        });
       }
-
-      // Show preview
-      preview.textContent = targetUrl.length > 60 
-        ? targetUrl.slice(0, 57) + '...' 
-        : targetUrl;
       
-      proceedBtn.href = targetUrl;
+      function updateThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        icon.innerHTML = theme === 'dark' 
+          ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+          : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      }
 
-      // Auto-redirect after 2 seconds
-      setTimeout(() => {
-        if (window.toast) toast.info('Redirecting...', { duration: 2000 });
-        window.location.href = targetUrl;
-      }, 2000);
-
-      proceedBtn.addEventListener('click', () => {
-        if (window.toast) toast.success('Opening link...');
-      });
+      // Запуск
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
     })();
-
-    // Init toast
-    if (window.toast && window.toast.config) {
-      window.toast.config({ position: 'bottom-center', duration: 2500 });
-    }
   </script>
 </body>
 </html>

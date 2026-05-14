@@ -6,178 +6,144 @@
   <title>Installer-S | SERAVIEL LABS</title>
   <meta name="description" content="Professional CLI package installer for Windows. Fast, secure, single-file deployment.">
   <meta name="keywords" content="installer, cli, package manager, windows, seraviel labs, developer tools">
+  <meta name="robots" content="index, follow">
+  
+  <!-- PWA Support -->
+  <meta name="theme-color" content="#0d1117">
+  <link rel="manifest" href="/installer-s/manifest.json">
+  
   <style>
-    /* === SERAVIEL LABS Design System (Terminal Theme) === */
     :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --border: #30363d;
-      --text: #c9d1d9;
-      --text-muted: #8b949e;
-      --accent: #0d9488;
-      --accent-hover: #0f766e;
-      --success: #2ea043;
-      --warning: #d29922;
-      --danger: #f85149;
-      --radius: 12px;
-      --shadow: 0 4px 20px rgba(0,0,0,0.3);
+      --bg: #0d1117; --surface: #161b22; --border: #30363d;
+      --text: #c9d1d9; --text-muted: #8b949e;
+      --accent: #0d9488; --accent-hover: #0f766e;
+      --success: #2ea043; --warning: #d29922; --danger: #f85149;
+      --radius: 12px; --shadow: 0 4px 20px rgba(0,0,0,0.3);
       --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b;
+      --accent: #0d9488; --accent-hover: #0f766e;
+      --success: #16a34a; --warning: #ca8a04; --danger: #dc2626;
+      --shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      min-height: 100vh;
-      padding: 24px;
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      line-height: 1.5; min-height: 100vh; padding: 24px;
+      transition: background 0.3s, color 0.3s;
     }
     .container { max-width: 1000px; margin: 0 auto; }
 
-    /* === Header === */
+    /* Header */
     .header {
-      text-align: center;
-      padding: 48px 24px 32px;
-      margin-bottom: 40px;
+      text-align: center; padding: 48px 24px 32px; margin-bottom: 40px;
     }
     .header h1 {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
+      font-size: 32px; font-weight: 700; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
     }
     .header h1 svg { width: 32px; height: 32px; stroke: var(--accent); }
     .header p { color: var(--text-muted); font-size: 16px; max-width: 600px; margin: 0 auto 24px; }
     .header-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 24px;
-      border: 2px solid var(--accent);
-      color: var(--accent);
-      background: transparent;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border: 2px solid var(--accent);
+      color: var(--accent); background: transparent;
+      border-radius: 8px; font-weight: 600; font-size: 14px;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
     }
     .btn:hover { background: var(--accent); color: white; transform: translateY(-2px); }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn svg { width: 18px; height: 18px; }
-    .btn.secondary {
-      border-color: var(--border);
-      color: var(--text);
-    }
-    .btn.secondary:hover {
-      background: var(--surface);
-      border-color: var(--accent);
-    }
+    .btn.secondary { border-color: var(--border); color: var(--text); }
+    .btn.secondary:hover { background: var(--surface); border-color: var(--accent); }
+    .btn[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-    /* === Terminal Preview === */
+    /* Terminal */
     .terminal-card {
-      background: #010409;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 40px;
-      box-shadow: var(--shadow);
+      background: #010409; border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      margin-bottom: 40px; box-shadow: var(--shadow);
     }
+    [data-theme="light"] .terminal-card { background: #1e293b; }
     .terminal-header {
-      background: #0d1117;
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      background: #0d1117; padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
       border-bottom: 1px solid var(--border);
     }
+    [data-theme="light"] .terminal-header { background: #1e293b; }
     .terminal-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); }
     .terminal-dot.red { background: #ff5f56; }
     .terminal-dot.yellow { background: #ffbd2e; }
     .terminal-dot.green { background: #27c93f; }
     .terminal-title { flex: 1; text-align: center; font-size: 13px; color: var(--text-muted); font-family: var(--font-mono); }
     .terminal-body {
-      padding: 20px;
-      font-family: var(--font-mono);
-      font-size: 14px;
-      line-height: 1.6;
-      color: #c9d1d9;
-      overflow-x: auto;
+      padding: 20px; font-family: var(--font-mono); font-size: 14px;
+      line-height: 1.6; color: #c9d1d9; overflow-x: auto; max-height: 400px; overflow-y: auto;
     }
     .terminal-line { margin: 2px 0; white-space: pre-wrap; word-break: break-word; }
     .t-accent { color: var(--accent); font-weight: 600; }
     .t-muted { color: var(--text-muted); }
     .t-success { color: var(--success); }
     .t-border { color: var(--text-muted); opacity: 0.6; }
+    .terminal-input {
+      display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .terminal-input span { color: var(--success); }
+    .terminal-input input {
+      flex: 1; background: transparent; border: none; color: var(--text);
+      font-family: var(--font-mono); font-size: 14px; outline: none;
+    }
+    .terminal-input input::placeholder { color: var(--text-muted); }
 
-    /* === Features Grid === */
+    /* Features */
     .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 40px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px; margin-bottom: 40px;
     }
     .feature-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
       transition: transform 0.2s, border-color 0.2s;
     }
     .feature-card:hover { transform: translateY(-4px); border-color: var(--accent); }
     .feature-icon {
-      width: 40px; height: 40px;
-      background: rgba(13,148,136,0.1);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; background: rgba(13,148,136,0.1);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
       margin-bottom: 12px;
     }
     .feature-icon svg { width: 20px; height: 20px; stroke: var(--accent); }
     .feature-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
     .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.4; }
 
-    /* === Install Steps === */
+    /* Steps */
     .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-bottom: 40px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px; margin-bottom: 40px;
     }
     .step {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      position: relative;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; position: relative;
     }
     .step-num {
-      position: absolute;
-      top: -12px; left: 20px;
-      width: 24px; height: 24px;
-      background: var(--accent);
-      color: white;
-      border-radius: 50%;
+      position: absolute; top: -12px; left: 20px;
+      width: 24px; height: 24px; background: var(--accent);
+      color: white; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-weight: 700; font-size: 13px;
     }
     .step h3 { font-size: 16px; font-weight: 600; margin: 8px 0 8px; }
     .step p { font-size: 14px; color: var(--text-muted); }
     .step code {
-      background: var(--bg);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--accent);
+      background: var(--bg); padding: 2px 6px; border-radius: 4px;
+      font-family: var(--font-mono); font-size: 13px; color: var(--accent);
     }
 
-    /* === Commands Table === */
+    /* Commands */
     .commands-section { margin-bottom: 40px; }
     .commands-section h2 {
       font-size: 20px; font-weight: 600; margin-bottom: 16px;
@@ -185,83 +151,87 @@
     }
     .commands-section h2 svg { width: 20px; height: 20px; stroke: var(--accent); }
     .cmd-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
+      width: 100%; border-collapse: collapse; font-size: 14px;
     }
     .cmd-table th {
-      text-align: left;
-      padding: 12px;
-      background: var(--surface);
-      color: var(--text-muted);
-      font-weight: 500;
+      text-align: left; padding: 12px; background: var(--surface);
+      color: var(--text-muted); font-weight: 500;
       border-bottom: 1px solid var(--border);
     }
     .cmd-table td {
-      padding: 12px;
-      border-bottom: 1px solid var(--border);
+      padding: 12px; border-bottom: 1px solid var(--border);
       vertical-align: top;
     }
     .cmd-table tr:last-child td { border-bottom: none; }
     .cmd-name { font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
     .cmd-desc { color: var(--text-muted); }
     .copy-btn {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      background: var(--bg); border: 1px solid var(--border);
+      color: var(--text-muted); padding: 4px 8px; border-radius: 4px;
+      font-size: 12px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 4px;
     }
     .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .copy-btn svg { width: 14px; height: 14px; }
+    .copy-btn.copied { background: var(--success); color: white; border-color: var(--success); }
 
-    /* === Trust Badge === */
+    /* Command Builder */
+    .builder {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 40px;
+    }
+    .builder h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    .builder-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 16px;
+    }
+    .builder-option {
+      display: flex; align-items: center; gap: 8px; font-size: 14px;
+    }
+    .builder-option input { width: 16px; height: 16px; }
+    .builder-output {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px; font-family: var(--font-mono);
+      font-size: 13px; color: var(--accent); margin-bottom: 12px;
+      overflow-x: auto;
+    }
+    .builder-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* Trust Badge */
     .trust-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 16px;
-      background: rgba(46,160,67,0.1);
-      border: 1px solid rgba(46,160,67,0.3);
-      border-radius: var(--radius);
-      margin-bottom: 40px;
-      font-size: 14px;
-      color: var(--success);
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; padding: 16px;
+      background: rgba(46,160,67,0.1); border: 1px solid rgba(46,160,67,0.3);
+      border-radius: var(--radius); margin-bottom: 40px;
+      font-size: 14px; color: var(--success);
     }
     .trust-badge svg { width: 20px; height: 20px; }
     .trust-badge a { color: var(--accent); text-decoration: none; font-weight: 500; }
     .trust-badge a:hover { text-decoration: underline; }
+    .hash-code {
+      font-family: var(--font-mono); font-size: 12px;
+      background: var(--bg); padding: 2px 6px; border-radius: 4px;
+      word-break: break-all;
+    }
 
-    /* === Footer === */
+    /* Footer */
     .footer {
-      text-align: center;
-      padding: 24px;
-      color: var(--text-muted);
-      font-size: 13px;
-      border-top: 1px solid var(--border);
-      margin-top: 32px;
+      text-align: center; padding: 24px; color: var(--text-muted);
+      font-size: 13px; border-top: 1px solid var(--border); margin-top: 32px;
     }
     .footer a { color: var(--accent); text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
 
-    /* === Toast === */
+    /* Toast */
     #toast-container {
-      position: fixed; bottom: 24px; right: 24px; z-index: 20000; pointer-events: none;
+      position: fixed; bottom: 24px; right: 24px; z-index: 20000;
+      pointer-events: none; display: flex; flex-direction: column; gap: 8px;
     }
     .toast {
-      pointer-events: auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      border-radius: 10px;
+      pointer-events: auto; background: var(--surface);
+      border: 1px solid var(--border); border-left: 4px solid var(--accent);
+      padding: 14px 18px; border-radius: 10px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       display: flex; align-items: center; gap: 12px;
       font-size: 14px; color: var(--text);
@@ -270,16 +240,19 @@
       opacity: 0; transform: translateX(100%);
     }
     .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
     .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
     .toast-content { flex: 1; }
     .toast-close {
-      background: none; border: none; padding: 4px;
-      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      background: none; border: none; padding: 4px; cursor: pointer;
+      opacity: 0.6; transition: opacity 0.2s;
     }
+    .toast-close:hover { opacity: 1; }
     .toast-close svg { width: 16px; height: 16px; }
     @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
 
-    /* === Responsive === */
+    /* Responsive */
     @media (max-width: 600px) {
       body { padding: 16px; }
       .header h1 { font-size: 24px; }
@@ -289,6 +262,12 @@
       #toast-container { left: 16px; right: 16px; bottom: 16px; }
       .toast { min-width: auto; max-width: 100%; }
     }
+
+    /* Accessibility */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
   </style>
 </head>
 <body>
@@ -296,23 +275,39 @@
     <!-- Header -->
     <header class="header">
       <h1>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 17 10 11 4 5"/>
+          <line x1="12" y1="19" x2="20" y2="19"/>
+        </svg>
         INSTALLER-S
       </h1>
       <p>Professional CLI package installer for Windows. Fast, secure, single-file deployment.</p>
       <div class="header-actions">
-        <a href="https://github.com/official-ids/d/releases/download/1.0.0/Installer-S-Setup.exe" class="btn" onclick="toast('Download started', 'success')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Download Setup
+        <button class="btn" id="themeToggle" aria-label="Переключить тему">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <a href="#" class="btn" id="downloadBtn" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span id="downloadText">Download Setup</span>
         </a>
-        <a href="https://t.me/@seraviellex" target="_blank" rel="noopener" class="btn secondary">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
-  Support
-</a>
+        <a href="https://t.me/seraviellex" target="_blank" rel="noopener noreferrer" class="btn secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
+          </svg>
+          Support
+        </a>
       </div>
     </header>
 
-    <!-- Terminal Preview -->
+    <!-- Terminal Preview (Interactive) -->
     <div class="terminal-card">
       <div class="terminal-header">
         <div class="terminal-dot red"></div>
@@ -320,9 +315,9 @@
         <div class="terminal-dot green"></div>
         <div class="terminal-title">installer-s — PowerShell</div>
       </div>
-      <div class="terminal-body">
+      <div class="terminal-body" id="terminalOutput" aria-live="polite">
         <div class="terminal-line t-border">╔══════════════════════════════════════════════════════════╗</div>
-        <div class="terminal-line t-border">║  INSTALLER-S v1.0.0  |  SERAVIEL LABS                   ║</div>
+        <div class="terminal-line t-border">║  INSTALLER-S v<span id="termVersion">1.0.0</span>  |  SERAVIEL LABS                   ║</div>
         <div class="terminal-line t-border">╚══════════════════════════════════════════════════════════╝</div>
         <div class="terminal-line">&nbsp;</div>
         <div class="terminal-line"><span class="t-accent">Команды:</span></div>
@@ -346,34 +341,51 @@
         <div class="terminal-line">&nbsp;</div>
         <div class="terminal-line"><span class="t-success">&gt;</span> <span class="t-muted cursor">_</span></div>
       </div>
+      <div class="terminal-input">
+        <span>&gt;</span>
+        <input type="text" id="terminalInput" placeholder="Введите команду..." aria-label="Ввод команды терминала" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- OS Warning (hidden by default) -->
+    <div id="osWarning" style="display:none;margin-bottom:20px;padding:12px;background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.3);border-radius:8px;color:var(--danger);font-size:14px">
+      <strong>Внимание:</strong> Installer-S предназначен только для Windows. Для других ОС используйте альтернативные методы установки.
     </div>
 
     <!-- Features -->
     <section class="features">
       <div class="feature-card">
         <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
         </div>
         <h3>SHA-256 Verification</h3>
         <p>Автоматическая проверка целостности каждого пакета перед установкой.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
         </div>
         <h3>Native Performance</h3>
         <p>Скомпилирован в .NET 8. Работает мгновенно, без зависимостей и рантаймов.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5 5-5-5M12 3v10"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5 5-5-5M12 3v10"/>
+          </svg>
         </div>
         <h3>Clean Uninstall</h3>
         <p>Полное удаление через встроенный деинсталлятор. Никаких следов в системе.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z M4 4l16 16 M20 4L4 20"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16v16H4z M4 4l16 16 M20 4L4 20"/><circle cx="12" cy="12" r="3"/>
+          </svg>
         </div>
         <h3>Silent Mode</h3>
         <p>Поддержка автоматизации через флаги --silent и --log для CI/CD пайплайнов.</p>
@@ -399,10 +411,47 @@
       </div>
     </section>
 
+    <!-- Command Builder -->
+    <section class="builder">
+      <h3>Конструктор команд</h3>
+      <div class="builder-grid">
+        <label class="builder-option">
+          <input type="checkbox" id="optSha256">
+          <span>--sha256 &lt;hash&gt;</span>
+        </label>
+        <label class="builder-option">
+          <input type="checkbox" id="optPath">
+          <span>--add-to-path</span>
+        </label>
+        <label class="builder-option">
+          <input type="checkbox" id="optDry">
+          <span>--dry-run</span>
+        </label>
+        <label class="builder-option">
+          <input type="checkbox" id="optSilent">
+          <span>--silent</span>
+        </label>
+      </div>
+      <div class="builder-output" id="cmdOutput">install &lt;url&gt;</div>
+      <div class="builder-actions">
+        <button class="copy-btn" id="copyBuilderBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+          Copy Command
+        </button>
+        <button class="btn secondary" id="resetBuilder">Reset</button>
+      </div>
+    </section>
+
     <!-- Commands Reference -->
     <section class="commands-section">
       <h2>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 17 10 11 4 5"/>
+          <line x1="12" y1="19" x2="20" y2="19"/>
+        </svg>
         Команды и флаги
       </h2>
       <table class="cmd-table">
@@ -417,41 +466,79 @@
           <tr>
             <td><span class="cmd-name">install &lt;url&gt;</span></td>
             <td class="cmd-desc">Скачать и установить пакет по ссылке</td>
-            <td><button class="copy-btn" onclick="copyCmd('install https://example.com/pkg.zip')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy</button></td>
+            <td><button class="copy-btn" data-cmd="install https://example.com/pkg.zip" aria-label="Скопировать команду">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+              Copy
+            </button></td>
           </tr>
           <tr>
             <td><span class="cmd-name">remove &lt;name&gt;</span></td>
             <td class="cmd-desc">Удалить установленный пакет</td>
-            <td><button class="copy-btn" onclick="copyCmd('remove package-name')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy</button></td>
+            <td><button class="copy-btn" data-cmd="remove package-name" aria-label="Скопировать команду">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+              Copy
+            </button></td>
           </tr>
           <tr>
             <td><span class="cmd-name">list</span></td>
             <td class="cmd-desc">Показать все установленные пакеты</td>
-            <td><button class="copy-btn" onclick="copyCmd('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy</button></td>
+            <td><button class="copy-btn" data-cmd="list" aria-label="Скопировать команду">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+              Copy
+            </button></td>
           </tr>
           <tr>
             <td><span class="cmd-name">--sha256 &lt;hash&gt;</span></td>
             <td class="cmd-desc">Проверить хеш перед установкой</td>
-            <td><button class="copy-btn" onclick="copyCmd('install https://... --sha256 abc123')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy</button></td>
+            <td><button class="copy-btn" data-cmd="install https://... --sha256 abc123" aria-label="Скопировать команду">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+              Copy
+            </button></td>
           </tr>
           <tr>
             <td><span class="cmd-name">--silent</span></td>
             <td class="cmd-desc">Тихий режим для скриптов</td>
-            <td><button class="copy-btn" onclick="copyCmd('install https://... --silent')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy</button></td>
+            <td><button class="copy-btn" data-cmd="install https://... --silent" aria-label="Скопировать команду">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+              Copy
+            </button></td>
           </tr>
         </tbody>
       </table>
     </section>
 
-    <!-- Trust -->
-    <div class="trust-badge" style="background:rgba(13,148,136,0.1);border-color:rgba(13,148,136,0.3);color:var(--accent)">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-  <span>Built with .NET 8 • Single-file executable • No dependencies • 100% offline</span>
-</div>
+    <!-- Trust Badge with Hash -->
+    <div class="trust-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
+      </svg>
+      <span>
+        SHA-256: <code class="hash-code" id="fileHash">a1b2c3d4e5f6...</code>
+        <button class="copy-btn" id="copyHashBtn" style="margin-left:8px;padding:2px 6px;font-size:11px">
+          Copy Hash
+        </button>
+      </span>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
-      <p>© 2026 SERAVIEL LABS • <a href="/privacy">Privacy</a> • <a href="/status">Status</a> • <a href="https://t.me/@seraviellex">Telegram</a></p>
+      <p>© 2026 SERAVIEL LABS • <a href="/privacy">Privacy</a> • <a href="/status">Status</a> • <a href="https://t.me/seraviellex" target="_blank" rel="noopener noreferrer">Telegram</a></p>
       <p style="margin-top:6px;opacity:0.7">Built with .NET 8. Zero telemetry. 100% offline.</p>
     </footer>
   </div>
@@ -460,34 +547,309 @@
   <div id="toast-container"></div>
 
   <script>
-    // === Toast System ===
-    function toast(message, type = 'success', duration = 4000) {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-      const icons = {
-        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#2ea043" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
+    (function() {
+      'use strict';
+      
+      // === Конфигурация ===
+      const CONFIG = {
+        version: '1.0.0',
+        downloadUrl: 'https://github.com/official-ids/d/releases/download/1.0.0/Installer-S-Setup.exe',
+        fileSize: 78643200, // 75 MB
+        sha256: '37E511F1441E0CEF441921F9AF73C55BED5A7502EE186825F71BCA3C9EC2C545',
+        terminalCommands: {
+          'help': 'Показывает список доступных команд',
+          'version': `Installer-S v${CONFIG.version}`,
+          'clear': 'Очищает терминал',
+          'cls': 'Очищает терминал',
+          'install': 'Использование: install <url> [--sha256 <hash>] [--silent]',
+          'remove': 'Использование: remove <package-name>',
+          'list': 'Установленные пакеты:\n  • example-pkg v1.2.3\n  • another-tool v0.9.1',
+          'search': 'Использование: search <query>',
+          'config': 'Использование: config set <key> <value> | config get <key>',
+          'exit': 'Завершение сессии',
+          'quit': 'Завершение сессии'
+        }
       };
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
-      el.querySelector('.toast-close').onclick = () => { el.style.animation = 'toastOut 0.3s ease-out forwards'; setTimeout(() => el.remove(), 300); };
-      container.appendChild(el);
-      const timer = setTimeout(() => { el.style.animation = 'toastOut 0.3s ease-out forwards'; setTimeout(() => el.remove(), 300); }, duration);
-      el.onmouseenter = () => clearTimeout(timer);
-    }
 
-    // === Copy Command ===
-    function copyCmd(cmd) {
-      navigator.clipboard.writeText(cmd).then(() => {
-        toast('Command copied to clipboard', 'success');
-      }).catch(() => {
-        toast('Copy failed', 'error');
-      });
-    }
+      // === Утилиты ===
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
 
-    // === Init ===
-    toast('Installer-S page loaded', 'success', 3000);
+      function detectOS() {
+        const ua = navigator.userAgent || navigator.platform;
+        return /win/i.test(ua) ? 'windows' : 'other';
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes) return '';
+        const sizes = ['B','KB','MB','GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+      }
+
+      // === Toast System (без XSS) ===
+      const Toast = {
+        container: null,
+        init() {
+          this.container = document.getElementById('toast-container');
+        },
+        show(message, type = 'success', duration = 4000) {
+          if (!this.container) return;
+          const icons = {
+            success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#2ea043" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+            error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
+          };
+          const el = document.createElement('div');
+          el.className = `toast ${type}`;
+          el.setAttribute('role', 'alert');
+          el.innerHTML = `
+            ${icons[type] || icons.success}
+            <div class="toast-content">${escapeHtml(message)}</div>
+            <button class="toast-close" aria-label="Закрыть">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          `;
+          el.querySelector('.toast-close').addEventListener('click', () => this.remove(el));
+          this.container.appendChild(el);
+          requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateX(0)';
+          });
+          const timer = setTimeout(() => this.remove(el), duration);
+          el.addEventListener('mouseenter', () => clearTimeout(timer));
+        },
+        remove(el) {
+          el.style.animation = 'toastOut 0.3s ease-out forwards';
+          setTimeout(() => el.remove(), 300);
+        }
+      };
+
+      // === Copy to Clipboard (с fallback) ===
+      async function copyToClipboard(text, btn) {
+        try {
+          await navigator.clipboard.writeText(text);
+          if (btn) {
+            btn.classList.add('copied');
+            btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied`;
+            setTimeout(() => {
+              btn.classList.remove('copied');
+              btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
+            }, 2000);
+          }
+          Toast.show('Copied to clipboard', 'success', 2000);
+        } catch (err) {
+          // Fallback для старых браузеров
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.left = '-9999px';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          try {
+            document.execCommand('copy');
+            Toast.show('Copied (fallback)', 'success', 2000);
+          } catch {
+            Toast.show('Copy failed', 'error');
+          }
+          document.body.removeChild(textarea);
+        }
+      }
+
+      // === Terminal Simulator ===
+      function initTerminal() {
+        const output = document.getElementById('terminalOutput');
+        const input = document.getElementById('terminalInput');
+        
+        function addLine(text, className = '') {
+          const line = document.createElement('div');
+          line.className = `terminal-line ${className}`;
+          line.textContent = text;
+          output.insertBefore(line, output.lastElementChild);
+          output.scrollTop = output.scrollHeight;
+        }
+        
+        function processCommand(cmd) {
+          const args = cmd.trim().split(/\s+/);
+          const command = args[0]?.toLowerCase();
+          
+          addLine(`> ${cmd}`, 't-muted');
+          
+          if (!command) return;
+          
+          if (CONFIG.terminalCommands[command]) {
+            const response = CONFIG.terminalCommands[command];
+            response.split('\n').forEach(line => addLine(line, line.startsWith('  •') ? 't-success' : ''));
+          } else if (command === 'install' && args[1]) {
+            addLine(`[DRY RUN] Would install: ${args[1]}`, 't-success');
+            if (args.includes('--sha256')) {
+              const hashIdx = args.indexOf('--sha256');
+              if (hashIdx + 1 < args.length) {
+                addLine(`✓ SHA-256 verified: ${args[hashIdx + 1].slice(0, 16)}...`, 't-success');
+              }
+            }
+          } else if (['exit', 'quit'].includes(command)) {
+            addLine('Session ended. Refresh page to restart.', 't-muted');
+            input.disabled = true;
+            input.placeholder = 'Session ended';
+          } else {
+            addLine(`Unknown command: ${command}. Type 'help' for available commands.`, 't-muted');
+          }
+        }
+        
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const cmd = input.value;
+            input.value = '';
+            processCommand(cmd);
+          }
+        });
+        
+        // Авто-фокус при клике на терминал
+        document.querySelector('.terminal-card').addEventListener('click', () => {
+          input.focus();
+        });
+      }
+
+      // === Command Builder ===
+      function initBuilder() {
+        const output = document.getElementById('cmdOutput');
+        const checkboxes = ['optSha256', 'optPath', 'optDry', 'optSilent'];
+        const baseCmd = 'install <url>';
+        
+        function updateCmd() {
+          let cmd = baseCmd;
+          if (document.getElementById('optSha256').checked) cmd += ' --sha256 <hash>';
+          if (document.getElementById('optPath').checked) cmd += ' --add-to-path';
+          if (document.getElementById('optDry').checked) cmd += ' --dry-run';
+          if (document.getElementById('optSilent').checked) cmd += ' --silent';
+          output.textContent = cmd;
+        }
+        
+        checkboxes.forEach(id => {
+          document.getElementById(id).addEventListener('change', updateCmd);
+        });
+        
+        document.getElementById('copyBuilderBtn').addEventListener('click', () => {
+          copyToClipboard(output.textContent, document.getElementById('copyBuilderBtn'));
+        });
+        
+        document.getElementById('resetBuilder').addEventListener('click', () => {
+          checkboxes.forEach(id => document.getElementById(id).checked = false);
+          updateCmd();
+          Toast.show('Builder reset', 'success', 2000);
+        });
+        
+        updateCmd();
+      }
+
+      // === Download Handler ===
+      function initDownload() {
+        const btn = document.getElementById('downloadBtn');
+        const text = document.getElementById('downloadText');
+        
+        // Обновление текста с размером файла
+        text.textContent = `Download Setup (${formatBytes(CONFIG.fileSize)})`;
+        btn.href = CONFIG.downloadUrl;
+        
+        btn.addEventListener('click', (e) => {
+          // Предупреждение для не-Windows
+          if (detectOS() !== 'windows') {
+            e.preventDefault();
+            Toast.show('Installer-S is for Windows only', 'error');
+            document.getElementById('osWarning').style.display = 'block';
+            return;
+          }
+          Toast.show('Download started', 'success');
+        });
+      }
+
+      // === Copy Buttons ===
+      function initCopyButtons() {
+        // Кнопки в таблице команд
+        document.querySelectorAll('.copy-btn[data-cmd]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const cmd = btn.dataset.cmd;
+            copyToClipboard(cmd, btn);
+          });
+        });
+        
+        // Копирование хеша
+        document.getElementById('copyHashBtn').addEventListener('click', () => {
+          copyToClipboard(CONFIG.sha256, document.getElementById('copyHashBtn'));
+        });
+      }
+
+      // === Theme Toggle ===
+      function initTheme() {
+        const saved = localStorage.getItem('installer-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+        
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('installer-theme', next);
+          updateThemeIcon(next);
+        });
+      }
+      
+      function updateThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        icon.innerHTML = theme === 'dark' 
+          ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+          : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      }
+
+      // === OS Detection ===
+      function initOSWarning() {
+        if (detectOS() !== 'windows') {
+          document.getElementById('osWarning').style.display = 'block';
+        }
+      }
+
+      // === Init ===
+      function init() {
+        Toast.init();
+        initTheme();
+        initOSWarning();
+        initTerminal();
+        initBuilder();
+        initDownload();
+        initCopyButtons();
+        
+        // Обновление версии в терминале
+        document.getElementById('termVersion').textContent = CONFIG.version;
+        document.getElementById('fileHash').textContent = CONFIG.sha256;
+        
+        // Service Worker регистрация (PWA)
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/installer-s/sw.js').catch(() => {});
+        }
+        
+        Toast.show('Installer-S page loaded', 'success', 3000);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
   </script>
 </body>
 </html>

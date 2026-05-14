@@ -5,610 +5,677 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Style Guide | SERAVIEL LABS</title>
   <meta name="description" content="Official SERAVIEL LABS design system: colors, typography, components.">
+  
+  <!-- Skip link для доступности -->
   <style>
-    /* === SERAVIEL LABS Design System (Live Variables) === */
+    .skip-link {
+      position: absolute; top: -40px; left: 0;
+      background: var(--accent); color: white;
+      padding: 8px 16px; z-index: 1000;
+      transition: top 0.2s;
+    }
+    .skip-link:focus { top: 0; }
+  </style>
+
+  <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --accent: #0d9488;
-      --accent-hover: #0f766e;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --success: #22c55e;
-      --radius: 12px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b;
+      --accent: #0d9488; --accent-hover: #0f766e;
+      --danger: #ef4444; --warning: #f59e0b; --success: #22c55e;
+      --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.05);
       --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'SF Mono', 'Fira Code', monospace;
     }
-
-    /* === Base Reset === */
+    [data-theme="dark"] {
+      --bg: #0f172a; --surface: #1e293b; --border: #334155;
+      --text: #f8fafc; --text-muted: #94a3b8;
+      --accent: #2dd4bf; --accent-hover: #14b8a6;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      min-height: 100vh;
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { 
+        animation-duration: 0.01ms !important; 
+        animation-iteration-count: 1 !important; 
+        transition-duration: 0.01ms !important; 
+      }
     }
-
-    /* === Layout === */
+    body {
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      line-height: 1.6; min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
     .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
     
-    /* === Header === */
+    /* Header */
     .header {
-      text-align: center;
-      padding: 48px 24px 32px;
+      text-align: center; padding: 48px 24px 32px;
       background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 40px;
+      border-bottom: 1px solid var(--border); margin-bottom: 40px;
     }
     .header h1 {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
+      font-size: 32px; font-weight: 700; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
     }
     .header h1 svg { width: 32px; height: 32px; stroke: var(--accent); }
     .header p { color: var(--text-muted); font-size: 16px; max-width: 600px; margin: 0 auto; }
     .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: var(--accent);
-      color: white;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-top: 16px;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; background: var(--accent); color: white;
+      border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 16px;
     }
     .badge svg { width: 14px; height: 14px; }
-
-    /* === Section === */
+    
+    /* Theme Toggle */
+    .theme-toggle {
+      position: absolute; top: 24px; right: 24px;
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 8px; border-radius: 8px; cursor: pointer;
+      color: var(--text); display: flex; align-items: center;
+    }
+    .theme-toggle:hover { background: var(--bg); }
+    .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .theme-toggle svg { width: 18px; height: 18px; }
+    
+    /* Section */
     .section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+      margin-bottom: 24px; box-shadow: var(--shadow);
     }
     .section h2 {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-size: 20px; font-weight: 600; margin-bottom: 20px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
     }
-    .section h2 svg { width: 20px; height: 20px; stroke: var(--accent); }
-
-    /* === Color Grid === */
-    .color-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 16px;
-    }
+    .section h2 svg { width: 20px; height: 20px; stroke: var(--accent); flex-shrink: 0; }
+    
+    /* Color Grid */
+    .color-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
     .color-card {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
     }
-    .color-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+    .color-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .color-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     .color-swatch {
-      height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 600;
-      color: white;
+      height: 80px; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; color: white;
       text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
-    .color-info {
-      padding: 12px;
-      background: var(--bg);
-      font-size: 12px;
-    }
+    .color-info { padding: 12px; background: var(--bg); font-size: 12px; }
     .color-name { font-weight: 600; color: var(--text); }
     .color-var { font-family: var(--font-mono); color: var(--accent); }
-
-    /* === Typography === */
-    .type-sample {
-      padding: 16px;
-      background: var(--bg);
-      border-radius: 8px;
-      margin: 12px 0;
-    }
+    
+    /* Typography */
+    .type-sample { padding: 16px; background: var(--bg); border-radius: 8px; margin: 12px 0; }
     .type-sample.h1 { font-size: 32px; font-weight: 700; }
     .type-sample.h2 { font-size: 24px; font-weight: 600; }
     .type-sample.h3 { font-size: 20px; font-weight: 600; }
     .type-sample.body { font-size: 16px; }
     .type-sample.muted { color: var(--text-muted); }
     .type-sample.mono { font-family: var(--font-mono); font-size: 14px; }
-
-    /* === Components === */
-    .component-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
+    
+    /* Components */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border: 2px solid var(--accent);
-      color: var(--accent);
-      background: transparent;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 14px;
-      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border: 2px solid var(--accent);
+      color: var(--accent); background: transparent; border-radius: 8px;
+      font-weight: 500; font-size: 14px; cursor: pointer;
       transition: all 0.2s;
     }
     .btn:hover { background: var(--accent); color: white; }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn svg { width: 16px; height: 16px; }
-    .btn.secondary {
-      border-color: var(--border);
-      color: var(--text);
-    }
-    .btn.secondary:hover {
-      background: var(--bg);
-      border-color: var(--accent);
-    }
-    .btn.danger {
-      border-color: var(--danger);
-      color: var(--danger);
-    }
-    .btn.danger:hover {
-      background: var(--danger);
-      color: white;
-    }
-
+    .btn.secondary { border-color: var(--border); color: var(--text); }
+    .btn.secondary:hover { background: var(--bg); border-color: var(--accent); }
+    .btn.danger { border-color: var(--danger); color: var(--danger); }
+    .btn.danger:hover { background: var(--danger); color: white; }
+    
     .input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      background: var(--bg);
-      color: var(--text);
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);
     }
-    .input:focus {
-      outline: 2px solid var(--accent);
-      border-color: transparent;
-    }
-
+    .input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+    
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);
     }
-
-    /* === SVG Icons Grid === */
-    .icon-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 16px;
-    }
+    
+    /* Icons */
+    .icon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 16px; }
     .icon-card {
-      text-align: center;
-      padding: 16px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
+      text-align: center; padding: 16px; border: 1px solid var(--border);
+      border-radius: 10px; cursor: pointer; transition: all 0.2s;
     }
-    .icon-card:hover {
-      border-color: var(--accent);
-      background: var(--bg);
-    }
-    .icon-card svg {
-      width: 32px;
-      height: 32px;
-      stroke: var(--text);
-      margin-bottom: 8px;
-    }
-    .icon-name {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-    }
-
-    /* === CSS Variables Table === */
-    .vars-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
+    .icon-card:hover { border-color: var(--accent); background: var(--bg); }
+    .icon-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .icon-card svg { width: 32px; height: 32px; stroke: var(--text); margin-bottom: 8px; }
+    .icon-name { font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); }
+    
+    /* Table */
+    .vars-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .vars-table th {
-      text-align: left;
-      padding: 10px 12px;
-      background: var(--bg);
-      font-weight: 600;
-      border-bottom: 1px solid var(--border);
+      text-align: left; padding: 10px 12px; background: var(--bg);
+      font-weight: 600; border-bottom: 1px solid var(--border);
     }
-    .vars-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-    }
+    .vars-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
     .vars-table code {
-      background: var(--bg);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--accent);
+      background: var(--bg); padding: 2px 6px; border-radius: 4px;
+      font-family: var(--font-mono); font-size: 12px; color: var(--accent);
     }
-
-    /* === Toast === */
+    
+    /* Toast */
     #toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 20000;
-      pointer-events: none;
+      position: fixed; bottom: 24px; right: 24px; z-index: 20000;
+      pointer-events: none; display: flex; flex-direction: column; gap: 8px;
     }
     .toast {
-      pointer-events: auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      border-radius: 10px;
+      pointer-events: auto; background: var(--surface);
+      border: 1px solid var(--border); border-left: 4px solid var(--accent);
+      padding: 14px 18px; border-radius: 10px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
-      color: var(--text);
-      min-width: 280px;
-      max-width: 400px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; color: var(--text);
+      min-width: 280px; max-width: 400px;
       animation: toastIn 0.3s ease-out forwards;
-      opacity: 0;
-      transform: translateX(100%);
+      opacity: 0; transform: translateX(100%);
     }
     .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
     .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
     .toast-content { flex: 1; }
     .toast-close {
-      background: none; border: none; padding: 4px;
-      cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+      background: none; border: none; padding: 4px; cursor: pointer;
+      opacity: 0.6; transition: opacity 0.2s;
     }
+    .toast-close:hover { opacity: 1; }
+    .toast-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .toast-close svg { width: 16px; height: 16px; }
     @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
-
-    /* === Responsive === */
+    @keyframes toastOut { to { opacity: 0; transform: translateX(100%); } }
+    
+    /* Responsive */
     @media (max-width: 768px) {
       .container { padding: 16px; }
       .header { padding: 32px 16px 24px; }
       .header h1 { font-size: 24px; }
+      .theme-toggle { top: 16px; right: 16px; }
       #toast-container { left: 16px; right: 16px; bottom: 16px; }
       .toast { min-width: auto; max-width: 100%; }
     }
-
-    /* === Hidden by default (for query param mode) === */
+    
+    /* Mode toggle */
     body:not(.style-mode) .style-only { display: none; }
     body.style-mode .info-only { display: none; }
   </style>
 </head>
 <body>
-  <!-- Toast Container -->
-  <div id="toast-container"></div>
+  <a href="#main" class="skip-link">Перейти к основному содержимому</a>
+  
+  <button class="theme-toggle" id="themeToggle" aria-label="Переключить тему">
+    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"/>
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  </button>
 
-  <!-- Header -->
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
   <header class="header">
     <h1>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
       SERAVIEL LABS Style Guide
     </h1>
     <p>Official design system: colors, typography, components, and SVG icons. Built for consistency and speed.</p>
     <span class="badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
       v1.0 • 100% Client-side
     </span>
   </header>
 
   <div class="container">
-    <!-- Regular Info Content (shown if NOT ?style) -->
-    <div class="info-only">
-      <div class="section">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          About SERAVIEL LABS
-        </h2>
-        <p style="margin-bottom:12px">
-          SERAVIEL LABS is a collection of client-side developer tools built with a consistent design philosophy:
-        </p>
-        <ul style="padding-left:20px;margin-bottom:16px">
-          <li><strong>0 API</strong> — all tools work offline, no data leaves your browser</li>
-          <li><strong>0 emojis</strong> — only clean, scalable SVG icons</li>
-          <li><strong>toast() only</strong> — consistent, non-blocking notifications</li>
-          <li><strong>Single file</strong> — each tool is one self-contained index.html</li>
-        </ul>
-        <p>
-          👉 Want to see the design system? Add <code style="background:var(--bg);padding:2px 6px;border-radius:4px">?style</code> to the URL.
-        </p>
+    <main id="main">
+      <!-- Regular Info Content -->
+      <div class="info-only">
+        <section class="section" aria-labelledby="about-heading">
+          <h2 id="about-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            About SERAVIEL LABS
+          </h2>
+          <p style="margin-bottom:12px">
+            SERAVIEL LABS is a collection of client-side developer tools built with a consistent design philosophy:
+          </p>
+          <ul style="padding-left:20px;margin-bottom:16px">
+            <li><strong>0 API</strong> — all tools work offline, no data leaves your browser</li>
+            <li><strong>0 emojis</strong> — only clean, scalable SVG icons</li>
+            <li><strong>toast() only</strong> — consistent, non-blocking notifications</li>
+            <li><strong>Single file</strong> — each tool is one self-contained index.html</li>
+          </ul>
+          <p>
+            👉 Want to see the design system? Add <code style="background:var(--bg);padding:2px 6px;border-radius:4px">?style</code> to the URL.
+          </p>
+        </section>
       </div>
-    </div>
 
-    <!-- Style Guide Content (shown if ?style or separate page) -->
-    <div class="style-only">
-      
-      <!-- Colors -->
-      <section class="section">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 010 20" fill="none"/></svg>
-          Color Palette
-        </h2>
-        <p style="color:var(--text-muted);margin-bottom:16px;font-size:14px">Click any color to copy its CSS variable.</p>
-        <div class="color-grid">
-          <div class="color-card" onclick="copyVar('--bg', '#f8fafc')">
-            <div class="color-swatch" style="background:#f8fafc;color:#0f172a">#f8fafc</div>
-            <div class="color-info">
-              <div class="color-name">Background</div>
-              <div class="color-var">--bg</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--surface', '#ffffff')">
-            <div class="color-swatch" style="background:#ffffff;color:#0f172a;border:1px solid var(--border)">#ffffff</div>
-            <div class="color-info">
-              <div class="color-name">Surface</div>
-              <div class="color-var">--surface</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--border', '#e2e8f0')">
-            <div class="color-swatch" style="background:#e2e8f0;color:#0f172a">#e2e8f0</div>
-            <div class="color-info">
-              <div class="color-name">Border</div>
-              <div class="color-var">--border</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--text', '#0f172a')">
-            <div class="color-swatch" style="background:#0f172a">#0f172a</div>
-            <div class="color-info">
-              <div class="color-name">Text</div>
-              <div class="color-var">--text</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--text-muted', '#64748b')">
-            <div class="color-swatch" style="background:#64748b">#64748b</div>
-            <div class="color-info">
-              <div class="color-name">Text Muted</div>
-              <div class="color-var">--text-muted</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--accent', '#0d9488')">
-            <div class="color-swatch" style="background:#0d9488">#0d9488</div>
-            <div class="color-info">
-              <div class="color-name">Accent</div>
-              <div class="color-var">--accent</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--accent-hover', '#0f766e')">
-            <div class="color-swatch" style="background:#0f766e">#0f766e</div>
-            <div class="color-info">
-              <div class="color-name">Accent Hover</div>
-              <div class="color-var">--accent-hover</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--danger', '#ef4444')">
-            <div class="color-swatch" style="background:#ef4444">#ef4444</div>
-            <div class="color-info">
-              <div class="color-name">Danger</div>
-              <div class="color-var">--danger</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--success', '#22c55e')">
-            <div class="color-swatch" style="background:#22c55e">#22c55e</div>
-            <div class="color-info">
-              <div class="color-name">Success</div>
-              <div class="color-var">--success</div>
-            </div>
-          </div>
-          <div class="color-card" onclick="copyVar('--warning', '#f59e0b')">
-            <div class="color-swatch" style="background:#f59e0b">#f59e0b</div>
-            <div class="color-info">
-              <div class="color-name">Warning</div>
-              <div class="color-var">--warning</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <!-- Style Guide Content -->
+      <div class="style-only">
+        
+        <!-- Colors -->
+        <section class="section" aria-labelledby="colors-heading">
+          <h2 id="colors-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 010 20" fill="none"/>
+            </svg>
+            Color Palette
+          </h2>
+          <p style="color:var(--text-muted);margin-bottom:16px;font-size:14px">Click any color to copy its CSS variable.</p>
+          <div class="color-grid" id="colorGrid"></div>
+        </section>
 
-      <!-- Typography -->
-      <section class="section">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
-          Typography
-        </h2>
-        <div class="type-sample h1">Heading 1 — 32px, 700</div>
-        <div class="type-sample h2">Heading 2 — 24px, 600</div>
-        <div class="type-sample h3">Heading 3 — 20px, 600</div>
-        <div class="type-sample body">Body text — 16px, regular weight, line-height 1.6</div>
-        <div class="type-sample muted">Muted text — same size, color var(--text-muted)</div>
-        <div class="type-sample mono">.mono { font-family: var(--font-mono); } — for code</div>
-        <p style="margin-top:16px;font-size:14px;color:var(--text-muted)">
-          Font stack: <code>system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif</code>
-        </p>
-      </section>
+        <!-- Typography -->
+        <section class="section" aria-labelledby="typo-heading">
+          <h2 id="typo-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M4 7h16M4 12h10M4 17h16"/>
+            </svg>
+            Typography
+          </h2>
+          <div class="type-sample h1">Heading 1 — 32px, 700</div>
+          <div class="type-sample h2">Heading 2 — 24px, 600</div>
+          <div class="type-sample h3">Heading 3 — 20px, 600</div>
+          <div class="type-sample body">Body text — 16px, regular weight, line-height 1.6</div>
+          <div class="type-sample muted">Muted text — same size, color var(--text-muted)</div>
+          <div class="type-sample mono">.mono { font-family: var(--font-mono); } — for code</div>
+          <p style="margin-top:16px;font-size:14px;color:var(--text-muted)">
+            Font stack: <code>system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif</code>
+          </p>
+        </section>
 
-      <!-- Components -->
-      <section class="section">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-          UI Components
-        </h2>
-        <div class="component-grid">
-          <div>
-            <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Buttons</p>
-            <button class="btn" onclick="toast('Primary clicked', 'success')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>
-              Primary
-            </button>
-            <button class="btn secondary" style="margin-top:8px" onclick="toast('Secondary clicked', 'success')">Secondary</button>
-            <button class="btn danger" style="margin-top:8px" onclick="toast('Danger clicked', 'warning')">Danger</button>
-          </div>
-          <div>
-            <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Input</p>
-            <input type="text" class="input" placeholder="Type something...">
-          </div>
-          <div>
-            <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Card</p>
-            <div class="card">
-              <strong style="display:block;margin-bottom:4px">Card Title</strong>
-              <span style="font-size:14px;color:var(--text-muted)">Card content goes here...</span>
+        <!-- Components -->
+        <section class="section" aria-labelledby="components-heading">
+          <h2 id="components-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+            </svg>
+            UI Components
+          </h2>
+          <div class="component-grid">
+            <div>
+              <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Buttons</p>
+              <button class="btn" data-toast="Primary clicked" data-toast-type="success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/></svg>
+                Primary
+              </button>
+              <button class="btn secondary" style="margin-top:8px" data-toast="Secondary clicked" data-toast-type="success">Secondary</button>
+              <button class="btn danger" style="margin-top:8px" data-toast="Danger clicked" data-toast-type="warning">Danger</button>
+            </div>
+            <div>
+              <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Input</p>
+              <input type="text" class="input" placeholder="Type something..." aria-label="Example input">
+            </div>
+            <div>
+              <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Card</p>
+              <div class="card">
+                <strong style="display:block;margin-bottom:4px">Card Title</strong>
+                <span style="font-size:14px;color:var(--text-muted)">Card content goes here...</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- SVG Icons -->
-      <section class="section">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/></svg>
-          SVG Icon Library
-        </h2>
-        <p style="color:var(--text-muted);margin-bottom:16px;font-size:14px">Click any icon to copy its SVG path.</p>
-        <div class="icon-grid">
-          <div class="icon-card" onclick="copySVG('home', '<path d=\'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z\'/><polyline points=\'9 22 9 12 15 12 15 22\'/>')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <div class="icon-name">home</div>
-          </div>
-          <div class="icon-card" onclick="copySVG('copy', '<rect x=\'9\' y=\'9\' width=\'13\' height=\'13\' rx=\'2\'/><path d=\'M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1\'/>')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            <div class="icon-name">copy</div>
-          </div>
-          <div class="icon-card" onclick="copySVG('check', '<polyline points=\'20 6 9 17 4 12\'/>')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            <div class="icon-name">check</div>
-          </div>
-          <div class="icon-card" onclick="copySVG('close', '<line x1=\'18\' y1=\'6\' x2=\'6\' y2=\'18\'/><line x1=\'6\' y1=\'6\' x2=\'18\' y2=\'18\'/>')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            <div class="icon-name">close</div>
-          </div>
-          <div class="icon-card" onclick="copySVG('settings', '<path d=\'M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\'/><circle cx=\'12\' cy=\'12\' r=\'3\'/>')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            <div class="icon-name">settings</div>
-          </div>
-          <div class="icon-card" onclick="copySVG('download', '<path d=\'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4\'/><polyline points=\'7 10 12 15 17 10\'/><line x1=\'12\' y1=\'15\' x2=\'12\' y2=\'3\'/>')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <div class="icon-name">download</div>
-          </div>
-        </div>
-      </section>
+        <!-- SVG Icons -->
+        <section class="section" aria-labelledby="icons-heading">
+          <h2 id="icons-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/>
+            </svg>
+            SVG Icon Library
+          </h2>
+          <p style="color:var(--text-muted);margin-bottom:16px;font-size:14px">Click any icon to copy its SVG path.</p>
+          <div class="icon-grid" id="iconGrid"></div>
+        </section>
 
-      <!-- CSS Variables Reference -->
-      <section class="section">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          CSS Variables Reference
-        </h2>
-        <div style="overflow-x:auto">
-          <table class="vars-table">
-            <thead>
-              <tr>
-                <th>Variable</th>
-                <th>Value</th>
-                <th>Usage</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td><code>--bg</code></td><td><code>#f8fafc</code></td><td>Page background</td></tr>
-              <tr><td><code>--surface</code></td><td><code>#ffffff</code></td><td>Cards, modals, inputs</td></tr>
-              <tr><td><code>--border</code></td><td><code>#e2e8f0</code></td><td>Borders, dividers</td></tr>
-              <tr><td><code>--text</code></td><td><code>#0f172a</code></td><td>Primary text color</td></tr>
-              <tr><td><code>--text-muted</code></td><td><code>#64748b</code></td><td>Secondary text</td></tr>
-              <tr><td><code>--accent</code></td><td><code>#0d9488</code></td><td>Primary actions, links</td></tr>
-              <tr><td><code>--accent-hover</code></td><td><code>#0f766e</code></td><td>Hover state for accent</td></tr>
-              <tr><td><code>--radius</code></td><td><code>12px</code></td><td>Border radius for cards</td></tr>
-              <tr><td><code>--shadow</code></td><td><code>0 1px 3px rgba(0,0,0,0.05)</code></td><td>Subtle card shadow</td></tr>
-              <tr><td><code>--font</code></td><td><code>system-ui, ...</code></td><td>Default font stack</td></tr>
-              <tr><td><code>--font-mono</code></td><td><code>'SF Mono', ...</code></td><td>Monospace for code</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+        <!-- CSS Variables Reference -->
+        <section class="section" aria-labelledby="vars-heading">
+          <h2 id="vars-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            CSS Variables Reference
+          </h2>
+          <div style="overflow-x:auto">
+            <table class="vars-table">
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Value</th>
+                  <th>Usage</th>
+                </tr>
+              </thead>
+              <tbody id="varsTable"></tbody>
+            </table>
+          </div>
+        </section>
 
-      <!-- Usage Guide -->
-      <section class="section">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          How to Use
-        </h2>
-        <ol style="padding-left:20px;font-size:14px">
-          <li style="margin-bottom:12px">Copy the <code>:root</code> block from this page's <code>&lt;style&gt;</code> into your project.</li>
-          <li style="margin-bottom:12px">Use variables like <code>color: var(--text)</code> instead of hard-coded values.</li>
-          <li style="margin-bottom:12px">For icons: copy the <code>&lt;path&gt;</code> from any icon card and wrap in <code>&lt;svg viewBox="0 0 24 24" ...&gt;</code>.</li>
-          <li>Keep the <code>toast()</code> function for consistent notifications across all SERAVIEL LABS tools.</li>
-        </ol>
-      </section>
+        <!-- Usage Guide -->
+        <section class="section" aria-labelledby="usage-heading">
+          <h2 id="usage-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            How to Use
+          </h2>
+          <ol style="padding-left:20px;font-size:14px">
+            <li style="margin-bottom:12px">Copy the <code>:root</code> block from this page's <code>&lt;style&gt;</code> into your project.</li>
+            <li style="margin-bottom:12px">Use variables like <code>color: var(--text)</code> instead of hard-coded values.</li>
+            <li style="margin-bottom:12px">For icons: copy the <code>&lt;path&gt;</code> from any icon card and wrap in <code>&lt;svg viewBox="0 0 24 24" ...&gt;</code>.</li>
+            <li>Keep the <code>toast()</code> function for consistent notifications across all SERAVIEL LABS tools.</li>
+          </ol>
+        </section>
 
-    </div>
+      </div>
+    </main>
   </div>
 
   <script>
-    // === Toast System ===
-    function toast(message, type = 'success', duration = 4000) {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-      const icons = {
-        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
-        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+    (function() {
+      'use strict';
+      
+      // === Конфигурация ===
+      const CONFIG = {
+        colors: [
+          { name: 'Background', var: '--bg', value: '#f8fafc', text: '#0f172a' },
+          { name: 'Surface', var: '--surface', value: '#ffffff', text: '#0f172a', border: '1px solid var(--border)' },
+          { name: 'Border', var: '--border', value: '#e2e8f0', text: '#0f172a' },
+          { name: 'Text', var: '--text', value: '#0f172a', text: '#ffffff' },
+          { name: 'Text Muted', var: '--text-muted', value: '#64748b', text: '#ffffff' },
+          { name: 'Accent', var: '--accent', value: '#0d9488', text: '#ffffff' },
+          { name: 'Accent Hover', var: '--accent-hover', value: '#0f766e', text: '#ffffff' },
+          { name: 'Danger', var: '--danger', value: '#ef4444', text: '#ffffff' },
+          { name: 'Success', var: '--success', value: '#22c55e', text: '#ffffff' },
+          { name: 'Warning', var: '--warning', value: '#f59e0b', text: '#ffffff' }
+        ],
+        icons: [
+          { name: 'home', path: '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
+          { name: 'copy', path: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>' },
+          { name: 'check', path: '<polyline points="20 6 9 17 4 12"/>' },
+          { name: 'close', path: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>' },
+          { name: 'settings', path: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>' },
+          { name: 'download', path: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>' }
+        ],
+        vars: [
+          { var: '--bg', value: '#f8fafc', usage: 'Page background' },
+          { var: '--surface', value: '#ffffff', usage: 'Cards, modals, inputs' },
+          { var: '--border', value: '#e2e8f0', usage: 'Borders, dividers' },
+          { var: '--text', value: '#0f172a', usage: 'Primary text color' },
+          { var: '--text-muted', value: '#64748b', usage: 'Secondary text' },
+          { var: '--accent', value: '#0d9488', usage: 'Primary actions, links' },
+          { var: '--accent-hover', value: '#0f766e', usage: 'Hover state for accent' },
+          { var: '--radius', value: '12px', usage: 'Border radius for cards' },
+          { var: '--shadow', value: '0 1px 3px rgba(0,0,0,0.05)', usage: 'Subtle card shadow' },
+          { var: '--font', value: 'system-ui, ...', usage: 'Default font stack' },
+          { var: '--font-mono', value: "'SF Mono', ...", usage: 'Monospace for code' }
+        ]
       };
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      el.innerHTML = `${icons[type] || icons.success}<div class="toast-content">${message}</div><button class="toast-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
-      el.querySelector('.toast-close').onclick = () => { el.style.animation = 'toastOut 0.3s ease-out forwards'; setTimeout(() => el.remove(), 300); };
-      container.appendChild(el);
-      const timer = setTimeout(() => { el.style.animation = 'toastOut 0.3s ease-out forwards'; setTimeout(() => el.remove(), 300); }, duration);
-      el.onmouseenter = () => clearTimeout(timer);
-    }
 
-    // === Copy Functions ===
-    function copyVar(name, value) {
-      navigator.clipboard.writeText(`${name}: ${value}`).then(() => {
-        toast(`Copied ${name}`, 'success');
-      }).catch(() => toast('Copy failed', 'error'));
-    }
-
-    function copySVG(name, path) {
-      const svg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${path}</svg>`;
-      navigator.clipboard.writeText(svg).then(() => {
-        toast(`Copied ${name} icon`, 'success');
-      }).catch(() => toast('Copy failed', 'error'));
-    }
-
-    // === Query Param Detection (for ?style mode) ===
-    function initMode() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('style')) {
-        document.body.classList.add('style-mode');
-        document.title = 'Style Guide | SERAVIEL LABS';
+      // === Утилиты ===
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
       }
-    }
 
-    // === Init ===
-    initMode();
-    toast('Style Guide loaded', 'success', 3000);
+      // === Toast System (без XSS) ===
+      const Toast = {
+        container: null,
+        init() {
+          this.container = document.getElementById('toast-container');
+        },
+        show(message, type = 'success', duration = 4000) {
+          if (!this.container) return;
+          const icons = {
+            success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+            error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+            warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+          };
+          const el = document.createElement('div');
+          el.className = `toast ${type}`;
+          el.setAttribute('role', 'alert');
+          el.innerHTML = `
+            ${icons[type] || icons.success}
+            <div class="toast-content">${escapeHtml(message)}</div>
+            <button class="toast-close" aria-label="Закрыть">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          `;
+          el.querySelector('.toast-close').addEventListener('click', () => this.remove(el));
+          this.container.appendChild(el);
+          requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateX(0)';
+          });
+          const timer = setTimeout(() => this.remove(el), duration);
+          el.addEventListener('mouseenter', () => clearTimeout(timer));
+        },
+        remove(el) {
+          el.style.animation = 'toastOut 0.3s ease-out forwards';
+          setTimeout(() => el.remove(), 300);
+        }
+      };
+
+      // === Копирование в буфер ===
+      async function copyToClipboard(text, successMsg) {
+        try {
+          await navigator.clipboard.writeText(text);
+          Toast.show(successMsg, 'success', 2000);
+        } catch {
+          // Fallback
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.left = '-9999px';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          try {
+            document.execCommand('copy');
+            Toast.show(successMsg + ' (fallback)', 'success', 2000);
+          } catch {
+            Toast.show('Copy failed', 'error');
+          }
+          document.body.removeChild(textarea);
+        }
+      }
+
+      // === Рендеринг цветов ===
+      function renderColors() {
+        const grid = document.getElementById('colorGrid');
+        CONFIG.colors.forEach(color => {
+          const card = document.createElement('div');
+          card.className = 'color-card';
+          card.setAttribute('tabindex', '0');
+          card.setAttribute('role', 'button');
+          card.setAttribute('aria-label', `Copy CSS variable ${color.var}`);
+          card.dataset.var = color.var;
+          card.dataset.value = color.value;
+          
+          const swatch = document.createElement('div');
+          swatch.className = 'color-swatch';
+          swatch.style.background = color.value;
+          swatch.style.color = color.text;
+          if (color.border) swatch.style.border = color.border;
+          swatch.textContent = color.value;
+          
+          const info = document.createElement('div');
+          info.className = 'color-info';
+          info.innerHTML = `<div class="color-name">${color.name}</div><div class="color-var">${color.var}</div>`;
+          
+          card.appendChild(swatch);
+          card.appendChild(info);
+          grid.appendChild(card);
+        });
+      }
+
+      // === Рендеринг иконок ===
+      function renderIcons() {
+        const grid = document.getElementById('iconGrid');
+        CONFIG.icons.forEach(icon => {
+          const card = document.createElement('div');
+          card.className = 'icon-card';
+          card.setAttribute('tabindex', '0');
+          card.setAttribute('role', 'button');
+          card.setAttribute('aria-label', `Copy ${icon.name} icon SVG`);
+          card.dataset.icon = icon.name;
+          card.dataset.path = icon.path;
+          
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('viewBox', '0 0 24 24');
+          svg.setAttribute('fill', 'none');
+          svg.setAttribute('stroke', 'currentColor');
+          svg.setAttribute('stroke-width', '2');
+          svg.innerHTML = icon.path;
+          
+          const name = document.createElement('div');
+          name.className = 'icon-name';
+          name.textContent = icon.name;
+          
+          card.appendChild(svg);
+          card.appendChild(name);
+          grid.appendChild(card);
+        });
+      }
+
+      // === Рендеринг таблицы переменных ===
+      function renderVarsTable() {
+        const tbody = document.getElementById('varsTable');
+        CONFIG.vars.forEach(v => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>${v.var}</code></td>
+            <td><code>${v.value}</code></td>
+            <td>${v.usage}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // === Инициализация событий ===
+      function initEvents() {
+        // Копирование цветов
+        document.getElementById('colorGrid').addEventListener('click', (e) => {
+          const card = e.target.closest('.color-card');
+          if (!card) return;
+          const v = card.dataset.var;
+          const val = card.dataset.value;
+          copyToClipboard(`${v}: ${val}`, `Copied ${v}`);
+        });
+        document.getElementById('colorGrid').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const card = e.target.closest('.color-card');
+            if (!card) return;
+            card.click();
+          }
+        });
+        
+        // Копирование иконок
+        document.getElementById('iconGrid').addEventListener('click', (e) => {
+          const card = e.target.closest('.icon-card');
+          if (!card) return;
+          const name = card.dataset.icon;
+          const path = card.dataset.path;
+          const svg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${path}</svg>`;
+          copyToClipboard(svg, `Copied ${name} icon`);
+        });
+        document.getElementById('iconGrid').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const card = e.target.closest('.icon-card');
+            if (!card) return;
+            card.click();
+          }
+        });
+        
+        // Кнопки с тостами
+        document.querySelectorAll('[data-toast]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            Toast.show(btn.dataset.toast, btn.dataset.toastType || 'success');
+          });
+        });
+      }
+
+      // === Тема ===
+      function initTheme() {
+        const saved = localStorage.getItem('seraviel-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+        
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('seraviel-theme', next);
+          updateThemeIcon(next);
+          Toast.show(`Theme: ${next}`, 'success', 1500);
+        });
+      }
+      
+      function updateThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        icon.innerHTML = theme === 'dark' 
+          ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+          : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      }
+
+      // === Query Param Detection ===
+      function initMode() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('style')) {
+          document.body.classList.add('style-mode');
+          document.title = 'Style Guide | SERAVIEL LABS';
+        }
+      }
+
+      // === Init ===
+      function init() {
+        Toast.init();
+        initTheme();
+        initMode();
+        renderColors();
+        renderIcons();
+        renderVarsTable();
+        initEvents();
+        Toast.show('Style Guide loaded', 'success', 3000);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
   </script>
 </body>
 </html>

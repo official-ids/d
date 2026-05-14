@@ -11,45 +11,74 @@
       --bg: #f8fafc; --surface: #fff; --text: #0f172a;
       --text-muted: #64748b; --accent: #0d9488; --border: #e2e8f0;
       --radius: 12px; --font: system-ui, sans-serif;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a; --surface: #1e293b; --text: #f8fafc;
+      --text-muted: #94a3b8; --accent: #2dd4bf; --border: #334155;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.3);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
-    header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
-    .logo { font-weight: 700; font-size: 16px; text-decoration: none; color: var(--text); display: flex; align-items: center; gap: 10px; }
+    body {
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      transition: background 0.3s, color 0.3s;
+    }
+    header {
+      height: 60px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-weight: 700; font-size: 16px; text-decoration: none; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
     .logo svg { width: 20px; height: 20px; stroke: var(--accent); }
-    nav a { margin-left: 16px; text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500; }
+    nav a {
+      margin-left: 16px; text-decoration: none; color: var(--text-muted);
+      font-size: 14px; font-weight: 500;
+    }
     nav a:hover, nav a.active { color: var(--accent); }
-    main { flex: 1; padding: 40px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+    main {
+      flex: 1; padding: 40px 24px; max-width: 900px; margin: 0 auto; width: 100%;
+    }
     h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
     .subtitle { color: var(--text-muted); margin-bottom: 24px; }
     
-    /* Filters */
     .filters { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
     .filter-btn {
       padding: 6px 14px; border: 1px solid var(--border); background: var(--surface);
       border-radius: 20px; font-size: 13px; color: var(--text-muted); cursor: pointer;
       transition: all 0.2s;
     }
-    .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: #f0fdfa; }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--accent); color: var(--accent); background: rgba(13,148,136,0.1);
+    }
+    .filter-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     
-    /* Grid */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
     .card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 20px; text-decoration: none; color: inherit; transition: transform 0.2s, border-color 0.2s;
-      position: relative;
+      position: relative; outline: none;
     }
     .card:hover { transform: translateY(-2px); border-color: var(--accent); }
-    .card.pinned { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(13,148,136,0.1); }
+    .card.pinned { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+    .card:focus-visible {
+      box-shadow: 0 0 0 3px var(--accent);
+      z-index: 1;
+    }
     
     .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
     .card-title { font-weight: 600; font-size: 16px; }
     .card-actions { display: flex; gap: 4px; }
     .card-actions button {
-      background: none; border: none; padding: 4px; cursor: pointer; opacity: 0.6;
-      transition: opacity 0.2s; display: flex; align-items: center;
+      background: none; border: none; padding: 4px; cursor: pointer; opacity: 0.7;
+      transition: opacity 0.2s; display: flex; align-items: center; border-radius: 4px;
     }
-    .card-actions button:hover { opacity: 1; }
+    .card-actions button:hover { opacity: 1; background: var(--bg); }
+    .card-actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .card-actions svg { width: 16px; height: 16px; stroke: var(--text-muted); }
     
     .card-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
@@ -59,22 +88,51 @@
       border-radius: 12px; text-transform: capitalize;
     }
     .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-    .tag { font-size: 11px; padding: 2px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; color: var(--text-muted); }
+    .tag {
+      font-size: 11px; padding: 2px 8px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 20px; color: var(--text-muted);
+    }
     
-    .empty { text-align: center; padding: 40px; color: var(--text-muted); background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
-    footer { text-align: center; padding: 24px; font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); }
+    .empty, .loading {
+      text-align: center; padding: 40px; color: var(--text-muted);
+      background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius);
+    }
+    .loading svg { animation: spin 1s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    footer {
+      text-align: center; padding: 24px; font-size: 13px; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
     
     @media (max-width: 600px) {
       .filters { gap: 6px; }
       .filter-btn { padding: 6px 12px; font-size: 12px; }
     }
     .toast-container { bottom: 24px !important; top: auto !important; }
+    
+    /* Анимация появления карточек */
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card { animation: cardIn 0.3s ease-out forwards; }
+    .card:nth-child(1) { animation-delay: 0ms; }
+    .card:nth-child(2) { animation-delay: 50ms; }
+    .card:nth-child(3) { animation-delay: 100ms; }
+    .card:nth-child(4) { animation-delay: 150ms; }
+    .card:nth-child(5) { animation-delay: 200ms; }
+    .card:nth-child(n+6) { animation-delay: 250ms; }
   </style>
 </head>
 <body>
   <header>
     <a href="/" class="logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
       SERAVIEL LABS
     </a>
     <nav>
@@ -83,187 +141,391 @@
       <a href="/presentation" class="active">Presentations</a>
     </nav>
   </header>
+  
   <main>
     <h1 data-i18n="presentations.title">Presentations</h1>
     <p class="subtitle" data-i18n="presentations.subtitle">Интерактивные демонстрации инструментов и концепций лаборатории.</p>
     
-    <div class="filters" id="filters"></div>
-    <div class="grid" id="pres-grid"></div>
+    <div class="filters" id="filters" role="tablist" aria-label="Filter presentations"></div>
+    <div class="grid" id="pres-grid" aria-live="polite"></div>
   </main>
+  
   <footer>© 2024–2026 SERAVIEL LABS</footer>
 
   <script>
-    // === Simple i18n (free, no deps) ===
-    const i18n = {
-      ru: {
-        "presentations.title": "Презентации",
-        "presentations.subtitle": "Интерактивные демонстрации инструментов и концепций лаборатории.",
-        "filter.all": "Все",
-        "filter.school-project": "Учебные",
-        "filter.community": "Сообщество",
-        "filter.tutorial": "Обучение",
-        "filter.demo": "Демо",
-        "filter.general": "Общее",
-        "action.share": "Поделиться",
-        "action.pin": "Закрепить",
-        "action.unpin": "Открепить",
-        "toast.copied": "Ссылка скопирована",
-        "toast.pinned": "Презентация закреплена",
-        "toast.unpinned": "Презентация откреплена"
-      },
-      en: {
-        "presentations.title": "Presentations",
-        "presentations.subtitle": "Interactive demos of tools and concepts from the lab.",
-        "filter.all": "All",
-        "filter.school-project": "School",
-        "filter.community": "Community",
-        "filter.tutorial": "Tutorial",
-        "filter.demo": "Demo",
-        "filter.general": "General",
-        "action.share": "Share",
-        "action.pin": "Pin",
-        "action.unpin": "Unpin",
-        "toast.copied": "Link copied",
-        "toast.pinned": "Presentation pinned",
-        "toast.unpinned": "Presentation unpinned"
+    (function() {
+      'use strict';
+      
+      // === SVG Icons (inline, no emojis) ===
+      const ICONS = {
+        logo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+        share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+        pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>',
+        pinFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>',
+        loader: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2a10 10 0 0 1 10 10"/></svg>',
+        error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'
+      };
+
+      // === i18n ===
+      const i18n = {
+        ru: {
+          "presentations.title": "Презентации",
+          "presentations.subtitle": "Интерактивные демонстрации инструментов и концепций лаборатории.",
+          "filter.all": "Все",
+          "filter.school-project": "Учебные",
+          "filter.community": "Сообщество",
+          "filter.tutorial": "Обучение",
+          "filter.demo": "Демо",
+          "filter.general": "Общее",
+          "action.share": "Поделиться",
+          "action.pin": "Закрепить",
+          "action.unpin": "Открепить",
+          "toast.copied": "Ссылка скопирована",
+          "toast.pinned": "Презентация закреплена",
+          "toast.unpinned": "Презентация откреплена",
+          "empty": "Нет презентаций в этой категории",
+          "error": "Не удалось загрузить каталог"
+        },
+        en: {
+          "presentations.title": "Presentations",
+          "presentations.subtitle": "Interactive demos of tools and concepts from the lab.",
+          "filter.all": "All",
+          "filter.school-project": "School",
+          "filter.community": "Community",
+          "filter.tutorial": "Tutorial",
+          "filter.demo": "Demo",
+          "filter.general": "General",
+          "action.share": "Share",
+          "action.pin": "Pin",
+          "action.unpin": "Unpin",
+          "toast.copied": "Link copied",
+          "toast.pinned": "Presentation pinned",
+          "toast.unpinned": "Presentation unpinned",
+          "empty": "No presentations in this category",
+          "error": "Failed to load catalog"
+        }
+      };
+      
+      function getLang() {
+        const param = new URLSearchParams(location.search).get('lang');
+        if (param && i18n[param]) return param;
+        const nav = navigator.language?.split('-')[0] || 'ru';
+        return i18n[nav] ? nav : 'ru';
       }
-    };
-    
-    function t(key) {
-      const lang = new URLSearchParams(location.search).get('lang') || navigator.language.split('-')[0] || 'ru';
-      return i18n[lang]?.[key] || i18n.ru[key] || key;
-    }
-    
-    function applyI18n() {
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.dataset.i18n;
-        if (t(key)) el.textContent = t(key);
-      });
-    }
-
-    // === Pinned Presentations (localStorage) ===
-    const PINNED_KEY = 'seraviel_pinned_presentations';
-    function getPinned() {
-      try { return JSON.parse(localStorage.getItem(PINNED_KEY)) || []; }
-      catch { return []; }
-    }
-    function togglePin(id) {
-      const pinned = getPinned();
-      const idx = pinned.indexOf(id);
-      if (idx === -1) pinned.push(id);
-      else pinned.splice(idx, 1);
-      localStorage.setItem(PINNED_KEY, JSON.stringify(pinned));
-      return pinned.includes(id);
-    }
-
-    // === Share (Web Share API + fallback) ===
-    async function sharePresentation(title, path) {
-      const url = location.origin + path;
-      if (navigator.share) {
-        try {
-          await navigator.share({ title, text: title, url });
-          return true;
-        } catch(e) { if (e.name !== 'AbortError') throw e; }
+      
+      function t(key) {
+        const lang = getLang();
+        return i18n[lang]?.[key] || i18n.ru[key] || key;
       }
-      // Fallback: copy link
-      await navigator.clipboard.writeText(url);
-      if (window.toast) toast.success(t('toast.copied'));
-      return true;
-    }
-
-    // === Render ===
-    let allPresentations = [];
-    let currentFilter = 'all';
-
-    function renderFilters(categories) {
-      const container = document.getElementById('filters');
-      const filters = ['all', ...categories];
-      container.innerHTML = filters.map(cat => `
-        <button class="filter-btn ${cat === currentFilter ? 'active' : ''}" 
-                data-filter="${cat}">${t('filter.' + cat) || cat}</button>
-      `).join('');
-      container.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          currentFilter = btn.dataset.filter;
-          container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          renderGrid();
+      
+      function applyI18n() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.dataset.i18n;
+          const text = t(key);
+          if (text) el.textContent = text;
         });
-      });
-    }
-
-    function renderGrid() {
-      const grid = document.getElementById('pres-grid');
-      const pinned = getPinned();
-      const filtered = currentFilter === 'all' 
-        ? allPresentations 
-        : allPresentations.filter(p => p.category === currentFilter);
-      
-      // Sort: pinned first
-      filtered.sort((a, b) => {
-        const aPinned = pinned.includes(a.id) ? 1 : 0;
-        const bPinned = pinned.includes(b.id) ? 1 : 0;
-        return bPinned - aPinned;
-      });
-      
-      if (filtered.length === 0) {
-        grid.innerHTML = `<div class="empty">${t('empty')}</div>`;
-        return;
       }
-      
-      grid.innerHTML = filtered.map(p => {
-        const isPinned = pinned.includes(p.id);
-        return `
-          <a href="${p.path}" class="card ${isPinned ? 'pinned' : ''}">
-            <div class="card-header">
-              <div class="card-title">${p.title}</div>
-              <div class="card-actions">
-                <button onclick="event.preventDefault(); sharePresentation('${p.title.replace(/'/g, "\\'")}', '${p.path}')" title="${t('action.share')}">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                </button>
-                <button onclick="event.preventDefault(); togglePinCard('${p.id}', this)" title="${isPinned ? t('action.unpin') : t('action.pin')}">
-                  <svg viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="card-desc">${p.description}</div>
-            <div class="card-meta">
-              <span class="category-badge">${p.category}</span>
-              ${p.tags?.length ? `<span>• ${p.tags.slice(0,2).join(', ')}</span>` : ''}
-            </div>
-            ${p.tags?.length > 2 ? `<div class="tags">${p.tags.slice(2).map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
-          </a>
-        `;
-      }).join('');
-    }
 
-    window.togglePinCard = function(id, btn) {
-      const isPinned = togglePin(id);
-      btn.querySelector('svg').setAttribute('fill', isPinned ? 'currentColor' : 'none');
-      btn.setAttribute('title', isPinned ? t('action.unpin') : t('action.pin'));
-      btn.closest('.card').classList.toggle('pinned', isPinned);
-      if (window.toast) toast.success(isPinned ? t('toast.pinned') : t('toast.unpinned'));
-    };
+      // === Pinned (localStorage) ===
+      const PINNED_KEY = 'seraviel_pinned_presentations';
+      function getPinned() {
+        try {
+          const raw = localStorage.getItem(PINNED_KEY);
+          return raw ? JSON.parse(raw) : [];
+        } catch { return []; }
+      }
+      function setPinned(ids) {
+        try { localStorage.setItem(PINNED_KEY, JSON.stringify(ids)); } catch {}
+      }
+      function togglePin(id) {
+        const pinned = getPinned();
+        const idx = pinned.indexOf(id);
+        if (idx === -1) pinned.push(id);
+        else pinned.splice(idx, 1);
+        setPinned(pinned);
+        return pinned.includes(id);
+      }
 
-    // === Init ===
-    fetch('/presentation/presentation-manifest.json')
-      .then(r => r.json())
-      .then(data => {
-        if (!data.presentations || data.presentations.length === 0) {
-          document.getElementById('pres-grid').innerHTML = `<div class="empty">${t('empty')}</div>`;
+      // === Валидация и санитизация ссылок ===
+      function isValidPath(path) {
+        if (!path || typeof path !== 'string') return false;
+        if (path.startsWith('javascript:') || path.startsWith('data:') || path.startsWith('vbscript:')) return false;
+        if (path.startsWith('http')) {
+          try {
+            const url = new URL(path);
+            return url.protocol === 'https:' || url.hostname === location.hostname;
+          } catch { return false; }
+        }
+        return path.startsWith('/') || path.startsWith('./') || path.startsWith('../');
+      }
+
+      // === Share ===
+      async function sharePresentation(title, path) {
+        if (!isValidPath(path)) {
+          if (window.toast) toast.error('Invalid link');
           return;
         }
-        allPresentations = data.presentations;
-        const categories = [...new Set(allPresentations.map(p => p.category))];
-        renderFilters(categories);
-        renderGrid();
-        applyI18n();
-      })
-      .catch(() => {
-        document.getElementById('pres-grid').innerHTML = `<div class="empty">${t('error')}</div>`;
-      });
+        const url = location.origin + (path.startsWith('/') ? path : '/' + path);
+        try {
+          if (navigator.share) {
+            await navigator.share({ title, text: title, url });
+            return;
+          }
+        } catch (e) {
+          if (e.name !== 'AbortError') console.warn('Web Share failed:', e);
+        }
+        try {
+          await navigator.clipboard.writeText(url);
+          if (window.toast) toast.success(t('toast.copied'));
+        } catch {
+          if (window.toast) toast.error('Copy failed');
+        }
+      }
 
-    if (window.toast) toast.config({ position: 'bottom-center', duration: 2000 });
+      // === Рендеринг карточки (без innerHTML) ===
+      function createCard(p, index) {
+        const pinned = getPinned();
+        const isPinned = pinned.includes(p.id);
+        
+        const card = document.createElement('a');
+        card.className = 'card' + (isPinned ? ' pinned' : '');
+        card.href = isValidPath(p.path) ? p.path : '#';
+        card.rel = 'noopener noreferrer';
+        card.setAttribute('role', 'listitem');
+        card.setAttribute('tabindex', '0');
+        card.dataset.id = p.id;
+        card.style.animationDelay = `${Math.min(index * 50, 250)}ms`;
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'card-header';
+        
+        const title = document.createElement('div');
+        title.className = 'card-title';
+        title.textContent = p.title || 'Untitled';
+        
+        const actions = document.createElement('div');
+        actions.className = 'card-actions';
+        
+        // Share button
+        const shareBtn = document.createElement('button');
+        shareBtn.type = 'button';
+        shareBtn.setAttribute('aria-label', t('action.share'));
+        shareBtn.setAttribute('title', t('action.share'));
+        shareBtn.innerHTML = ICONS.share;
+        shareBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          sharePresentation(p.title, p.path);
+        });
+        
+        // Pin button
+        const pinBtn = document.createElement('button');
+        pinBtn.type = 'button';
+        pinBtn.setAttribute('aria-label', isPinned ? t('action.unpin') : t('action.pin'));
+        pinBtn.setAttribute('title', isPinned ? t('action.unpin') : t('action.pin'));
+        pinBtn.innerHTML = isPinned ? ICONS.pinFilled : ICONS.pin;
+        pinBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const nowPinned = togglePin(p.id);
+          pinBtn.innerHTML = nowPinned ? ICONS.pinFilled : ICONS.pin;
+          pinBtn.setAttribute('aria-label', nowPinned ? t('action.unpin') : t('action.pin'));
+          pinBtn.setAttribute('title', nowPinned ? t('action.unpin') : t('action.pin'));
+          card.classList.toggle('pinned', nowPinned);
+          if (window.toast) {
+            toast.success(nowPinned ? t('toast.pinned') : t('toast.unpinned'));
+          }
+        });
+        
+        actions.appendChild(shareBtn);
+        actions.appendChild(pinBtn);
+        header.appendChild(title);
+        header.appendChild(actions);
+        
+        // Description
+        const desc = document.createElement('div');
+        desc.className = 'card-desc';
+        desc.textContent = p.description || '';
+        
+        // Meta
+        const meta = document.createElement('div');
+        meta.className = 'card-meta';
+        
+        const badge = document.createElement('span');
+        badge.className = 'category-badge';
+        badge.textContent = p.category || 'general';
+        meta.appendChild(badge);
+        
+        if (p.tags && p.tags.length > 0) {
+          const sep = document.createElement('span');
+          sep.textContent = '•';
+          meta.appendChild(sep);
+          const tagsText = document.createElement('span');
+          tagsText.textContent = p.tags.slice(0, 2).join(', ');
+          meta.appendChild(tagsText);
+        }
+        
+        // Extra tags
+        if (p.tags && p.tags.length > 2) {
+          const tagsWrap = document.createElement('div');
+          tagsWrap.className = 'tags';
+          p.tags.slice(2).forEach(tag => {
+            const tagEl = document.createElement('span');
+            tagEl.className = 'tag';
+            tagEl.textContent = tag;
+            tagsWrap.appendChild(tagEl);
+          });
+          card.appendChild(header);
+          card.appendChild(desc);
+          card.appendChild(meta);
+          card.appendChild(tagsWrap);
+        } else {
+          card.appendChild(header);
+          card.appendChild(desc);
+          card.appendChild(meta);
+        }
+        
+        // Keyboard: Space to preview (placeholder)
+        card.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            // Здесь можно открыть модальное превью
+            sharePresentation(p.title, p.path);
+          }
+        });
+        
+        return card;
+      }
+
+      // === Рендер сетки ===
+      function renderGrid(presentations, filter) {
+        const grid = document.getElementById('pres-grid');
+        grid.innerHTML = '';
+        
+        const pinned = getPinned();
+        let filtered = filter === 'all' 
+          ? presentations 
+          : presentations.filter(p => p.category === filter);
+        
+        // Сортировка: закреплённые первыми
+        filtered.sort((a, b) => {
+          const aPin = pinned.includes(a.id) ? 1 : 0;
+          const bPin = pinned.includes(b.id) ? 1 : 0;
+          return bPin - aPin;
+        });
+        
+        if (filtered.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.innerHTML = ICONS.error + '<div>' + t('empty') + '</div>';
+          grid.appendChild(empty);
+          return;
+        }
+        
+        filtered.forEach((p, i) => {
+          grid.appendChild(createCard(p, i));
+        });
+      }
+
+      // === Фильтры ===
+      function renderFilters(categories) {
+        const container = document.getElementById('filters');
+        container.innerHTML = '';
+        const filters = ['all', ...categories];
+        
+        filters.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.className = 'filter-btn' + (cat === 'all' ? ' active' : '');
+          btn.setAttribute('role', 'tab');
+          btn.setAttribute('aria-selected', cat === 'all' ? 'true' : 'false');
+          btn.textContent = t('filter.' + cat) || cat;
+          btn.dataset.filter = cat;
+          btn.addEventListener('click', () => {
+            container.querySelectorAll('.filter-btn').forEach(b => {
+              b.classList.remove('active');
+              b.setAttribute('aria-selected', 'false');
+            });
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+            renderGrid(allPresentations, cat);
+          });
+          container.appendChild(btn);
+        });
+      }
+
+      // === Загрузка манифеста с кэшем ===
+      const MANIFEST_URL = '/presentation/presentation-manifest.json';
+      const CACHE_KEY = 'seraviel_pres_cache';
+      const CACHE_TTL = 5 * 60 * 1000;
+      let allPresentations = [];
+
+      async function loadManifest() {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          try {
+            const { data, ts } = JSON.parse(cached);
+            if (Date.now() - ts < CACHE_TTL) return data;
+          } catch {}
+        }
+        const res = await fetch(MANIFEST_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+        return data;
+      }
+
+      // === Инициализация ===
+      async function init() {
+        // Тема
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        const isDark = savedTheme ? savedTheme === 'dark' : prefersDark.matches;
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        
+        // Toast config
+        if (window.toast) {
+          toast.config({
+            position: 'bottom-center',
+            duration: 2500,
+            theme: isDark ? 'dark' : 'light',
+            pauseOnHover: true
+          });
+        }
+        
+        // Загрузка данных
+        const loading = document.createElement('div');
+        loading.className = 'loading';
+        loading.innerHTML = ICONS.loader + '<div>Loading...</div>';
+        document.getElementById('pres-grid').appendChild(loading);
+        
+        try {
+          const data = await loadManifest();
+          if (!data?.presentations?.length) throw new Error('Empty');
+          allPresentations = data.presentations;
+          const categories = [...new Set(allPresentations.map(p => p.category).filter(Boolean))];
+          renderFilters(categories);
+          renderGrid(allPresentations, 'all');
+          applyI18n();
+        } catch (err) {
+          console.error('Load failed:', err);
+          const grid = document.getElementById('pres-grid');
+          grid.innerHTML = '';
+          const errBox = document.createElement('div');
+          errBox.className = 'empty';
+          errBox.innerHTML = ICONS.error + '<div>' + t('error') + '</div>';
+          grid.appendChild(errBox);
+          if (window.toast) toast.error(t('error'), { duration: 5000 });
+        }
+      }
+
+      // Запуск
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
   </script>
 </body>
 </html>

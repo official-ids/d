@@ -84,6 +84,52 @@
       flex-direction: column;
     }
 
+
+    /* === Dark Theme Support === */
+[data-theme="dark"] {
+  --bg: #0f172a; --surface: #1e293b; --border: #334155;
+  --text: #f8fafc; --text-muted: #94a3b8;
+  --accent: #2dd4bf; --accent-hover: #14b8a6;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* === Reduced Motion === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .site-notice { animation: none !important; }
+}
+
+/* === Focus Visible === */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* === Screen Reader Only === */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* === Responsive Fixes === */
+@media (max-width: 600px) {
+  .notice-content { flex-wrap: wrap; gap: 10px; }
+  .notice-text { width: 100%; text-align: center; }
+  .notice-close { margin: 0 auto; }
+  .btn-outline { width: 100%; justify-content: center; }
+}
+
+
     /* === Site Notice Banner === */
     .site-notice {
       position: fixed;
@@ -407,10 +453,26 @@
 </head>
 
 <body>
+  <!-- Skip link для доступности -->
+  <a href="#main" class="skip-link" style="position:absolute;top:-40px;left:0;background:var(--accent);color:white;padding:8px 16px;z-index:10001;text-decoration:none;border-radius:0 0 8px 8px;transition:top 0.2s">Перейти к основному содержимому</a>
+  <style>.skip-link:focus{top:0;outline:2px solid white;outline-offset:2px}</style>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="themeToggle" aria-label="Переключить тему" style="position:absolute;top:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:8px;border-radius:8px;cursor:pointer;color:var(--text);display:flex;align-items:center;z-index:9999">
+    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+      <circle cx="12" cy="12" r="5"/>
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  </button>
+  <style>
+    .theme-toggle:hover{background:var(--bg)}.theme-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    @media(max-width:600px){.theme-toggle{top:16px;right:16px}}
+  </style>
+
   <!-- === NOTICE BANNER: Project Continues === -->
-  <div class="site-notice" id="siteNotice">
+  <div class="site-notice" id="siteNotice" role="status" aria-live="polite">
     <div class="notice-content">
-      <div class="notice-icon">
+      <div class="notice-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
           <circle cx="12" cy="12" r="4"/>
@@ -420,60 +482,64 @@
         <strong>Проект продолжается</strong>
         <span>SERAVIEL LABS активно развивается. Все инструменты работают, обновления выходят регулярно.</span>
       </div>
-      <button class="notice-close" onclick="hideBanner()" aria-label="Закрыть">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      <button class="notice-close" id="bannerClose" aria-label="Закрыть уведомление">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
   </div>
 
-  <!-- === INFO: Project Status === -->
-<section class="archive-section">
-  <div class="archive-card">
-    <h3>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-      Все инструменты доступны
-    </h3>
-    <p>
-      <span id="app-count">26</span> веб-утилит для разработчиков и дизайнеров. Работают полностью в браузере, без установки.
-    </p>
-    <ul class="archive-list">
-      <li class="check">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        Генераторы: цвета, хеши, QR, JSON, favicon
-      </li>
-      <li class="check">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        Инструменты: Palette, Shadow Studio, Typing Trainer
-      </li>
-      <li class="check">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        Полностью бесплатно, без рекламы, без регистрации
-      </li>
-    </ul>
-    <a href="/list" class="btn-outline">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      Перейти к каталогу
-    </a>
-  </div>
-</section>
+  <main id="main">
+    <!-- === INFO: Project Status === -->
+    <section class="archive-section" aria-labelledby="status-heading">
+      <div class="archive-card">
+        <h3 id="status-heading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Все инструменты доступны
+        </h3>
+        <p>
+          <span id="app-count">26</span> веб-утилит для разработчиков и дизайнеров. Работают полностью в браузере, без установки.
+        </p>
+        <ul class="archive-list">
+          <li class="check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Генераторы: цвета, хеши, QR, JSON, favicon
+          </li>
+          <li class="check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Инструменты: Palette, Shadow Studio, Typing Trainer
+          </li>
+          <li class="check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Полностью бесплатно, без рекламы, без регистрации
+          </li>
+        </ul>
+        <a href="/list" class="btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          Перейти к каталогу
+        </a>
+      </div>
+    </section>
 
-  <!-- === CONTACT: Where We Are === -->
-  <section class="contact-section">
-    <p>Следите за обновлениями:</p>
-    <a href="https://t.me/@seraviellex" target="_blank" rel="noopener" class="contact-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><path d="M22 2L15 22L11 13L2 9L22 2Z"></path></svg>
-      t.me/@seraviellex
-    </a>
-  </section>
+    <!-- === CONTACT: Where We Are === -->
+    <section class="contact-section" aria-labelledby="contact-heading">
+      <p id="contact-heading" class="sr-only">Контакты</p>
+      <p>Следите за обновлениями:</p>
+      <a href="https://t.me/seraviellex" target="_blank" rel="noopener noreferrer" class="contact-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 2L11 13"></path><path d="M22 2L15 22L11 13L2 9L22 2Z"></path></svg>
+        t.me/seraviellex
+      </a>
+    </section>
 
-  <!-- === COUNTDOWN: Next Milestone === -->
-  <section class="countdown-section">
-    <div class="countdown-box">
-      <span>Следующий крупный релиз:</span>
-      <strong id="countdown-year">2026</strong>
-      <small id="countdown-text">через <span id="months-left">8</span> мес.</small>
-    </div>
-  </section>
+    <!-- === COUNTDOWN: Next Milestone === -->
+    <section class="countdown-section" aria-labelledby="countdown-heading">
+      <h4 id="countdown-heading" class="sr-only">Обратный отсчёт</h4>
+      <div class="countdown-box">
+        <span>Следующий крупный релиз:</span>
+        <strong id="countdown-year">2026</strong>
+        <small id="countdown-text">через <span id="months-left">8</span> мес.</small>
+      </div>
+    </section>
+  </main>
 
   <footer class="site-footer">
     <p>
@@ -482,99 +548,194 @@
       Последнее обновление: <time datetime="2026-05-05">5 мая 2026</time>
     </p>
     <p style="font-size:12px;color:var(--text-muted);margin-top:6px">
-  Все инструменты работают в браузере. 
-  <a href="/code" style="color:var(--accent);text-decoration:none;font-weight:500">Исходный код открыт</a>.
-</p>
+      Все инструменты работают в браузере. 
+      <a href="/code" style="color:var(--accent);text-decoration:none;font-weight:500">Исходный код открыт</a>.
+    </p>
   </footer>
 
   <!-- === TOAST CONTAINER === -->
-  <div id="toast-container"></div>
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- === SCRIPTS === -->
   <script>
-    // === Hide Banner ===
-    function hideBanner() {
-      const banner = document.getElementById('siteNotice');
-      if (banner) {
-        banner.style.animation = 'slideDown 0.3s ease-out reverse';
-        setTimeout(() => {
-          banner.style.display = 'none';
-          localStorage.setItem('bannerClosed', 'true');
-        }, 300);
-      }
-    }
-
-    // Show banner only if not closed before
-    if (localStorage.getItem('bannerClosed') === 'true') {
-      const banner = document.getElementById('siteNotice');
-      if (banner) banner.style.display = 'none';
-    }
-
-    // === Toast Notification System ===
-    function toast(message, type = 'success', duration = 4000) {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-
-      const icons = {
-        success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-        error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
-        warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+    (function() {
+      'use strict';
+      
+      // === Конфигурация ===
+      const CONFIG = {
+        bannerKey: 'seraviel_banner_closed',
+        themeKey: 'seraviel-theme',
+        toastDuration: 4000,
+        targetRelease: { year: 2028, month: 11 } // December 2026
       };
 
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.innerHTML = `
-        ${icons[type] || icons.success}
-        <div class="toast-content">${message}</div>
-        <button class="toast-close" aria-label="Закрыть">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      `;
+      // === Утилиты ===
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
 
-      // Close button handler
-      const closeBtn = toast.querySelector('.toast-close');
-      closeBtn.addEventListener('click', () => removeToast(toast));
+      // === Toast System (без XSS) ===
+      const Toast = {
+        container: null,
+        init() {
+          this.container = document.getElementById('toast-container');
+        },
+        show(message, type = 'success', duration = CONFIG.toastDuration) {
+          if (!this.container) return;
+          const icons = {
+            success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+            error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+            warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+          };
+          const el = document.createElement('div');
+          el.className = `toast ${type}`;
+          el.setAttribute('role', 'alert');
+          el.innerHTML = `
+            ${icons[type] || icons.success}
+            <div class="toast-content">${escapeHtml(message)}</div>
+            <button class="toast-close" aria-label="Закрыть">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          `;
+          el.querySelector('.toast-close').addEventListener('click', () => this.remove(el));
+          this.container.appendChild(el);
+          requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateX(0)';
+          });
+          const timer = setTimeout(() => this.remove(el), duration);
+          el.addEventListener('mouseenter', () => clearTimeout(timer));
+        },
+        remove(el) {
+          el.style.animation = 'toastOut 0.3s ease-out forwards';
+          setTimeout(() => el.remove(), 300);
+        }
+      };
 
-      container.appendChild(toast);
+      // === Баннер ===
+      function initBanner() {
+        const banner = document.getElementById('siteNotice');
+        const closeBtn = document.getElementById('bannerClose');
+        
+        if (!banner || !closeBtn) return;
+        
+        // Показать только если не закрыт
+        if (localStorage.getItem(CONFIG.bannerKey) === 'true') {
+          banner.style.display = 'none';
+          return;
+        }
+        
+        // Анимация появления
+        banner.style.animation = 'slideDown 0.3s ease-out forwards';
+        
+        // Закрытие
+        closeBtn.addEventListener('click', () => {
+          banner.style.animation = 'slideDown 0.3s ease-out reverse';
+          setTimeout(() => {
+            banner.style.display = 'none';
+            localStorage.setItem(CONFIG.bannerKey, 'true');
+          }, 300);
+        });
+        
+        // Закрытие по Escape
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && banner.style.display !== 'none') {
+            closeBtn.click();
+          }
+        });
+      }
 
-      // Auto remove
-      const timer = setTimeout(() => removeToast(toast), duration);
-
-      // Pause on hover
-      toast.addEventListener('mouseenter', () => clearTimeout(timer));
-    }
-
-    function removeToast(toast) {
-      toast.style.animation = 'toastOut 0.3s ease-out forwards';
-      setTimeout(() => toast.remove(), 300);
-    }
-
-
-    // Регистрация Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('SW registered:', reg))
-      .catch(err => console.log('SW registration failed:', err));
-  });
-}
-
-    // === Countdown Logic ===
-    (function() {
-      const targetYear = 2026;
-      const targetMonth = 12; // December
-      const now = new Date();
-      const target = new Date(targetYear, targetMonth - 1, 1);
+      // === Тема ===
+      function initTheme() {
+        const saved = localStorage.getItem(CONFIG.themeKey);
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+        
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem(CONFIG.themeKey, next);
+          updateThemeIcon(next);
+          Toast.show(`Тема: ${next === 'dark' ? 'тёмная' : 'светлая'}`, 'success', 1500);
+        });
+      }
       
-      let monthsLeft = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
-      monthsLeft = Math.max(0, monthsLeft);
-      
-      const el = document.getElementById('months-left');
-      if (el) el.textContent = monthsLeft;
+      function updateThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        icon.innerHTML = theme === 'dark' 
+          ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+          : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      }
+
+      // === Обратный отсчёт ===
+      function initCountdown() {
+        const { year, month } = CONFIG.targetRelease;
+        const now = new Date();
+        const target = new Date(year, month - 1, 1);
+        
+        let monthsLeft = (target.getFullYear() - now.getFullYear()) * 12 + 
+                        (target.getMonth() - now.getMonth());
+        monthsLeft = Math.max(0, monthsLeft);
+        
+        const el = document.getElementById('months-left');
+        if (el) el.textContent = monthsLeft;
+        
+        // Обновление каждый день
+        setInterval(() => {
+          const now = new Date();
+          let monthsLeft = (target.getFullYear() - now.getFullYear()) * 12 + 
+                          (target.getMonth() - now.getMonth());
+          monthsLeft = Math.max(0, monthsLeft);
+          if (el) el.textContent = monthsLeft;
+        }, 86400000); // раз в сутки
+      }
+
+      // === Service Worker ===
+      function initSW() {
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+              .then(reg => console.log('SW registered:', reg.scope))
+              .catch(err => console.warn('SW registration failed:', err));
+          });
+        }
+      }
+
+      // === Init ===
+      function init() {
+        Toast.init();
+        initTheme();
+        initBanner();
+        initCountdown();
+        initSW();
+        
+        // Приветственное сообщение (только первый визит)
+        if (!sessionStorage.getItem('welcomed')) {
+          Toast.show('Добро пожаловать в SERAVIEL LABS!', 'success', 5000);
+          sessionStorage.setItem('welcomed', 'true');
+        }
+      }
+
+      // Запуск
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
     })();
-
-    // === Demo: Show toast on load (remove in production) ===
-     toast('Добро пожаловать в SERAVIEL LABS!', 'success', 5000);
   </script>
 </body>
 </html>

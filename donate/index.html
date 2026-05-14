@@ -5,134 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Поддержать | SERAVIEL LABS</title>
   <meta name="description" content="Ваша поддержка помогает создавать новые инструменты и держать лабораторию открытой для всех.">
+  <meta name="robots" content="noindex, follow">
   
-  <!-- === SYSTEM ASSETS === -->
-  <link rel="stylesheet" href="/toast.css">
-  <script src="/toast.js"></script>
+  <!-- Skip link для доступности -->
+  <style>
+    .skip-link {
+      position: absolute; top: -40px; left: 0;
+      background: var(--accent); color: white;
+      padding: 8px 16px; z-index: 1000;
+      transition: top 0.2s;
+    }
+    .skip-link:focus { top: 0; }
+  </style>
+  
+  <!-- SeravieL Toast (с SRI) -->
+  <link rel="stylesheet" href="/toast.css" integrity="sha384-7FjYxufZ47PODtrBv2WIXcQ8lAG+PkCJ/Ffz2Xkk+3q37pHupWOsrP9lLgHDLyXl" crossorigin="anonymous">
+  <script src="/toast.js" integrity="sha384-3u7Uz4GrozYPeEym7Z5DrbjemQLKQlZM3CFMi5HlFkSxID6xZscW+EWyfIAQ5GxW" crossorigin="anonymous" defer></script>
 
   <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --accent: #0d9488;
-      --accent-hover: #0f766e;
-      --border: #e2e8f0;
-      --radius: 12px;
+      --bg: #f8fafc; --surface: #ffffff; --text: #0f172a;
+      --text-muted: #64748b; --accent: #0d9488; --accent-hover: #0f766e;
+      --border: #e2e8f0; --radius: 12px; --shadow: 0 4px 12px rgba(0,0,0,0.05);
       --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     }
-
+    [data-theme="dark"] {
+      --bg: #0f172a; --surface: #1e293b; --text: #f8fafc;
+      --text-muted: #94a3b8; --accent: #2dd4bf; --accent-hover: #14b8a6;
+      --border: #334155; --shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      transition: background 0.3s, color 0.3s;
     }
 
     /* Header */
     header {
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      height: 60px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border);
     }
     .logo {
-      font-weight: 700;
-      font-size: 16px;
-      letter-spacing: 0.5px;
-      text-decoration: none;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-weight: 700; font-size: 16px; letter-spacing: 0.5px;
+      text-decoration: none; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
     }
+    .logo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
     .logo svg { width: 20px; height: 20px; stroke: var(--accent); }
     nav a {
-      margin-left: 20px;
-      text-decoration: none;
-      color: var(--text-muted);
-      font-size: 14px;
-      font-weight: 500;
-      transition: color 0.2s;
+      margin-left: 20px; text-decoration: none; color: var(--text-muted);
+      font-size: 14px; font-weight: 500; transition: color 0.2s;
     }
     nav a:hover, nav a.active { color: var(--accent); }
+    nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
-    /* Main Content */
+    /* Main */
     main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      flex: 1; display: flex; align-items: center; justify-content: center;
       padding: 40px 24px;
     }
     .donate-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 40px;
-      max-width: 520px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px;
+      max-width: 480px; width: 100%; text-align: center;
+      box-shadow: var(--shadow);
     }
-    .donate-card h1 {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-    .donate-card p {
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 28px;
-    }
+    .donate-card h1 { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
+    .donate-card p { color: var(--text-muted); line-height: 1.6; margin-bottom: 32px; }
 
-    /* Button */
-    .btn-donate {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 28px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.2s, transform 0.1s;
+    /* Boosty Button */
+    .btn-boosty {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 10px; padding: 14px 32px; background: var(--accent);
+      color: white; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: background 0.2s, transform 0.1s;
+      width: 100%; max-width: 280px; margin: 0 auto;
     }
-    .btn-donate:hover { background: var(--accent-hover); }
-    .btn-donate:active { transform: scale(0.98); }
-    .btn-donate svg { width: 18px; height: 18px; }
+    .btn-boosty:hover { background: var(--accent-hover); }
+    .btn-boosty:active { transform: scale(0.98); }
+    .btn-boosty:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .btn-boosty svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     /* Trust Note */
     .trust-note {
-      margin-top: 24px;
-      font-size: 13px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      line-height: 1.4;
+      margin-top: 32px; font-size: 13px; color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; line-height: 1.4;
     }
     .trust-note svg { width: 16px; height: 16px; stroke: var(--accent); flex-shrink: 0; }
 
+    /* Theme Toggle */
+    .theme-toggle {
+      background: none; border: 1px solid var(--border);
+      padding: 8px; border-radius: 8px; cursor: pointer;
+      color: var(--text); display: flex; align-items: center;
+    }
+    .theme-toggle:hover { background: var(--bg); }
+    .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .theme-toggle svg { width: 18px; height: 18px; }
+
     /* Footer */
     footer {
-      text-align: center;
-      padding: 24px;
-      font-size: 13px;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border);
+      text-align: center; padding: 24px; font-size: 13px;
+      color: var(--text-muted); border-top: 1px solid var(--border);
     }
 
     /* Mobile */
@@ -140,36 +117,54 @@
       .donate-card { padding: 28px 20px; }
       .donate-card h1 { font-size: 20px; }
       nav a { margin-left: 14px; font-size: 13px; }
+      .btn-boosty { padding: 12px 24px; font-size: 14px; }
     }
   </style>
 </head>
 <body>
+  <a href="#main" class="skip-link">Перейти к основному содержимому</a>
 
   <header>
     <a href="/" class="logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
       SERAVIEL LABS
     </a>
-    <nav>
-      <a href="/">Главная</a>
-      <a href="/list">Инструменты</a>
-      <a href="/donate" class="active">Поддержать</a>
-    </nav>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="theme-toggle" id="themeToggle" aria-label="Переключить тему">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </button>
+      <nav aria-label="Основная навигация">
+        <a href="/">Главная</a>
+        <a href="/list">Инструменты</a>
+        <a href="/donate" class="active" aria-current="page">Поддержать</a>
+      </nav>
+    </div>
   </header>
 
-  <main>
+  <main id="main">
     <div class="donate-card">
       <h1>Спасибо, что вы с нами</h1>
       <p>Ваша поддержка помогает создавать новые инструменты, улучшать существующие и держать лабораторию открытой для всех. Без рекламы, без трекинга, без компромиссов.</p>
       
-      <!-- ⚠️ ЗАМЕНИТЕ href НА ВАШУ РЕАЛЬНУЮ ССЫЛКУ (Boosty, Crypto, PayPal, ЮMoney и т.д.) -->
-      <a href="https://boosty.to/seraviellex" target="_blank" rel="noopener" class="btn-donate" id="donateBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        Поддержать проект
+      <!-- Boosty Button -->
+      <a href="#" class="btn-boosty" id="boostyBtn" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        Поддержать через Boosty
       </a>
 
       <div class="trust-note">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
         Все инструменты работают локально в вашем браузере. Мы не собираем данные и не храним историю.
       </div>
     </div>
@@ -180,12 +175,70 @@
   </footer>
 
   <script>
-    // Toast on button click
-    document.getElementById('donateBtn').addEventListener('click', () => {
-      if (window.toast) {
-        toast.info('Открываем страницу поддержки...', { duration: 2500 });
+    (function() {
+      'use strict';
+      
+      // === Конфигурация ===
+      const CONFIG = {
+        donate: {
+          boosty: 'https://boosty.to/seraviellex'
+        }
+      };
+
+      // === Инициализация ===
+      function init() {
+        initTheme();
+        initBoostyButton();
+        
+        if (typeof toast === 'function') {
+          toast.config?.({ position: 'bottom-center', duration: 2500 });
+        }
       }
-    });
+
+      // === Тема ===
+      function initTheme() {
+        const saved = localStorage.getItem('seraviel-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+        
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('seraviel-theme', next);
+          updateThemeIcon(next);
+        });
+      }
+      
+      function updateThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        icon.innerHTML = theme === 'dark' 
+          ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+          : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      }
+
+      // === Boosty Button ===
+      function initBoostyButton() {
+        const btn = document.getElementById('boostyBtn');
+        btn.href = CONFIG.donate.boosty;
+        
+        btn.addEventListener('click', () => {
+          if (typeof toast === 'function') {
+            toast.info('Открываем Boosty...', { duration: 2000 });
+          }
+        });
+      }
+
+      // Запуск
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
   </script>
 </body>
 </html>
