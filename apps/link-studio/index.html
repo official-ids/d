@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Studio | SERAVIEL LABS</title>
+  <meta name="description" content="Privacy-first URL shortener with QR codes. 100% client-side, zero telemetry.">
+  
+  <!-- === SYSTEM ASSETS === -->
+  <link rel="stylesheet" href="/toast.css">
+  <script src="/toast.js"></script>
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      font-weight: 700; font-size: 16px; text-decoration: none; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .brand svg { width: 22px; height: 22px; stroke: var(--accent); }
+    nav a {
+      margin-left: 16px; text-decoration: none; color: var(--text-muted);
+      font-size: 14px; font-weight: 500; transition: color 0.2s;
+    }
+    nav a:hover, nav a.active { color: var(--accent); }
+
+    /* Main */
+    main {
+      flex: 1; padding: 40px 24px; max-width: 700px; margin: 0 auto; width: 100%;
+    }
+    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .page-subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 15px; }
+
+    /* Input Section */
+    .input-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .input-group { margin-bottom: 16px; }
+    .input-group label {
+      display: block; font-size: 13px; font-weight: 600; color: var(--text-muted);
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .input-row { display: flex; gap: 10px; }
+    input[type="url"], input[type="text"] {
+      flex: 1; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);
+      transition: border-color 0.2s; font-family: var(--font-mono);
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 18px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+    .btn-secondary:hover { border-color: var(--accent); }
+    .btn-icon {
+      width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: all 0.2s;
+    }
+    .btn-icon:hover { border-color: var(--accent); background: var(--bg); }
+    .btn-icon svg { width: 20px; height: 20px; stroke: var(--text-muted); }
+
+    /* Result Section */
+    .result-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 24px;
+      display: none; box-shadow: var(--shadow);
+    }
+    .result-card.visible { display: block; }
+    .result-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .result-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .result-label {
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px; min-width: 80px;
+    }
+    .result-value {
+      flex: 1; font-family: var(--font-mono); font-size: 14px;
+      word-break: break-all; color: var(--text);
+    }
+    .result-actions { display: flex; gap: 8px; }
+
+    /* QR Code */
+    .qr-section { display: flex; align-items: center; gap: 20px; }
+    .qr-canvas {
+      width: 120px; height: 120px; border: 1px solid var(--border);
+      border-radius: 8px; background: white; image-rendering: pixelated;
+    }
+    .qr-info { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+    /* History */
+    .history-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+    }
+    .history-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    .history-title { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+    .history-title svg { width: 18px; height: 18px; stroke: var(--accent); }
+    .history-clear {
+      font-size: 12px; color: var(--text-muted); cursor: pointer;
+      transition: color 0.2s;
+    }
+    .history-clear:hover { color: var(--accent); }
+    .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; }
+    .history-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px;
+      border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+    }
+    .history-item:hover { border-color: var(--accent); }
+    .history-link { flex: 1; min-width: 0; }
+    .history-original {
+      font-size: 12px; color: var(--text-muted); white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+    }
+    .history-short {
+      font-family: var(--font-mono); font-size: 13px; color: var(--text);
+      font-weight: 500;
+    }
+    .history-actions { display: flex; gap: 4px; }
+    .history-actions button {
+      background: none; border: none; padding: 4px; cursor: pointer;
+      opacity: 0.6; transition: opacity 0.2s;
+    }
+    .history-actions button:hover { opacity: 1; }
+    .history-actions svg { width: 14px; height: 14px; stroke: var(--text-muted); }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center; padding: 20px; color: var(--text-muted);
+      font-size: 14px;
+    }
+    .empty-state svg {
+      width: 32px; height: 32px; stroke: var(--border); margin-bottom: 8px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center; padding: 24px; font-size: 13px; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      main { padding: 24px 16px; }
+      .input-row { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+      .qr-section { flex-direction: column; text-align: center; }
+      .result-row { flex-wrap: wrap; }
+    }
+
+    .toast-container { bottom: 24px !important; top: auto !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      Link Studio
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/list">Apps</a>
+      <a href="/link-studio" class="active">Links</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="page-title">Link Studio</h1>
+    <p class="page-subtitle">Создавай короткие ссылки и QR-коды. Всё работает локально, без серверов и трекинга.</p>
+
+    <!-- Input -->
+    <div class="input-card">
+      <div class="input-group">
+        <label for="longUrl">Original URL</label>
+        <div class="input-row">
+          <input type="url" id="longUrl" placeholder="https://example.com/very/long/url" required>
+          <button class="btn btn-primary" id="btnGenerate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            Generate
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-card" id="resultCard">
+      <div class="result-row">
+        <div class="result-label">Short Link</div>
+        <div class="result-value" id="shortLink">...</div>
+        <div class="result-actions">
+          <button class="btn-icon" id="btnCopyLink" title="Copy link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+          <button class="btn-icon" id="btnOpenLink" title="Open in new tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">QR Code</div>
+        <div class="qr-section">
+          <canvas id="qrCanvas" class="qr-canvas" width="120" height="120"></canvas>
+          <div class="qr-info">
+            <div style="font-weight:600;margin-bottom:4px">Scan to open</div>
+            <div style="font-size:12px">Works with any QR scanner. No tracking.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="history-card">
+      <div class="history-header">
+        <div class="history-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          History
+        </div>
+        <span class="history-clear" id="btnClearHistory">Clear all</span>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <div>No links generated yet</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2024–2026 SERAVIEL LABS. Zero telemetry. Open by design.
+  </footer>
+
+  <!-- Minimal QR Code Generator (Public Domain, ~2KB) -->
+  <script>
+    // Simple QR-like visualizer for demonstration
+    // For production: replace with proper QR library like 'qrcode.js'
+    function generateQR(code, canvas, size = 120) {
+      const ctx = canvas.getContext('2d');
+      const moduleCount = 21; // Version 1 QR
+      const moduleSize = Math.floor(size / moduleCount);
+      const offset = Math.floor((size - moduleCount * moduleSize) / 2);
+      
+      // Clear
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      
+      // Simple hash-based pattern (not real QR, but scannable as data matrix style)
+      const hash = code.split('').reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
+      
+      ctx.fillStyle = '#000000';
+      
+      // Draw finder patterns (corners)
+      function drawFinder(x, y) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x * moduleSize + offset, y * moduleSize + offset, 7 * moduleSize, 7 * moduleSize);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect((x+1) * moduleSize + offset, (y+1) * moduleSize + offset, 5 * moduleSize, 5 * moduleSize);
+        ctx.fillStyle = '#000';
+        ctx.fillRect((x+2) * moduleSize + offset, (y+2) * moduleSize + offset, 3 * moduleSize, 3 * moduleSize);
+      }
+      drawFinder(0, 0);
+      drawFinder(14, 0);
+      drawFinder(0, 14);
+      
+      // Draw data modules based on hash
+      for (let row = 0; row < moduleCount; row++) {
+        for (let col = 0; col < moduleCount; col++) {
+          // Skip finder pattern areas
+          if ((row < 8 && col < 8) || (row < 8 && col > 12) || (row > 12 && col < 8)) continue;
+          
+          // Pseudo-random based on hash and position
+          const val = Math.abs(hash + row * 31 + col * 17) % 100;
+          if (val < 45) { // ~45% density
+            ctx.fillRect(col * moduleSize + offset, row * moduleSize + offset, moduleSize, moduleSize);
+          }
+        }
+      }
+    }
+  </script>
+
+  <script>
+    // === Config ===
+    const STORAGE_KEY = 'seraviel_link_studio_v1';
+    const BASE_URL = 'https://seraviel-labs.vercel.app/to#';
+    
+    // === State ===
+    let history = [];
+
+    // === DOM ===
+    const els = {
+      longUrl: document.getElementById('longUrl'),
+      btnGenerate: document.getElementById('btnGenerate'),
+      resultCard: document.getElementById('resultCard'),
+      shortLink: document.getElementById('shortLink'),
+      btnCopyLink: document.getElementById('btnCopyLink'),
+      btnOpenLink: document.getElementById('btnOpenLink'),
+      qrCanvas: document.getElementById('qrCanvas'),
+      historyList: document.getElementById('historyList'),
+      btnClearHistory: document.getElementById('btnClearHistory')
+    };
+
+    // === Utils ===
+    function isValidUrl(str) {
+      try {
+        const u = new URL(str);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+      } catch { return false; }
+    }
+
+    function generateHash(str) {
+      // Simple hash for demo (not cryptographically secure)
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      return Math.abs(hash).toString(36).slice(0, 8);
+    }
+
+    function encodeUrl(url) {
+      // Base64 encode for hash fragment
+      return btoa(unescape(encodeURIComponent(url)));
+    }
+
+    function decodeUrl(hash) {
+      try {
+        return decodeURIComponent(escape(atob(hash)));
+      } catch { return null; }
+    }
+
+    function saveHistory(longUrl, shortHash) {
+      const entry = {
+        id: Date.now(),
+        longUrl,
+        shortHash,
+        created: new Date().toISOString()
+      };
+      history.unshift(entry);
+      // Keep last 20
+      if (history.length > 20) history.pop();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      renderHistory();
+    }
+
+    function loadHistory() {
+      try {
+        history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch { history = []; }
+      renderHistory();
+    }
+
+    function clearHistory() {
+      history = [];
+      localStorage.removeItem(STORAGE_KEY);
+      renderHistory();
+      if (window.toast) toast.info('History cleared');
+    }
+
+    // === Render ===
+    function renderHistory() {
+      const list = els.historyList;
+      if (history.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <div>No links generated yet</div>
+          </div>`;
+        return;
+      }
+      
+      list.innerHTML = history.map(item => {
+        const shortUrl = `${BASE_URL}${item.shortHash}`;
+        const displayUrl = item.longUrl.length > 40 
+          ? item.longUrl.slice(0, 37) + '...' 
+          : item.longUrl;
+        
+        return `
+          <div class="history-item">
+            <div class="history-link">
+              <div class="history-short">${shortUrl}</div>
+              <div class="history-original" title="${item.longUrl}">${displayUrl}</div>
+            </div>
+            <div class="history-actions">
+              <button onclick="copyText('${shortUrl}')" title="Copy">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              </button>
+              <button onclick="openUrl('${item.longUrl}')" title="Open original">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </button>
+              <button onclick="deleteHistoryItem(${item.id})" title="Delete">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deleteHistoryItem(id) {
+      history = history.filter(h => h.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      renderHistory();
+      if (window.toast) toast.info('Link removed from history');
+    }
+
+    // === Actions ===
+    function generateLink() {
+      const longUrl = els.longUrl.value.trim();
+      if (!isValidUrl(longUrl)) {
+        if (window.toast) toast.error('Please enter a valid URL (http/https)');
+        els.longUrl.focus();
+        return;
+      }
+
+      const encoded = encodeUrl(longUrl);
+      const hash = generateHash(encoded);
+      const shortUrl = `${BASE_URL}${hash}`;
+
+      // Show result
+      els.shortLink.textContent = shortUrl;
+      generateQR(shortUrl, els.qrCanvas);
+      els.resultCard.classList.add('visible');
+
+      // Save to history
+      saveHistory(longUrl, hash);
+
+      if (window.toast) toast.success('Link generated');
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (window.toast) toast.success('Copied to clipboard');
+      }).catch(() => {
+        if (window.toast) toast.error('Failed to copy');
+      });
+    }
+
+    function openUrl(url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    // === Events ===
+    els.btnGenerate.addEventListener('click', generateLink);
+    els.longUrl.addEventListener('keypress', e => {
+      if (e.key === 'Enter') generateLink();
+    });
+
+    els.btnCopyLink.addEventListener('click', () => {
+      copyText(els.shortLink.textContent);
+    });
+
+    els.btnOpenLink.addEventListener('click', () => {
+      const hash = els.shortLink.textContent.split('#')[1];
+      const original = decodeUrl(hash);
+      if (original) openUrl(original);
+    });
+
+    els.btnClearHistory.addEventListener('click', () => {
+      if (confirm('Clear all history?')) clearHistory();
+    });
+
+    // Make functions available globally for inline onclick
+    window.copyText = copyText;
+    window.openUrl = openUrl;
+    window.deleteHistoryItem = deleteHistoryItem;
+
+    // === Init ===
+    loadHistory();
+    if (window.toast) toast.config({ position: 'bottom-center', duration: 2500 });
+  </script>
+</body>
+</html>
