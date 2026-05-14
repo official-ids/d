@@ -61,6 +61,7 @@
         .info-card.indigo{background:#4f46e5;color:#fff}
         .info-card h3{color:#fff;margin-bottom:.8rem;font-size:1.2rem}
         .info-card p{color:rgba(255,255,255,.95);line-height:1.6;font-size:.9rem}
+        #progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,#6d28d9,#a78bfa);width:0%;z-index:2000;transition:width.2s}
         footer{background:#1e1b4b;color:#fff;text-align:center;padding:2.5rem 2rem;margin-top:4rem}
         footer svg{width:36px;height:36px;margin-bottom:1rem;color:#a78bfa}
         footer p{margin:.5rem 0}
@@ -68,13 +69,19 @@
     </style>
 </head>
 <body>
+    <div id="progress" style="position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,#6d28d9,#a78bfa);width:0%;z-index:2000;transition:width.2s"></div>
     <nav>
         <ul>
+            <li><a href="#" onclick="window.print();return false" title="Распечатать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Печать</a></li>
             <li><a href="#home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Главная</a></li>
             <li><a href="#about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>О городе</a></li>
             <li><a href="#landmarks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9"/></svg>Достопримечательности</a></li>
             <li><a href="#culture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Культура</a></li>
             <li><a href="#facts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Факты</a></li>
+            <li style="display:flex;gap:4px">
+  <button onclick="setFont(1)" style="background:#6d28d9;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-weight:bold">A+</button>
+  <button onclick="setFont(-1)" style="background:#6d28d9;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-weight:bold">A−</button>
+</li>
         </ul>
     </nav>
 
@@ -167,10 +174,63 @@
         <p style="margin-top:1.5rem;opacity:.8;font-size:.9rem">2026</p>
     </footer>
 
-    <script>
-        document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'})})});
-        const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)'}})},{threshold:.1,rootMargin:'0 0 -50px 0'});
-        document.querySelectorAll('.card,.stat-item,.timeline-item,.info-box,.wow-fact').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity .6s ease, transform .6s ease';obs.observe(el)});
-    </script>
+    <button id="toTop" style="position:fixed;bottom:20px;right:20px;background:#6d28d9;color:#fff;border:none;border-radius:50%;width:50px;height:50px;font-size:24px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;z-index:999">↑</button>
+
+<script>
+    // Плавная прокрутка по якорям
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            const t = document.querySelector(a.getAttribute('href'));
+            if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    // Анимация появления блоков при скролле
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }); // ← добавлены px
+
+    document.querySelectorAll('.card,.stat-item,.timeline-item,.info-box,.wow-fact').forEach(el => {
+        if (el) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        }
+    });
+
+    // Прогресс-бар (работает только если элемент есть)
+    const progressBar = document.getElementById('progress');
+    if (progressBar) {
+        window.addEventListener('scroll', () => {
+            const h = document.documentElement;
+            const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+            progressBar.style.width = scrolled + '%';
+        });
+    }
+
+    // Кнопка "Наверх" (работает только если элемент есть)
+    const toTopBtn = document.getElementById('toTop');
+    if (toTopBtn) {
+        window.addEventListener('scroll', () => {
+            toTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+        });
+        toTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    }
+
+    // Изменение размера шрифта
+    let currentFontSize = 16;
+    function setFont(delta) {
+        currentFontSize = Math.max(14, Math.min(22, currentFontSize + delta));
+        document.body.style.fontSize = currentFontSize + 'px';
+    }
+
+</script>
 </body>
 </html>
