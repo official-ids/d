@@ -5,475 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Казань — Третья столица России</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
-        }
-
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            padding: 1rem 0;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #555;
-            font-weight: 500;
-            transition: color 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        nav a:hover {
-            color: #7c3aed;
-        }
-
-        nav svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        section {
-            margin-top: 80px;
-            padding: 3rem 2rem;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .hero {
-            margin-top: 0;
-            padding: 0;
-            max-width: 100%;
-            position: relative;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .hero-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(67, 56, 202, 0.9) 0%, rgba(124, 58, 237, 0.9) 100%), 
-                        url('https://yastatic.net/naydex/yandex-search/KpfE60t91/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpPHFoj0d_zFWlOepgas9-xeG2u0Bb_gfoccjrp__mdwSbewL9dHgav_aA');
-            background-size: cover;
-            background-position: center;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            color: white;
-            padding: 2rem;
-        }
-
-        .hero h1 {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            font-weight: 700;
-        }
-
-        .hero p {
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
-            opacity: 0.95;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255,255,255,0.25);
-            padding: 0.6rem 1.5rem;
-            border-radius: 8px;
-            margin: 0.5rem;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .badge svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        h2 {
-            font-size: 2.2rem;
-            margin-bottom: 2rem;
-            color: #6d28d9;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-weight: 700;
-        }
-
-        h2 svg {
-            width: 36px;
-            height: 36px;
-            color: #8b5cf6;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 1px solid #e0e0e0;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-
-        .card-image {
-            width: 100%;
-            height: 220px;
-            background: linear-gradient(135deg, #6d28d9 0%, #a78bfa 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 4rem;
-            overflow: hidden;
-        }
-
-        .card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .card-content {
-            padding: 1.8rem;
-        }
-
-        .card h3 {
-            color: #6d28d9;
-            margin-bottom: 1rem;
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
-
-        .card p {
-            color: #555;
-            line-height: 1.7;
-            font-size: 0.95rem;
-        }
-
-        .card strong {
-            color: #8b5cf6;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin: 2.5rem 0;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 2rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-top: 4px solid #6d28d9;
-        }
-
-        .stat-item svg {
-            width: 48px;
-            height: 48px;
-            color: #8b5cf6;
-            margin-bottom: 1rem;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #6d28d9;
-            display: block;
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: #666;
-            font-size: 1rem;
-        }
-
-        .info-box {
-            background: white;
-            border-left: 5px solid #6d28d9;
-            padding: 2.5rem;
-            border-radius: 8px;
-            margin: 2.5rem 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .info-box.accent {
-            background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
-            color: white;
-            border-left: none;
-        }
-
-        .info-box.accent h3 {
-            color: white;
-        }
-
-        .info-box.accent p {
-            color: rgba(255,255,255,0.95);
-        }
-
-        .info-box.accent svg {
-            color: white;
-        }
-
-        .info-box svg {
-            width: 48px;
-            height: 48px;
-            color: #8b5cf6;
-            margin-bottom: 1rem;
-        }
-
-        .info-box h3 {
-            font-size: 1.6rem;
-            margin-bottom: 1rem;
-            color: #6d28d9;
-            font-weight: 700;
-        }
-
-        .info-box p {
-            font-size: 1.05rem;
-            line-height: 1.8;
-            color: #555;
-        }
-
-        .timeline {
-            position: relative;
-            padding: 2rem 0;
-        }
-
-        .timeline-item {
-            display: flex;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-            align-items: flex-start;
-            background: white;
-            padding: 1.8rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .timeline-icon {
-            flex-shrink: 0;
-            width: 56px;
-            height: 56px;
-            background: #6d28d9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .timeline-icon svg {
-            width: 28px;
-            height: 28px;
-            color: white;
-        }
-
-        .timeline-content {
-            flex: 1;
-        }
-
-        .timeline-content h3 {
-            color: #6d28d9;
-            margin-bottom: 0.5rem;
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-
-        .timeline-content .year {
-            color: #8b5cf6;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            display: block;
-            font-size: 0.95rem;
-        }
-
-        .timeline-content p {
-            color: #555;
-            line-height: 1.7;
-        }
-
-        .info-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2.5rem;
-        }
-
-        .info-card {
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .info-card.purple {
-            background: #6d28d9;
-            color: white;
-        }
-
-        .info-card.violet {
-            background: #8b5cf6;
-            color: white;
-        }
-
-        .info-card.indigo {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .info-card h3 {
-            color: white;
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-
-        .info-card p {
-            color: rgba(255,255,255,0.95);
-            line-height: 1.7;
-            font-size: 0.95rem;
-        }
-
-        .info-card strong {
-            color: #fbbf24;
-        }
-
-        .wow-fact {
-            background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
-            color: white;
-            padding: 2.5rem;
-            border-radius: 12px;
-            margin: 2rem 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .wow-fact::before {
-            content: "!";
-            position: absolute;
-            top: -20px;
-            right: -20px;
-            font-size: 12rem;
-            font-weight: 900;
-            color: rgba(255,255,255,0.1);
-            line-height: 1;
-        }
-
-        .wow-fact h3 {
-            color: #fbbf24;
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .wow-fact p {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            position: relative;
-            z-index: 1;
-        }
-
-        footer {
-            background: #1e1b4b;
-            color: white;
-            text-align: center;
-            padding: 3rem 2rem;
-            margin-top: 4rem;
-        }
-
-        footer svg {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 1rem;
-            color: #a78bfa;
-        }
-
-        footer p {
-            margin: 0.5rem 0;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .hero p {
-                font-size: 1.2rem;
-            }
-            
-            h2 {
-                font-size: 1.8rem;
-            }
-            
-            nav ul {
-                gap: 1rem;
-                font-size: 0.9rem;
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#333;background:#f8f9fa}
+        nav{position:fixed;top:0;width:100%;background:rgba(255,255,255,.98);box-shadow:0 2px 10px rgba(0,0,0,.1);z-index:1000;padding:1rem 0}
+        nav ul{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:1.5rem}
+        nav a{text-decoration:none;color:#555;font-weight:500;transition:color.3s;display:flex;align-items:center;gap:.5rem}
+        nav a:hover{color:#7c3aed}
+        nav svg{width:18px;height:18px}
+        section{margin-top:80px;padding:3rem 2rem;max-width:1200px;margin:0 auto}
+        .hero{margin-top:0;padding:0;max-width:100%;position:relative;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .hero-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(67,56,202,.9),rgba(124,58,237,.9)),url('https://yastatic.net/naydex/yandex-search/KpfE60t91/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpPHFoj0d_zFWlOepgas9-xeG2u0Bb_gfoccjrp__mdwSbewL9dHgav_aA');background-size:cover;background-position:center}
+        .hero-content{position:relative;z-index:1;text-align:center;color:#fff;padding:2rem}
+        .hero h1{font-size:4rem;margin-bottom:1rem;text-shadow:2px 2px 4px rgba(0,0,0,.3)}
+        .hero p{font-size:1.5rem;margin-bottom:2rem;opacity:.95}
+        .badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.25);padding:.6rem 1.5rem;border-radius:8px;margin:.5rem;backdrop-filter:blur(10px)}
+        .badge svg{width:18px;height:18px}
+        h2{font-size:2rem;margin-bottom:2rem;color:#6d28d9;display:flex;align-items:center;gap:1rem}
+        h2 svg{width:32px;height:32px;color:#8b5cf6}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem;margin-top:2rem}
+        .card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform.3s}
+        .card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+        .card-image{width:100%;height:180px;background:linear-gradient(135deg,#6d28d9,#a78bfa);display:flex;align-items:center;justify-content:center;color:#fff;font-size:3rem;overflow:hidden}
+        .card-image img{width:100%;height:100%;object-fit:cover}
+        .card-content{padding:1.5rem}
+        .card h3{color:#6d28d9;margin-bottom:.8rem;font-size:1.3rem}
+        .card p{color:#555;line-height:1.6;font-size:.9rem}
+        .card strong{color:#8b5cf6}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.5rem;margin:2rem 0}
+        .stat-item{text-align:center;padding:1.5rem;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);border-top:4px solid #6d28d9}
+        .stat-number{font-size:1.8rem;font-weight:700;color:#6d28d9;display:block;line-height:1;margin-bottom:.5rem}
+        .stat-label{color:#666;font-size:.9rem}
+        .info-box{background:#fff;border-left:5px solid #6d28d9;padding:2rem;border-radius:8px;margin:2rem 0;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+        .info-box.accent{background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;border-left:none}
+        .info-box.accent h3,.info-box.accent p{color:#fff}
+        .info-box svg{width:40px;height:40px;color:#8b5cf6;margin-bottom:1rem}
+        .info-box.accent svg{color:#fff}
+        .info-box h3{font-size:1.4rem;margin-bottom:.8rem;color:#6d28d9}
+        .info-box p{font-size:1rem;line-height:1.7;color:#555}
+        .timeline{padding:1.5rem 0}
+        .timeline-item{display:flex;gap:1.5rem;margin-bottom:1.5rem;align-items:flex-start;background:#fff;padding:1.5rem;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+        .timeline-icon{flex-shrink:0;width:48px;height:48px;background:#6d28d9;border-radius:50%;display:flex;align-items:center;justify-content:center}
+        .timeline-icon svg{width:24px;height:24px;color:#fff}
+        .timeline-content{flex:1}
+        .timeline-content .year{color:#8b5cf6;font-weight:700;margin-bottom:.3rem;display:block}
+        .timeline-content h3{color:#6d28d9;margin-bottom:.5rem;font-size:1.2rem}
+        .timeline-content p{color:#555;line-height:1.6;font-size:.9rem}
+        .wow-fact{background:linear-gradient(135deg,#1e1b4b,#4c1d95);color:#fff;padding:2rem;border-radius:12px;margin:2rem 0;position:relative;overflow:hidden}
+        .wow-fact::before{content:"!";position:absolute;top:-20px;right:-20px;font-size:8rem;font-weight:900;color:rgba(255,255,255,.1);line-height:1}
+        .wow-fact h3{color:#fbbf24;margin-bottom:.8rem;font-size:1.3rem}
+        .wow-fact p{font-size:1rem;line-height:1.7;position:relative;z-index:1}
+        .info-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;margin-top:2rem}
+        .info-card{padding:1.5rem;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+        .info-card.purple{background:#6d28d9;color:#fff}
+        .info-card.violet{background:#8b5cf6;color:#fff}
+        .info-card.indigo{background:#4f46e5;color:#fff}
+        .info-card h3{color:#fff;margin-bottom:.8rem;font-size:1.2rem}
+        .info-card p{color:rgba(255,255,255,.95);line-height:1.6;font-size:.9rem}
+        footer{background:#1e1b4b;color:#fff;text-align:center;padding:2.5rem 2rem;margin-top:4rem}
+        footer svg{width:36px;height:36px;margin-bottom:1rem;color:#a78bfa}
+        footer p{margin:.5rem 0}
+        @media(max-width:768px){.hero h1{font-size:2.5rem}.hero p{font-size:1.2rem}h2{font-size:1.6rem}nav ul{gap:.8rem;font-size:.85rem}.grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
-
     <nav>
         <ul>
-            <li><a href="#home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Главная</a></li>
-            <li><a href="#about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>О городе</a></li>
-            <li><a href="#landmarks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9"/></svg>Достопримечательности</a></li>
-            <li><a href="#culture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>Культура</a></li>
-            <li><a href="#facts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Факты</a></li>
+            <li><a href="#home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Главная</a></li>
+            <li><a href="#about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>О городе</a></li>
+            <li><a href="#landmarks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9"/></svg>Достопримечательности</a></li>
+            <li><a href="#culture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Культура</a></li>
+            <li><a href="#facts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Факты</a></li>
         </ul>
     </nav>
 
@@ -481,281 +82,95 @@
         <div class="hero-bg"></div>
         <div class="hero-content">
             <h1>Казань</h1>
-            <p>Третья столица России — город, где встречаются Восток и Запад</p>
+            <p>Третья столица России — где встречаются Восток и Запад</p>
             <div>
-                <div class="badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span>Основан: 1005 год</span>
-                </div>
-                <div class="badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>1.3 млн жителей</span>
-                </div>
-                <div class="badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-                    <span>Татарстан, Россия</span>
-                </div>
+                <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Основан: 1005</span></div>
+                <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>1.3 млн жителей</span></div>
+                <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Татарстан</span></div>
             </div>
         </div>
     </section>
 
     <section id="about">
-        <h2>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-            Общие сведения
-        </h2>
-        
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>О городе</h2>
         <div class="stats">
-            <div class="stat-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                <span class="stat-number">425 км²</span>
-                <span class="stat-label">Площадь города</span>
-            </div>
-            <div class="stat-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg>
-                <span class="stat-number">7</span>
-                <span class="stat-label">Районов</span>
-            </div>
-            <div class="stat-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                <span class="stat-number">+4.1°C</span>
-                <span class="stat-label">Средняя температура</span>
-            </div>
-            <div class="stat-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                <span class="stat-number">1021</span>
-                <span class="stat-label">Год истории</span>
-            </div>
+            <div class="stat-item"><span class="stat-number">425 км²</span><span class="stat-label">Площадь</span></div>
+            <div class="stat-item"><span class="stat-number">7</span><span class="stat-label">Районов</span></div>
+            <div class="stat-item"><span class="stat-number">+4.1°C</span><span class="stat-label">Средняя температура</span></div>
+            <div class="stat-item"><span class="stat-number">1021</span><span class="stat-label">Лет истории</span></div>
         </div>
-
         <div class="info-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-            <div>
-                <h3>Географическое положение</h3>
-                <p>Казань расположена на левом берегу Волги, в месте впадения в неё реки Казанки. Город находится на пересечении важнейших транспортных путей между Европой и Азией. Столица Республики Татарстан — единственный город в России, имеющий официальный зарегистрированный бренд «Третья столица России».</p>
-            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <div><h3>География</h3><p>Казань на левом берегу Волги, на пересечении путей Европы и Азии. Единственный город с официальным брендом «Третья столица России».</p></div>
         </div>
     </section>
 
     <section id="landmarks">
-        <h2>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9"/></svg>
-            Уникальные достопримечательности
-        </h2>
-        
-        <p style="font-size: 1.15rem; margin-bottom: 2rem; color: #555; line-height: 1.8;">
-            Казань — город контрастов, где минареты мечетей соседствуют с куполами православных храмов, 
-            а древние крепостные стены — с ультрасовременными зданиями.
-        </p>
-
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9"/></svg>Достопримечательности</h2>
         <div class="grid">
             <div class="card">
-                <div class="card-image">
-                    <img src="https://yastatic.net/naydex/yandex-search/KpfE64t09/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpbDG4r2fP3FWlOepwOh9ulfEGuIQea3WY0C_YB_7nR4TKGxBP8uupDZVo3uySzA" alt="Мечеть Кул-Шариф">
-                </div>
-                <div class="card-content">
-                    <h3>Мечеть Кул-Шариф</h3>
-                    <p>Одна из крупнейших мечетей в Европе. Высота минаретов — <strong>58 метров</strong>. В главном зале одновременно могут молиться до <strong>1500 человек</strong>. Мечеть названа в честь имама Кул-Шарифа, погибшего при защите Казани в 1552 году. Восстановлена к 1000-летию города.</p>
-                </div>
+                <div class="card-image"><img src="https://yastatic.net/naydex/yandex-search/KpfE64t09/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpbDG4r2fP3FWlOepwOh9ulfEGuIQea3WY0C_YB_7nR4TKGxBP8uupDZVo3uySzA" alt="Кул-Шариф"></div>
+                <div class="card-content"><h3>Мечеть Кул-Шариф</h3><p>Одна из крупнейших в Европе. Минареты <strong>58 м</strong>, вмещает <strong>1500</strong> человек. Восстановлена к 1000-летию города.</p></div>
             </div>
-
             <div class="card">
-                <div class="card-image">
-                    <img src="https://yastatic.net/naydex/yandex-search/KpfE64t09/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpXFG4DyfP_FWlOdpgCr8OlbHWuIQea3WY0C_YB_7nR4TKGxBP8uupDZVo3uySzA" alt="Башня Сююмбике">
-                </div>
-                <div class="card-content">
-                    <h3>Башня Сююмбике</h3>
-                    <p>«Падающая башня» Казани. Отклонение от вертикали — почти <strong>2 метра</strong>. Высота — <strong>58 метров</strong>. По легенде, царица Сююмбике бросилась с башни, чтобы не выходить замуж за Ивана Грозного. На самом деле башня построена позже, но тайна её наклона до сих пор не разгадана.</p>
-                </div>
+                <div class="card-image"><img src="https://yastatic.net/naydex/yandex-search/KpfE64t09/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpXFG4DyfP_FWlOdpgCr8OlbHWuIQea3WY0C_YB_7nR4TKGxBP8uupDZVo3uySzA" alt="Сююмбике"></div>
+                <div class="card-content"><h3>Башня Сююмбике</h3><p>«Падающая башня»: наклон почти <strong>2 метра</strong>. Высота <strong>58 м</strong>. Окружена легендой о царице и Иване Грозном.</p></div>
             </div>
-
             <div class="card">
-                <div class="card-image">
-                    <img src="https://yastatic.net/naydex/yandex-search/KpfE64t09/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpbBEoz2fvvFWlOcpgKg9upeHmuIQea3WY0C_YB_7nR4TKGxBP8uupDZVo3uySzA" alt="Храм всех религий">
-                </div>
-                <div class="card-content">
-                    <h3>Храм всех религий</h3>
-                    <p>Уникальное архитектурное сооружение с <strong>16 куполами</strong>, символизирующими разные верования мира. Здание объединяет элементы православного храма, мечети, синагоги и буддийской пагоды. Здесь не проводят богослужения — это культурный центр для диалога религий и искусств.</p>
-                </div>
+                <div class="card-image"><img src="https://yastatic.net/naydex/yandex-search/KpfE64t09/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpbBEoz2fvvFWlOcpgKg9upeHmuIQea3WY0C_YB_7nR4TKGxBP8uupDZVo3uySzA" alt="Храм религий"></div>
+                <div class="card-content"><h3>Храм всех религий</h3><p><strong>16 куполов</strong> разных верований. Символ диалога культур — богослужения не проводятся.</p></div>
             </div>
         </div>
-
-        <div class="wow-fact">
-            <h3>ВАУ-ФАКТ: Подсветка цирка зависит от погоды</h3>
-            <p>В 1968 году для Казанского цирка разработали уникальную светодинамическую систему: цвет купола меняется в зависимости от ветра и температуры. При северном ветре — голубой, при южном — красный, при восточном — зелёный. Сейчас систему управляет искусственный интеллект, получая данные от Гидрометцентра. На реакцию работают 1020 огоньков.</p>
-        </div>
+        <div class="wow-fact"><h3>ВАУ-ФАКТ: Цирк с ИИ</h3><p>Купол Казанского цирка меняет цвет от погоды: северный ветер — голубой, южный — красный. Управляет искусственный интеллект, получая данные от Гидрометцентра.</p></div>
     </section>
 
     <section id="culture">
-        <h2>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            Культура и традиции
-        </h2>
-
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Культура</h2>
         <div class="info-box accent">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            <div>
-                <h3>Гастрономическая столица</h3>
-                <p>Казань официально признана гастрономической столицей России. Здесь рождаются блюда, ставшие символами: <strong>эчпочмак</strong> (треугольник с мясом), <strong>чак-чак</strong> (сладость из теста и мёда), <strong>казылык</strong> (конская колбаса). Татарская кухня сочетает тюркские, русские и среднеазиатские традиции.</p>
-            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div><h3>Гастрономия</h3><p>Официальная гастрономическая столица России. Попробуйте: <strong>эчпочмак</strong> (треугольник с мясом), <strong>чак-чак</strong> (мёд + тесто), <strong>казылык</strong> (конская колбаса).</p></div>
         </div>
-
         <div class="grid">
             <div class="card">
-                <div class="card-image">
-                    <img src="https://yastatic.net/naydex/yandex-search/KpfE64t09/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpbDEI33d_zFWlObqQ6v9e5dHGuIQea3WY0C_YB_7nR4TKGxBP8uupDZVo3uySzA" alt="Улица Баумана">
-                </div>
-                <div class="card-content">
-                    <h3>Улица Баумана</h3>
-                    <p>Казанский Арбат — пешеходная улица длиной <strong>1.8 км</strong>. Здесь установлены бронзовые часы со строками Габдуллы Тукая вместо цифр, памятник Казанскому коту (по легенде, Екатерина II вывезла из Казани котов-крысоловов) и карета Екатерины Второй.</p>
-                </div>
+                <div class="card-image"><img src="https://yastatic.net/naydex/yandex-search/KpfE64t09/57c901-ahAr/jy7mVLCG1RqjdAv1weXu9gZzfnIXPhqyJqYZGVocWZbfevIbtdmQpbDEI33d_zFWlObqQ6v9e5dHGuIQea3WY0C_YB_7nR4TKGxBP8uupDZVo3uySzA" alt="Баумана"></div>
+                <div class="card-content"><h3>Улица Баумана</h3><p>Казанский Арбат — пешеходная улица <strong>1.8 км</strong>. Памятник Казанскому коту, бронзовые часы со строками Тукая.</p></div>
             </div>
-
             <div class="card">
-                <div class="card-image">
-                    <img src="https://avatars.mds.yandex.net/i?id=57996563587a1986bac4e057d415d542_l-5079356-images-thumbs&n=13" alt="Казанский университет">
-                </div>
-                <div class="card-content">
-                    <h3>Казанский университет</h3>
-                    <p>Основан в <strong>1804 году</strong>. Здесь учились Лев Толстой, Владимир Ленин, Николай Лобачевский. В аудитории №7 до сих пор стоит парта, за которой сидел Ленин. Во дворе университета можно увидеть нос самолёта Ту-124, использовавшийся как тренажёр.</p>
-                </div>
+                <div class="card-image"><img src="https://avatars.mds.yandex.net/i?id=57996563587a1986bac4e057d415d542_l-5079356-images-thumbs&n=13" alt="Университет"></div>
+                <div class="card-content"><h3>Казанский университет</h3><p>Основан в <strong>1804</strong>. Учились Толстой, Ленин, Лобачевский. В аудитории №7 — парта Ленина.</p></div>
             </div>
-
             <div class="card">
-                <div class="card-image">
-                    <img src="https://avatars.mds.yandex.net/get-altay/1870294/2a000001700e8b76573ab3bce46804479bb5/orig" alt="Казанский цирк">
-                </div>
-                <div class="card-content">
-                    <h3>Казанский цирк</h3>
-                    <p>Здание в форме летающей тарелки построено в <strong>1967 году</strong>. Купол диаметром <strong>50 метров</strong> парит над землёй без видимых опор. Цирк стал одним из первых в СССР, где применили компьютерное управление светом и сценой.</p>
-                </div>
+                <div class="card-image"><img src="https://avatars.mds.yandex.net/get-altay/1870294/2a000001700e8b76573ab3bce46804479bb5/orig" alt="Цирк"></div>
+                <div class="card-content"><h3>Казанский цирк</h3><p>Здание в форме «тарелки» (<strong>1967</strong>). Купол <strong>50 м</strong> парит без опор. Один из первых с компьютерным управлением.</p></div>
             </div>
         </div>
     </section>
 
     <section id="facts">
-        <h2>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            Секретные факты
-        </h2>
-
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>История</h2>
         <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                </div>
-                <div class="timeline-content">
-                    <span class="year">1005 год</span>
-                    <h3>Основание города</h3>
-                    <p>Казань основана волжскими булгарами как крепость на северной границе государства. Официальный возраст подтверждён археологическими находками монеты чеканки 1005 года.</p>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                </div>
-                <div class="timeline-content">
-                    <span class="year">1552 год</span>
-                    <h3>Взятие Казани</h3>
-                    <p>Иван Грозный после 40-дневной осады взял Казань. Казанское ханство прекратило существование. Город стал центром православной миссии на Востоке, но сохранил татарскую культуру и ислам.</p>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-                </div>
-                <div class="timeline-content">
-                    <span class="year">2000 год</span>
-                    <h3>ЮНЕСКО</h3>
-                    <p>Казанский Кремль включён в список Всемирного наследия ЮНЕСКО — единственный в мире действующий центр татарской государственности, где мирно соседствуют мечеть и православный собор.</p>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                </div>
-                <div class="timeline-content">
-                    <span class="year">2013 год</span>
-                    <h3>Универсиада</h3>
-                    <p>Казань приняла Всемирную летнюю Универсиаду. Построены стадион «Ак Барс Арена», деревня Универсиады, развит транспорт. Город вошёл в топ-10 мировых спортивных центров.</p>
-                </div>
-            </div>
+            <div class="timeline-item"><div class="timeline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="timeline-content"><span class="year">1005</span><h3>Основание</h3><p>Волжские булгары основали крепость. Возраст подтверждён монетой 1005 года.</p></div></div>
+            <div class="timeline-item"><div class="timeline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><div class="timeline-content"><span class="year">1552</span><h3>Иван Грозный</h3><p>После 40-дневной осады взял Казань. Татарская культура и ислам сохранились.</p></div></div>
+            <div class="timeline-item"><div class="timeline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div><div class="timeline-content"><span class="year">2000</span><h3>ЮНЕСКО</h3><p>Казанский Кремль в списке Всемирного наследия — мечеть и собор мирно соседствуют.</p></div></div>
         </div>
-
-        <div class="wow-fact">
-            <h3>ВАУ-ФАКТ: Затонувшая Казань</h3>
-            <p>В 1957 году после подъёма уровня Куйбышевского водохранилища часть Казани ушла под воду. В районе Адмиралтейской слободы при низком уровне воды показываются затопленные улицы, трамвайные пути и даже фундаменты домов. Местные находили здесь старинные ключи, подковы и утюги — но забирать артефакты запрещено: это охраняемая зона.</p>
-        </div>
-
         <div class="info-cards">
-            <div class="info-card purple">
-                <h3>Налог на собак</h3>
-                <p>В 1930-х годах в Казани действовал налог на собак: 5 рублей для рабочих, 10 — для остальных. За уплату выдавали значок на ошейник. Собак без значка отлавливали. Так боролись с бешенством и бездомными животными.</p>
-            </div>
-
-            <div class="info-card violet">
-                <h3>Метро с голосами</h3>
-                <p>В Казанском метро женский голос объявляет станции при движении на юг, мужской — на север. Это помогает незрячим пассажирам определять направление. Объявления звучат на трёх языках: русском, татарском и английском.</p>
-            </div>
-
-            <div class="info-card indigo">
-                <h3>Мост-гигант</h3>
-                <p>Мост «Миллениум» в форме буквы М весит более <strong>600 тонн</strong> — как 120 африканских слонов. Высота арки — 45 метров, ширина основания — 64 метра. Мост строили 3 года и открыли к 1000-летию Казани.</p>
-            </div>
-        </div>
-
-        <div class="wow-fact">
-            <h3>ВАУ-ФАКТ: Вода, которую пили</h3>
-            <p>Река Булак, протекающая через центр Казани, когда-то была настолько чистой, что её воду продавали в дубовых бочках как питьевую. Вода текла то из озера Кабан, то из Волги — в зависимости от сезона — и естественным образом очищалась. Сегодня Булак заключён в трубы на глубине 16 метров.</p>
+            <div class="info-card purple"><h3>Метро с голосами</h3><p>Женский голос — на юг, мужской — на север. Объявления на трёх языках: русском, татарском, английском.</p></div>
+            <div class="info-card violet"><h3>Мост «Миллениум»</h3><p>В форме буквы М, весит <strong>600 тонн</strong>. Высота арки — 45 м. Открыт к 1000-летию Казани.</p></div>
+            <div class="info-card indigo"><h3>Затонувшая Казань</h3><p>После подъёма Куйбышевского водохранилища часть города ушла под воду. При низкой воде видны старые улицы.</p></div>
         </div>
     </section>
 
     <footer>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-        <p style="font-size: 1.3rem; margin-bottom: 1rem;"><strong>Казань ждёт вас!</strong></p>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <p style="font-size:1.2rem;margin-bottom:1rem"><strong>Казань ждёт вас!</strong></p>
         <p>Презентацию подготовил: Дмитрий Володин 4г</p>
-        <p style="margin-top: 2rem; opacity: 0.8; font-size: 0.9rem;">2026</p>
+        <p style="margin-top:1.5rem;opacity:.8;font-size:.9rem">2026</p>
     </footer>
 
     <script>
-        // Плавная прокрутка
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Анимация при скролле
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.card, .stat-item, .timeline-item, .info-box, .wow-fact').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(el);
-        });
+        document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'})})});
+        const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)'}})},{threshold:.1,rootMargin:'0 0 -50px 0'});
+        document.querySelectorAll('.card,.stat-item,.timeline-item,.info-box,.wow-fact').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity .6s ease, transform .6s ease';obs.observe(el)});
     </script>
 </body>
 </html>
