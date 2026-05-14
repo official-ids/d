@@ -9,7 +9,7 @@
 
 
   <!-- QR Code Generator (с фиксом загрузки) -->
-<script src="https://cdn.jsdelivr.net/gh/kazuhikoarase/qrcode-generator@1.4.4/js/qrcode.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   
   <!-- === SYSTEM ASSETS === -->
   <link rel="stylesheet" href="/toast.css">
@@ -305,10 +305,11 @@
     };
 
 
-            // === Реальный генератор QR-кодов (с защитой от async-загрузки) ===
+                // === Реальный генератор QR-кодов ===
     function generateQR(text, canvas, size = 120) {
-      // Если библиотека ещё не загрузилась — пробуем через 100мс
+      // Проверка: библиотека загрузилась?
       if (typeof qrcode === 'undefined') {
+        // Пробуем ещё раз через 100мс (на случай медленной загрузки)
         setTimeout(() => generateQR(text, canvas, size), 100);
         return;
       }
@@ -325,7 +326,7 @@
         const moduleSize = Math.floor(size / moduleCount);
         const offset = Math.floor((size - moduleCount * moduleSize) / 2);
 
-        // Очистка
+        // Очистка канваса
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, size, size);
 
@@ -345,7 +346,7 @@
         }
       } catch (err) {
         console.error('QR generation failed:', err);
-        // Fallback: показать заглушку
+        // Fallback: заглушка
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#f1f5f9';
         ctx.fillRect(0, 0, size, size);
