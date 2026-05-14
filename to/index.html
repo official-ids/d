@@ -102,8 +102,6 @@
   <script>
     // === Smart Redirect Logic ===
     (function() {
-      const params = new URLSearchParams(location.search);
-      const rawUrl = params.get('url');
       const preview = document.getElementById('urlPreview');
       const proceedBtn = document.getElementById('proceedBtn');
       const errorMsg = document.getElementById('errorMsg');
@@ -116,45 +114,56 @@
       }
 
       function sanitizeUrl(str) {
-        // Remove javascript: and data: protocols
         return str.replace(/^javascript:/i, '').replace(/^data:/i, '');
       }
 
-      if (!rawUrl) {
-        preview.textContent = 'No URL provided';
+      function decodeHashUrl(hash) {
+        try {
+          return decodeURIComponent(escape(atob(hash)));
+        } catch { return null; }
+      }
+
+      // === Get target URL: ?url= OR #hash ===
+      function getTargetUrl() {
+        // 1. Try query param: /to?url=...
+        const params = new URLSearchParams(location.search);
+        const queryUrl = params.get('url');
+        if (queryUrl) return sanitizeUrl(queryUrl.trim());
+
+        // 2. Try hash: /to#<base64>
+        const hash = location.hash.slice(1);
+        if (hash) {
+          const decoded = decodeHashUrl(hash);
+          if (decoded && isValidUrl(decoded)) return decoded;
+        }
+
+        return null;
+      }
+
+      const targetUrl = getTargetUrl();
+
+      if (!targetUrl || !isValidUrl(targetUrl)) {
+        preview.textContent = 'Invalid or missing URL';
         proceedBtn.style.display = 'none';
-        errorMsg.textContent = 'Missing "url" parameter';
+        errorMsg.textContent = 'Cannot redirect: invalid URL';
         errorMsg.style.display = 'block';
         if (window.toast) toast.error('Invalid redirect link');
         return;
       }
 
-      const cleanUrl = sanitizeUrl(rawUrl.trim());
-      
-      if (!isValidUrl(cleanUrl)) {
-        preview.textContent = cleanUrl.slice(0, 100) + (cleanUrl.length > 100 ? '...' : '');
-        proceedBtn.style.display = 'none';
-        errorMsg.textContent = 'Invalid or blocked URL protocol';
-        errorMsg.style.display = 'block';
-        if (window.toast) toast.error('Unsafe URL blocked');
-        return;
-      }
-
       // Show preview
-      preview.textContent = cleanUrl.length > 60 
-        ? cleanUrl.slice(0, 57) + '...' 
-        : cleanUrl;
+      preview.textContent = targetUrl.length > 60 
+        ? targetUrl.slice(0, 57) + '...' 
+        : targetUrl;
       
-      // Set proceed link
-      proceedBtn.href = cleanUrl;
+      proceedBtn.href = targetUrl;
 
       // Auto-redirect after 2 seconds
       setTimeout(() => {
         if (window.toast) toast.info('Redirecting...', { duration: 2000 });
-        window.location.href = cleanUrl;
+        window.location.href = targetUrl;
       }, 2000);
 
-      // Manual click handler
       proceedBtn.addEventListener('click', () => {
         if (window.toast) toast.success('Opening link...');
       });
