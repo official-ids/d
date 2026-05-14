@@ -14,8 +14,23 @@
       --accent: #0d9488;
       --accent-hover: #0f766e;
       --radius: 12px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
       --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #2dd4bf;
+      --accent-hover: #14b8a6;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--font-sans);
@@ -23,6 +38,7 @@
       color: var(--text);
       min-height: 100vh;
       padding: 24px;
+      transition: background 0.3s, color 0.3s;
     }
     .container { max-width: 1200px; margin: 0 auto; }
     
@@ -34,18 +50,13 @@
       padding-bottom: 16px;
       border-bottom: 2px solid var(--border);
     }
-    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
     .logo span { color: var(--accent); }
     
-    .search-bar {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
     #search-input {
       flex: 1;
-      min-width: 200px;
+      min-width: 220px;
       padding: 10px 14px;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -53,7 +64,7 @@
       font-size: 14px;
       color: var(--text);
     }
-    #search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+    #search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,148,136,0.15); }
     
     .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
     .chip {
@@ -68,6 +79,22 @@
       color: var(--text-muted);
     }
     .chip:hover, .chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    
+    .sort-select {
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    
+    .theme-toggle {
+      background: none; border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; color: var(--text);
+    }
+    .theme-toggle:hover { background: var(--surface); }
     
     .apps-grid {
       display: grid;
@@ -83,24 +110,28 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
       color: inherit;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeIn 0.4s forwards;
     }
     .app-card:hover {
       border-color: var(--accent);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
     }
+    @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
     
     .app-header { display: flex; align-items: center; gap: 12px; }
     .app-icon {
       width: 48px; height: 48px;
-      background: var(--accent-soft);
+      background: rgba(13,148,136,0.1);
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 24px;
     }
+    .app-icon svg { width: 24px; height: 24px; color: var(--accent); }
     .app-name { font-weight: 700; font-size: 16px; }
     .app-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; flex: 1; }
     
@@ -127,148 +158,262 @@
     .app-link:hover { text-decoration: underline; }
     .app-link svg { width: 16px; height: 16px; }
     
-    .empty-state {
+    .empty-state, .loading {
       text-align: center;
       padding: 48px 24px;
       color: var(--text-muted);
     }
-    .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
-    
-    .loading {
-      text-align: center;
-      padding: 48px;
-      color: var(--text-muted);
-    }
-    .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      margin: 0 auto 16px;
-      animation: spin 0.8s linear infinite;
-    }
+    .empty-state svg, .loading svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+    .spinner { animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
     @media (max-width: 600px) {
+      .controls { flex-direction: column; align-items: stretch; }
+      .filter-chips { justify-content: center; }
       .apps-grid { grid-template-columns: 1fr; }
-      .search-bar { flex-direction: column; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="logo">SERAVIEL<span>Labs</span></div>
-      <a href="/" style="color:var(--accent);font-weight:600;text-decoration:none;">← Back to Hub</a>
+      <div class="logo">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        SERAVIEL<span>Labs</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="theme-toggle" id="theme-btn" aria-label="Toggle dark mode">
+          <svg id="theme-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <a href="/" style="color:var(--accent);font-weight:600;text-decoration:none;">← Hub</a>
+      </div>
     </header>
     
-    <div class="search-bar">
-      <input type="text" id="search-input" placeholder="Search apps...">
+    <div class="controls">
+      <input type="search" id="search-input" placeholder="Search apps..." aria-label="Search applications">
       <div class="filter-chips" id="filter-chips">
-        <span class="chip active" data-filter="all">All</span>
-        <span class="chip" data-filter="design">Design</span>
-        <span class="chip" data-filter="tools">Tools</span>
-        <span class="chip" data-filter="dev">Dev</span>
-        <span class="chip" data-filter="productivity">Productivity</span>
+        <button class="chip active" data-filter="all" role="tab" aria-selected="true">All</button>
+        <button class="chip" data-filter="design" role="tab">Design</button>
+        <button class="chip" data-filter="tools" role="tab">Tools</button>
+        <button class="chip" data-filter="dev" role="tab">Dev</button>
+        <button class="chip" data-filter="productivity" role="tab">Productivity</button>
       </div>
+      <select class="sort-select" id="sort-select" aria-label="Sort applications">
+        <option value="name-asc">Name (A-Z)</option>
+        <option value="name-desc">Name (Z-A)</option>
+        <option value="date-desc">Newest first</option>
+      </select>
     </div>
     
-    <div id="apps-container">
+    <main id="apps-container" aria-live="polite">
       <div class="loading">
-        <div class="spinner"></div>
-        <div>Loading apps catalog...</div>
+        <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M12 2a10 10 0 0 1 10 10"/>
+        </svg>
+        <div>Loading catalog...</div>
       </div>
-    </div>
+    </main>
   </div>
 
   <script>
     const MANIFEST_URL = '/apps/manifest.json';
+    const STORAGE_KEY = 'seraviel_apps_cache';
+    const CACHE_TTL = 300000; // 5 минут
+
     let allApps = [];
-    
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const res = await fetch(MANIFEST_URL);
-        if (!res.ok) throw new Error('Manifest not found');
-        const data = await res.json();
-        allApps = data.apps || [];
-        renderApps(allApps);
-        setupFilters();
-        setupSearch();
-      } catch (err) {
-        console.error('Failed to load manifest:', err);
-        document.getElementById('apps-container').innerHTML = `
-          <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
-            </svg>
-            <div>Could not load apps catalog.<br>Check if <code>apps/manifest.json</code> exists.</div>
-          </div>
-        `;
-      }
+    let activeFilter = 'all';
+    let activeSort = 'name-asc';
+    let searchQuery = '';
+
+    const container = document.getElementById('apps-container');
+    const searchInput = document.getElementById('search-input');
+    const sortSelect = document.getElementById('sort-select');
+    const themeBtn = document.getElementById('theme-btn');
+    const themeIcon = document.getElementById('theme-icon');
+
+    // Иконки
+    const ICONS = {
+      default: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
+      external: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
+      empty: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><path d="M12 8v4"/></svg>`,
+      notFound: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+      moon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+      sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+    };
+
+    // Темная тема
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const savedTheme = localStorage.getItem('theme');
+    const isDark = savedTheme ? savedTheme === 'dark' : prefersDark.matches;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    themeIcon.innerHTML = isDark ? ICONS.moon : ICONS.sun;
+
+    themeBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      themeIcon.innerHTML = next === 'dark' ? ICONS.moon : ICONS.sun;
     });
-    
-    function renderApps(apps) {
-      const container = document.getElementById('apps-container');
-      if (apps.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-            </svg>
-            <div>No apps found matching your criteria.</div>
-          </div>
-        `;
+
+    // Загрузка данных с кэшированием
+    async function loadManifest() {
+      const cached = localStorage.getItem(STORAGE_KEY);
+      if (cached) {
+        try {
+          const { data, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_TTL) {
+            return data;
+          }
+        } catch {}
+      }
+
+      const res = await fetch(MANIFEST_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+      return data;
+    }
+
+    // Безопасный рендеринг
+    function createCard(app, index) {
+      const card = document.createElement('a');
+      card.className = 'app-card';
+      card.style.animationDelay = `${index * 50}ms`;
+      
+      // Валидация ссылки
+      let href = app.path || '#';
+      if (!href.startsWith('/') && !href.startsWith('https://') && !href.startsWith('http://')) {
+        href = '#';
+      }
+      card.href = href;
+      card.rel = 'noopener noreferrer';
+      card.setAttribute('aria-label', `Open ${app.name || 'Application'}`);
+
+      const header = document.createElement('div');
+      header.className = 'app-header';
+
+      const iconBox = document.createElement('div');
+      iconBox.className = 'app-icon';
+      iconBox.innerHTML = app.icon || ICONS.default;
+
+      const name = document.createElement('div');
+      name.className = 'app-name';
+      name.textContent = app.name || 'Untitled';
+
+      header.appendChild(iconBox);
+      header.appendChild(name);
+
+      const desc = document.createElement('div');
+      desc.className = 'app-desc';
+      desc.textContent = app.description || '';
+
+      card.appendChild(header);
+      card.appendChild(desc);
+
+      if (Array.isArray(app.tags) && app.tags.length > 0) {
+        const tags = document.createElement('div');
+        tags.className = 'app-tags';
+        app.tags.forEach(tag => {
+          const span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = tag;
+          tags.appendChild(span);
+        });
+        card.appendChild(tags);
+      }
+
+      const link = document.createElement('div');
+      link.className = 'app-link';
+      link.innerHTML = `Open App ${ICONS.external}`;
+      card.appendChild(link);
+
+      return card;
+    }
+
+    function renderApps() {
+      container.innerHTML = '';
+      
+      let filtered = allApps;
+      if (activeFilter !== 'all') {
+        filtered = filtered.filter(app => app.tags?.includes(activeFilter));
+      }
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(app => 
+          (app.name || '').toLowerCase().includes(q) ||
+          (app.description || '').toLowerCase().includes(q) ||
+          app.tags?.some(t => t.toLowerCase().includes(q))
+        );
+      }
+
+      // Сортировка
+      filtered.sort((a, b) => {
+        if (activeSort === 'name-asc') return (a.name || '').localeCompare(b.name || '');
+        if (activeSort === 'name-desc') return (b.name || '').localeCompare(a.name || '');
+        if (activeSort === 'date-desc') return new Date(b.addedAt || 0) - new Date(a.addedAt || 0);
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = `${ICONS.empty}<div>${allApps.length === 0 ? 'Could not load catalog. Verify manifest path.' : 'No apps match your filters.'}</div>`;
+        container.appendChild(empty);
         return;
       }
-      
-      container.innerHTML = `<div class="apps-grid">${apps.map(app => `
-        <a href="${app.path}" class="app-card">
-          <div class="app-header">
-            <div class="app-icon">${app.icon || '🧩'}</div>
-            <div class="app-name">${app.name}</div>
-          </div>
-          <div class="app-desc">${app.description}</div>
-          ${app.tags?.length ? `<div class="app-tags">${app.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
-          <div class="app-link">
-            Open App
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </div>
-        </a>
-      `).join('')}</div>`;
+
+      const grid = document.createElement('div');
+      grid.className = 'apps-grid';
+      filtered.forEach((app, i) => grid.appendChild(createCard(app, i)));
+      container.appendChild(grid);
     }
-    
-    function setupFilters() {
-      const chips = document.querySelectorAll('.chip');
-      chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          chips.forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          const filter = chip.dataset.filter;
-          const filtered = filter === 'all' 
-            ? allApps 
-            : allApps.filter(app => app.tags?.includes(filter));
-          renderApps(filtered);
+
+    // Фильтры
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => {
+          c.classList.remove('active');
+          c.setAttribute('aria-selected', 'false');
         });
+        chip.classList.add('active');
+        chip.setAttribute('aria-selected', 'true');
+        activeFilter = chip.dataset.filter;
+        renderApps();
       });
-    }
-    
-    function setupSearch() {
-      const input = document.getElementById('search-input');
-      input.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        if (!query) {
-          renderApps(allApps);
-          return;
-        }
-        const filtered = allApps.filter(app => 
-          app.name.toLowerCase().includes(query) ||
-          app.description.toLowerCase().includes(query) ||
-          app.tags?.some(t => t.toLowerCase().includes(query))
-        );
-        renderApps(filtered);
-      });
-    }
+    });
+
+    // Сортировка
+    sortSelect.addEventListener('change', (e) => {
+      activeSort = e.target.value;
+      renderApps();
+    });
+
+    // Поиск с debounce
+    let debounceTimer;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        searchQuery = e.target.value.trim();
+        renderApps();
+      }, 250);
+    });
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const data = await loadManifest();
+        allApps = Array.isArray(data.apps) ? data.apps : [];
+        renderApps();
+      } catch (err) {
+        console.error('Catalog load failed:', err);
+        container.innerHTML = `<div class="empty-state">${ICONS.empty}<div>Could not load catalog.<br><small>Ensure <code>/apps/manifest.json</code> is accessible and valid JSON.</small></div></div>`;
+      }
+    });
   </script>
 </body>
 </html>
