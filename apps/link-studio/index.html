@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Link Studio | SERAVIEL LABS</title>
   <meta name="description" content="Privacy-first URL shortener with QR codes. 100% client-side, zero telemetry.">
+
+
+
+  <!-- QR Code Generator (с фиксом загрузки) -->
+<script src="https://cdn.jsdelivr.net/gh/kazuhikoarase/qrcode-generator@1.4.4/js/qrcode.min.js" crossorigin="anonymous"></script>
   
   <!-- === SYSTEM ASSETS === -->
   <link rel="stylesheet" href="/toast.css">
@@ -277,53 +282,6 @@
     © 2024–2026 SERAVIEL LABS. Zero telemetry. Open by design.
   </footer>
 
-  <!-- Minimal QR Code Generator (Public Domain, ~2KB) -->
-  <script>
-    // Simple QR-like visualizer for demonstration
-    // For production: replace with proper QR library like 'qrcode.js'
-    function generateQR(code, canvas, size = 120) {
-      const ctx = canvas.getContext('2d');
-      const moduleCount = 21; // Version 1 QR
-      const moduleSize = Math.floor(size / moduleCount);
-      const offset = Math.floor((size - moduleCount * moduleSize) / 2);
-      
-      // Clear
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, size, size);
-      
-      // Simple hash-based pattern (not real QR, but scannable as data matrix style)
-      const hash = code.split('').reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
-      
-      ctx.fillStyle = '#000000';
-      
-      // Draw finder patterns (corners)
-      function drawFinder(x, y) {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x * moduleSize + offset, y * moduleSize + offset, 7 * moduleSize, 7 * moduleSize);
-        ctx.fillStyle = '#fff';
-        ctx.fillRect((x+1) * moduleSize + offset, (y+1) * moduleSize + offset, 5 * moduleSize, 5 * moduleSize);
-        ctx.fillStyle = '#000';
-        ctx.fillRect((x+2) * moduleSize + offset, (y+2) * moduleSize + offset, 3 * moduleSize, 3 * moduleSize);
-      }
-      drawFinder(0, 0);
-      drawFinder(14, 0);
-      drawFinder(0, 14);
-      
-      // Draw data modules based on hash
-      for (let row = 0; row < moduleCount; row++) {
-        for (let col = 0; col < moduleCount; col++) {
-          // Skip finder pattern areas
-          if ((row < 8 && col < 8) || (row < 8 && col > 12) || (row > 12 && col < 8)) continue;
-          
-          // Pseudo-random based on hash and position
-          const val = Math.abs(hash + row * 31 + col * 17) % 100;
-          if (val < 45) { // ~45% density
-            ctx.fillRect(col * moduleSize + offset, row * moduleSize + offset, moduleSize, moduleSize);
-          }
-        }
-      }
-    }
-  </script>
 
   <script>
     // === Config ===
@@ -345,6 +303,58 @@
       historyList: document.getElementById('historyList'),
       btnClearHistory: document.getElementById('btnClearHistory')
     };
+
+
+            // === Реальный генератор QR-кодов (с защитой от async-загрузки) ===
+    function generateQR(text, canvas, size = 120) {
+      // Если библиотека ещё не загрузилась — пробуем через 100мс
+      if (typeof qrcode === 'undefined') {
+        setTimeout(() => generateQR(text, canvas, size), 100);
+        return;
+      }
+
+      try {
+        const ctx = canvas.getContext('2d');
+        
+        // Создаём QR: TypeNumber=0 (авто), ErrorCorrection='M' (15% повреждений)
+        const qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+
+        const moduleCount = qr.getModuleCount();
+        const moduleSize = Math.floor(size / moduleCount);
+        const offset = Math.floor((size - moduleCount * moduleSize) / 2);
+
+        // Очистка
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+
+        // Отрисовка модулей
+        ctx.fillStyle = '#000000';
+        for (let row = 0; row < moduleCount; row++) {
+          for (let col = 0; col < moduleCount; col++) {
+            if (qr.isDark(row, col)) {
+              ctx.fillRect(
+                col * moduleSize + offset,
+                row * moduleSize + offset,
+                moduleSize,
+                moduleSize
+              );
+            }
+          }
+        }
+      } catch (err) {
+        console.error('QR generation failed:', err);
+        // Fallback: показать заглушку
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f1f5f9';
+        ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('QR Error', size/2, size/2 + 4);
+      }
+    }
 
     // === Utils ===
     function isValidUrl(str) {
