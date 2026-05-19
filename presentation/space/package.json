@@ -1,0 +1,30 @@
+{
+  "name": "Space",
+  "description": "Educational project about Space Exploration and the Universe. Learn about planets, space missions, cosmic phenomena, and the history of cosmonautics.",
+  "keywords": [
+    "space",
+    "universe",
+    "planets",
+    "cosmonautics",
+    "astronomy",
+    "school-project",
+    "solar-system",
+    "galaxy",
+    "satellites",
+    "rockets",
+    "black-holes",
+    "mars",
+    "moon"
+  ],
+  "version": "1.0.0",
+  "private": true,
+  "seraviel": {
+    "type": "school-project",
+    "category": "school-project",
+    "language": "ru",
+    "author": "STUDENT",
+    "license": "MIT",
+    "subject": "astronomy"
+  },
+  "date": "2026-05-19T12:00:00.000Z"
+}
