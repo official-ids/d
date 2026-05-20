@@ -49,8 +49,8 @@ function getSecurityHeaders(cacheControl, is503 = false) {
 }
 
 /**
- * Helper: Проверка доступности ресурса с детализацией ошибок
- * @param {string} url - Путь или полный URL
+ * Helper: Проверка доступности ресурса (Vercel Edge Runtime compatible)
+ * @param {string} url - Относительный путь (начинается с /) или полный URL
  * @param {number} timeout - Таймаут в мс
  * @returns {Promise<Object>} Результат проверки
  */
@@ -61,41 +61,37 @@ async function checkResource(url, timeout = CONFIG.timeouts.resourceCheck) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
     
-    const fullUrl = url.startsWith('http') 
-      ? url 
-      : `https://${CONFIG.baseUrl}${url}`;
+    // ✅ Edge Runtime: используем относительные пути для внутренних ресурсов
+    // Если url начинается с / — считаем его внутренним и не добавляем домен
+    const fetchUrl = url.startsWith('http') ? url : url;
     
-    const res = await fetch(fullUrl, { 
+    const res = await fetch(fetchUrl, { 
       signal: controller.signal,
       method: 'HEAD',
       headers: { 
         'User-Agent': 'SeravielHealthCheck/1.1',
         'Accept': '*/*'
       },
-      // Edge Runtime: не отправляем куки/авторизацию во внешние запросы
+      // Edge: не отправляем куки, не кэшируем ответ на уровне fetch
+      cache: 'no-store',
       credentials: 'omit'
     });
     
     clearTimeout(timer);
     const responseTime = Date.now() - startTime;
     
-    // Детализация статусов для мониторинга
     if (res.ok) {
       return { ok: true, status: res.status, responseTime, checkedAt: new Date().toISOString() };
     }
     
-    // 4xx — ресурс не найден/запрещён (логическая ошибка конфигурации)
     if (res.status >= 400 && res.status < 500) {
       return { ok: false, status: res.status, responseTime, error: 'not_found', checkedAt: new Date().toISOString() };
     }
     
-    // 5xx — временная ошибка сервера (можно ретраить)
     return { ok: false, status: res.status, responseTime, error: 'server_error', checkedAt: new Date().toISOString() };
     
   } catch (err) {
     const responseTime = Date.now() - startTime;
-    
-    // Классификация ошибок для алертинга
     const errorType = 
       err.name === 'AbortError' ? 'timeout' :
       err.name === 'TypeError' ? 'network_error' : 'unknown';
