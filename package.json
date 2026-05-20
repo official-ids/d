@@ -3,8 +3,10 @@
   "version": "1.0.1",
   "scripts": {
     "prebuild": "node scripts/generate-vercel-config.js",
-    "build": "echo '✅ Static build ready for Vercel'",
-    "dev": "npm run prebuild && npx serve . -l 3000"
+    "build:strip": "NODE_ENV=production node scripts/strip-logs.js",
+    "build": "npm run build:strip && echo '✅ Static build ready for Vercel'",
+    "dev": "npm run prebuild && npx serve . -l 3000",
+    "deploy": "npm run build && vercel --prod"
   },
   "dependencies": {
     "@vercel/kv": "^3.0.0",
