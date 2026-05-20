@@ -298,7 +298,7 @@
           <!-- Заполняется JS -->
         </div>
         <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
-          <span>90 days ago</span>
+          <span id="dateStart">90 days ago</span>
           <span>Today</span>
         </div>
       </section>
@@ -505,6 +505,33 @@ async function checkService(name, elementId, key, attempt = 1) {
           `Last checked: ${formatTimeAgo(new Date())} • Live Status`;
       }
 
+      /**
+ * Обновляет метки времени на графике аптайма
+ * @param {number} days - количество дней истории (по умолчанию 90)
+ */
+function updateTimelineLabels(days = 90) {
+  const startEl = document.getElementById('dateStart');
+  const endEl = document.getElementById('dateEnd'); // Опционально, если нужно динамическое "Today"
+  
+  if (!startEl) return;
+
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(now.getDate() - days);
+
+  // Форматирование: "20 фев." или "Feb 20" в зависимости от локали браузера
+  const formatDate = (date) => date.toLocaleDateString(undefined, { 
+    day: 'numeric', 
+    month: 'short' 
+  });
+
+  startEl.textContent = formatDate(startDate);
+  
+  if (endEl) {
+    endEl.textContent = 'Today'; // Или formatDate(now), если нужна полная дата
+  }
+}
+
       // === Загрузка инструментов из манифеста ===
       async function loadTools() {
         const list = document.getElementById('toolsList');
@@ -577,6 +604,7 @@ async function checkService(name, elementId, key, attempt = 1) {
           bar.style.opacity = 0.6 + (Math.random() * 0.4);
           bar.setAttribute('aria-label', `Day ${i + 1}: ${bar.classList.contains('down') ? 'down' : bar.classList.contains('degraded') ? 'degraded' : 'operational'}`);
           container.appendChild(bar);
+          updateTimelineLabels(days); 
         }
       }
 
