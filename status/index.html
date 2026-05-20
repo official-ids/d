@@ -415,55 +415,78 @@
         el.setAttribute('aria-label', `${text} — ${status}`);
       }
 
-      // === Проверка сервиса через реальный API ===
-      async function checkService(name, elementId, key, attempt = 1) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), CONFIG.timeout);
-          
-          // Запрос к реальному эндпоинту
-          const res = await fetch(CONFIG.healthEndpoint, {
-            signal: controller.signal,
-            headers: {
-              'Accept': 'application/json',
-              // Опционально: детальный режим с авторизацией
-              // 'Authorization': `Bearer ${process.env.HEALTH_SECRET}` 
-            }
-          });
-          clearTimeout(timeout);
-          
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          
-          const data = await res.json();
-          
-          // Определение статуса конкретного компонента из ответа
-          const checkStatus = data.checks?.[key];
-          if (checkStatus === 'pass') {
-            updateStatus(elementId, 'operational', 'Operational');
-          } else if (checkStatus === 'fail') {
-            updateStatus(elementId, 'degraded', 'Degraded');
-          } else {
-            // Если компонента нет в ответе — считаем unknown
-            updateStatus(elementId, 'operational', 'Unknown');
-          }
-          
-          // Обновление баннера, если это первая проверка
-          if (elementId === 'status-web') {
-            updateBanner(data.status);
-          }
-          
-        } catch (err) {
-          console.warn(`Check failed for ${name}:`, err);
-          if (attempt < 3) {
-            // Экспоненциальная задержка перед ретраем
-            await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
-            await checkService(name, elementId, key, attempt + 1);
-          } else {
-            updateStatus(elementId, 'down', 'Unavailable');
-            if (attempt === 3) Toast.show(`${name} check failed`, 'error');
-          }
-        }
-      }
+      // === Проверка сервиса с защитой от 503 и Circuit Breaker ===
+async function checkService(name, elementId, key, attempt = 1) {
+  // Защита от бесконечных рекурсий и перегрузки сети
+  if (attempt > 3) {
+    updateStatus(elementId, 'down', 'Unavailable');
+    return; 
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), CONFIG.timeout);
+    
+    const res = await fetch(CONFIG.healthEndpoint, {
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' }, // Удалено: заголовки авторизации из публичного клиента
+      cache: 'no-store' // Исключаем кэширование статусов
+    });
+    clearTimeout(timeout);
+    
+    // Обработка специфичных кодов состояния
+    if (res.status === 503 || res.status === 502) {
+      // Сервис на обслуживании или шлюз не отвечает — не считаем это критической ошибкой
+      updateStatus(elementId, 'degraded', 'Maintenance');
+      
+      // Читаем заголовок Retry-After (секунды) или используем дефолт
+      const retryAfter = res.headers.get('Retry-After');
+      const delay = retryAfter ? parseInt(retryAfter, 10) * 1000 : 5000;
+      
+      // Планируем следующую проверку с задержкой, не блокируя UI
+      setTimeout(() => checkService(name, elementId, key, attempt + 1), delay);
+      return; 
+    }
+    
+    if (res.status === 429) {
+       // Rate limit — увеличиваем задержку экспоненциально
+       await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt - 1)));
+       return checkService(name, elementId, key, attempt + 1);
+    }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    const data = await res.json();
+    
+    // Валидация схемы ответа (защита от XSS через API)
+    const checkStatus = data.checks?.[key];
+    if (typeof checkStatus !== 'string') {
+        console.warn(`Invalid schema for ${key}`);
+        updateStatus(elementId, 'operational', 'Unknown');
+        return;
+    }
+
+    if (checkStatus === 'pass') {
+      updateStatus(elementId, 'operational', 'Operational');
+    } else if (checkStatus === 'fail') {
+      updateStatus(elementId, 'degraded', 'Degraded');
+    } else {
+      updateStatus(elementId, 'operational', 'Unknown');
+    }
+    
+    if (elementId === 'status-web') {
+      updateBanner(data.status);
+    }
+    
+  } catch (err) {
+    // Сетевые ошибки или таймауты
+    console.warn(`Check failed for ${name}:`, err.name === 'AbortError' ? 'Timeout' : err.message);
+    
+    // Экспоненциальная задержка только для сетевых сбоев
+    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
+    await checkService(name, elementId, key, attempt + 1);
+  }
+}
 
       // === Обновление главного баннера ===
       function updateBanner(overallStatus) {
