@@ -604,8 +604,10 @@ function updateTimelineLabels(days = 90) {
           bar.style.opacity = 0.6 + (Math.random() * 0.4);
           bar.setAttribute('aria-label', `Day ${i + 1}: ${bar.classList.contains('down') ? 'down' : bar.classList.contains('degraded') ? 'degraded' : 'operational'}`);
           container.appendChild(bar);
-          updateTimelineLabels(days); 
+           
         }
+
+        updateTimelineLabels(days);
       }
 
       // === Рендеринг инцидентов ===
